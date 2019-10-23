@@ -10,6 +10,7 @@
 package org.nrg.xnat.plugins.collection.rest;
 
 import io.swagger.annotations.*;
+import org.apache.commons.io.FilenameUtils;
 import org.nrg.framework.annotations.XapiRestController;
 import org.nrg.framework.exceptions.NotFoundException;
 import org.nrg.xapi.authorization.GuestUserAccessXapiAuthorization;
@@ -29,6 +30,7 @@ import org.nrg.xft.security.UserI;
 import org.nrg.xnat.plugins.collection.entities.Collection;
 import org.nrg.xnat.plugins.collection.model.CollectionModel;
 import org.nrg.xnat.plugins.collection.services.CollectionService;
+import org.nrg.xnat.turbine.utils.ArcSpecManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,6 +42,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.io.File;
 
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -154,67 +159,154 @@ public class CollectionApi extends AbstractXapiRestController {
         _collectionService.delete(id);
         return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
     }
-//
-//    @ApiOperation(value = "Returns JSON with the paths to the files.", response = String.class)
-//    @ApiResponses({@ApiResponse(code = 200, message = "JSON returned."),
-//            @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
-//            @ApiResponse(code = 500, message = "Unexpected error")})
-//    @XapiRequestMapping(value = "filesJson/{trainingId}/{validationId}", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.GET, restrictTo = Authorizer)
-//    @AuthDelegate(GuestUserAccessXapiAuthorization.class)
-//    public ResponseEntity<String> filesJson(@ApiParam(value = "ID of the training collection", required = true) @PathVariable("trainingId") final String trainingId,
-//                                            @ApiParam(value = "ID of the validation collection", required = true) @PathVariable("validationId") final String validationId) {
-//        String aggregateString = "{\n\"training\": [";
-//        try{
-//            final UserI user = getSessionUser();
-//            final Collection currCollection = _collectionService.get(Long.parseLong(trainingId));
-//            for(String exptID : currCollection.getExperimentsInCollection()){
-//                XnatImagesessiondata expt = (XnatImagesessiondata)XnatExperimentdata.getXnatExperimentdatasById(exptID, user, false);
-//                List<XnatImagescandata> scans = ((XnatImagesessiondataI)expt).getScans_scan();
-//                for(XnatImagescandata scan : scans) {
-//                    for(final XnatAbstractresourceI res: scan.getFile()){
-//                        for(final File f:((XnatAbstractresource)res).getCorrespondingFiles(expt.getArchivePath())){
-//                            final String uri=f.getPath();
-//                            aggregateString+="\n{\n\"image\": \""+uri+"\",\n\"label\": \""+uri+"\"\n},";
-//                        }
-//                    }
-//                }
-//
-//            }
-//        }
-//        catch(Exception e){
-//
-//        }
-//        if(aggregateString.endsWith(",")){
-//            aggregateString = aggregateString.substring(0,aggregateString.length()-1);
-//        }
-//        aggregateString+="],";
-//        aggregateString += "\n\"validation\": [";
-//        try{
-//            final UserI user = getSessionUser();
-//            final Collection currCollection = _collectionService.get(Long.parseLong(validationId));
-//            for(String exptID : currCollection.getExperimentsInCollection()){
-//                XnatImagesessiondata expt = (XnatImagesessiondata)XnatExperimentdata.getXnatExperimentdatasById(exptID, user, false);
-//                List<XnatImagescandata> scans = ((XnatImagesessiondataI)expt).getScans_scan();
-//                for(XnatImagescandata scan : scans) {
-//                    for(final XnatAbstractresourceI res: scan.getFile()){
-//                        for(final File f:((XnatAbstractresource)res).getCorrespondingFiles(expt.getArchivePath())){
-//                            final String uri=f.getAbsolutePath();
-//                            aggregateString+="\n{\n\"image\": \""+uri+"\",\n\"label\": \""+uri+"\"\n},";
-//                        }
-//                    }
-//                }
-//
-//            }
-//        }
-//        catch(Exception e){
-//
-//        }
-//        if(aggregateString.endsWith(",")){
-//            aggregateString = aggregateString.substring(0,aggregateString.length()-1);
-//        }
-//        aggregateString+="]\n}";
-//        return new ResponseEntity<>(aggregateString, HttpStatus.OK);
-//    }
+
+    @ApiOperation(value = "Returns JSON with the paths to the files in the collection.", response = String.class)
+    @ApiResponses({@ApiResponse(code = 200, message = "JSON returned."),
+            @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
+            @ApiResponse(code = 500, message = "Unexpected error")})
+    @XapiRequestMapping(value = "jsonForCollection/{id}", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.GET, restrictTo = Authorizer)
+    @AuthDelegate(GuestUserAccessXapiAuthorization.class)
+    public ResponseEntity<String> jsonForCollection(@ApiParam(value = "ID of the collection", required = true) @PathVariable("id") final long id) throws NotFoundException {
+        final UserI user = getSessionUser();
+        final Collection currCollection = _collectionService.get(id);
+        Path projectPath = Paths.get(ArcSpecManager.GetInstance().getArchivePathForProject(currCollection.getProjectId()));
+
+        String aggregateString = "{\n\"training\": [";
+        try{
+            for(String exptID : currCollection.getTrainingExperiments()){
+                XnatImagesessiondata expt = (XnatImagesessiondata)XnatExperimentdata.getXnatExperimentdatasById(exptID, user, false);
+                List<XnatImagescandata> scans = ((XnatImagesessiondataI)expt).getScans_scan();
+                XnatImagescandata imagesScan = null;
+                XnatImagescandata labelsScan = null;
+                for(XnatImagescandata scan : scans) {
+                    if(scan.getType().equals("IMAGES")) {
+                        imagesScan = scan;
+                    }
+                    else if(scan.getType().equals("LABELS")) {
+                        labelsScan = scan;
+                    }
+                }
+                if(imagesScan!=null && labelsScan!=null) {
+                    File niiImageFile = null;
+                    for(XnatAbstractresourceI resI: imagesScan.getFile()){
+                        XnatAbstractresource imagesRes = (XnatAbstractresource) resI;
+                        if(imagesRes!=null) {
+                            ArrayList<File> imagesFiles = imagesRes.getCorrespondingFiles(expt.getArchivePath());
+                            if(imagesFiles!=null){
+                                for(File curr: imagesFiles){
+                                    String currPath = curr.getPath();
+                                    if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
+                                        niiImageFile = curr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    File niiLabelFile = null;
+                    for(XnatAbstractresourceI resI: labelsScan.getFile()){
+                        XnatAbstractresource labelsRes = (XnatAbstractresource) resI;
+                        if(labelsRes!=null) {
+                            ArrayList<File> labelsFiles = labelsRes.getCorrespondingFiles(expt.getArchivePath());
+                            if(labelsFiles!=null){
+                                for(File curr: labelsFiles){
+                                    String currPath = curr.getPath();
+                                    if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
+                                        niiLabelFile = curr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(niiImageFile!=null && niiLabelFile!=null){
+                        final String imageUri = niiImageFile.getPath();
+                        final String labelUri = niiLabelFile.getPath();
+                        final Path imagePath = Paths.get(imageUri);
+                        final Path labelPath = Paths.get(labelUri);
+                        final Path relativeImagePath = projectPath.relativize(imagePath);
+                        final Path relativeLabelPath = projectPath.relativize(labelPath);
+
+                        aggregateString += "\n{\n\"image\": \"" + relativeImagePath + "\",\n\"label\": \"" + relativeLabelPath + "\"\n},";
+                    }
+                }
+            }
+        }
+        catch(Exception e){
+
+        }
+        if(aggregateString.endsWith(",")){
+            aggregateString = aggregateString.substring(0,aggregateString.length()-1);
+        }
+        aggregateString+="],";
+        aggregateString += "\n\"validation\": [";
+        try{
+            for(String exptID : currCollection.getValidationExperiments()){
+                XnatImagesessiondata expt = (XnatImagesessiondata)XnatExperimentdata.getXnatExperimentdatasById(exptID, user, false);
+                List<XnatImagescandata> scans = ((XnatImagesessiondataI)expt).getScans_scan();
+                XnatImagescandata imagesScan = null;
+                XnatImagescandata labelsScan = null;
+                for(XnatImagescandata scan : scans) {
+                    if(scan.getType().equals("IMAGES")) {
+                        imagesScan = scan;
+                    }
+                    else if(scan.getType().equals("LABELS")) {
+                        labelsScan = scan;
+                    }
+                }
+                if(imagesScan!=null && labelsScan!=null) {
+                    File niiImageFile = null;
+                    for(XnatAbstractresourceI resI: imagesScan.getFile()){
+                        XnatAbstractresource imagesRes = (XnatAbstractresource) resI;
+                        if(imagesRes!=null) {
+                            ArrayList<File> imagesFiles = imagesRes.getCorrespondingFiles(expt.getArchivePath());
+                            if(imagesFiles!=null){
+                                for(File curr: imagesFiles){
+                                    String currPath = curr.getPath();
+                                    if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
+                                        niiImageFile = curr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    File niiLabelFile = null;
+                    for(XnatAbstractresourceI resI: labelsScan.getFile()){
+                        XnatAbstractresource labelsRes = (XnatAbstractresource) resI;
+                        if(labelsRes!=null) {
+                            ArrayList<File> labelsFiles = labelsRes.getCorrespondingFiles(expt.getArchivePath());
+                            if(labelsFiles!=null){
+                                for(File curr: labelsFiles){
+                                    String currPath = curr.getPath();
+                                    if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
+                                        niiLabelFile = curr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(niiImageFile!=null && niiLabelFile!=null){
+                        final String imageUri = niiImageFile.getPath();
+                        final String labelUri = niiLabelFile.getPath();
+                        final Path imagePath = Paths.get(imageUri);
+                        final Path labelPath = Paths.get(labelUri);
+                        final Path relativeImagePath = projectPath.relativize(imagePath);
+                        final Path relativeLabelPath = projectPath.relativize(labelPath);
+
+                        aggregateString += "\n{\n\"image\": \"" + relativeImagePath + "\",\n\"label\": \"" + relativeLabelPath + "\"\n},";
+                    }
+                }
+            }
+        }
+        catch(Exception e){
+
+        }
+        if(aggregateString.endsWith(",")){
+            aggregateString = aggregateString.substring(0,aggregateString.length()-1);
+        }
+        aggregateString+="]\n}";
+        return new ResponseEntity<>(aggregateString, HttpStatus.OK);
+    }
 
     private final CollectionService _collectionService;
 }
