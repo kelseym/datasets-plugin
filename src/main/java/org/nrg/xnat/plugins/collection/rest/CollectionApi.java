@@ -169,78 +169,28 @@ public class CollectionApi extends AbstractXapiRestController {
     public ResponseEntity<String> jsonForCollection(@ApiParam(value = "ID of the collection", required = true) @PathVariable("id") final long id) throws NotFoundException {
         final UserI user = getSessionUser();
         final Collection currCollection = _collectionService.get(id);
-        Path projectPath = Paths.get(ArcSpecManager.GetInstance().getArchivePathForProject(currCollection.getProjectId()));
+        String projectPath = ArcSpecManager.GetInstance().getArchivePathForProject(currCollection.getProjectId());
 
         String aggregateString = "{\n\"training\": [";
-        try{
-            for(String exptID : currCollection.getTrainingExperiments()){
-                XnatImagesessiondata expt = (XnatImagesessiondata)XnatExperimentdata.getXnatExperimentdatasById(exptID, user, false);
-                List<XnatImagescandata> scans = ((XnatImagesessiondataI)expt).getScans_scan();
-                XnatImagescandata imagesScan = null;
-                XnatImagescandata labelsScan = null;
-                for(XnatImagescandata scan : scans) {
-                    if(scan.getType().equals("IMAGES")) {
-                        imagesScan = scan;
-                    }
-                    else if(scan.getType().equals("LABELS")) {
-                        labelsScan = scan;
-                    }
-                }
-                if(imagesScan!=null && labelsScan!=null) {
-                    File niiImageFile = null;
-                    for(XnatAbstractresourceI resI: imagesScan.getFile()){
-                        XnatAbstractresource imagesRes = (XnatAbstractresource) resI;
-                        if(imagesRes!=null) {
-                            ArrayList<File> imagesFiles = imagesRes.getCorrespondingFiles(expt.getArchivePath());
-                            if(imagesFiles!=null){
-                                for(File curr: imagesFiles){
-                                    String currPath = curr.getPath();
-                                    if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
-                                        niiImageFile = curr;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    File niiLabelFile = null;
-                    for(XnatAbstractresourceI resI: labelsScan.getFile()){
-                        XnatAbstractresource labelsRes = (XnatAbstractresource) resI;
-                        if(labelsRes!=null) {
-                            ArrayList<File> labelsFiles = labelsRes.getCorrespondingFiles(expt.getArchivePath());
-                            if(labelsFiles!=null){
-                                for(File curr: labelsFiles){
-                                    String currPath = curr.getPath();
-                                    if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
-                                        niiLabelFile = curr;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if(niiImageFile!=null && niiLabelFile!=null){
-                        final String imageUri = niiImageFile.getPath();
-                        final String labelUri = niiLabelFile.getPath();
-                        final Path imagePath = Paths.get(imageUri);
-                        final Path labelPath = Paths.get(labelUri);
-                        final Path relativeImagePath = projectPath.relativize(imagePath);
-                        final Path relativeLabelPath = projectPath.relativize(labelPath);
-
-                        aggregateString += "\n{\n\"image\": \"" + relativeImagePath + "\",\n\"label\": \"" + relativeLabelPath + "\"\n},";
-                    }
-                }
-            }
-        }
-        catch(Exception e){
-
-        }
+        aggregateString+=getJsonSection(currCollection.getTrainingExperiments(), user, projectPath);
         if(aggregateString.endsWith(",")){
             aggregateString = aggregateString.substring(0,aggregateString.length()-1);
         }
         aggregateString+="],";
         aggregateString += "\n\"validation\": [";
+        aggregateString+=getJsonSection(currCollection.getValidationExperiments(), user, projectPath);
+        if(aggregateString.endsWith(",")){
+            aggregateString = aggregateString.substring(0,aggregateString.length()-1);
+        }
+        aggregateString+="]\n}";
+        return new ResponseEntity<>(aggregateString, HttpStatus.OK);
+    }
+
+    private String getJsonSection(final List<String> experiments, final UserI user, String projectPath){
+
+        String aggregateString = "";
         try{
-            for(String exptID : currCollection.getValidationExperiments()){
+            for(String exptID : experiments){
                 XnatImagesessiondata expt = (XnatImagesessiondata)XnatExperimentdata.getXnatExperimentdatasById(exptID, user, false);
                 List<XnatImagescandata> scans = ((XnatImagesessiondataI)expt).getScans_scan();
                 XnatImagescandata imagesScan = null;
@@ -254,58 +204,41 @@ public class CollectionApi extends AbstractXapiRestController {
                     }
                 }
                 if(imagesScan!=null && labelsScan!=null) {
-                    File niiImageFile = null;
-                    for(XnatAbstractresourceI resI: imagesScan.getFile()){
-                        XnatAbstractresource imagesRes = (XnatAbstractresource) resI;
-                        if(imagesRes!=null) {
-                            ArrayList<File> imagesFiles = imagesRes.getCorrespondingFiles(expt.getArchivePath());
-                            if(imagesFiles!=null){
-                                for(File curr: imagesFiles){
-                                    String currPath = curr.getPath();
-                                    if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
-                                        niiImageFile = curr;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    File niiLabelFile = null;
-                    for(XnatAbstractresourceI resI: labelsScan.getFile()){
-                        XnatAbstractresource labelsRes = (XnatAbstractresource) resI;
-                        if(labelsRes!=null) {
-                            ArrayList<File> labelsFiles = labelsRes.getCorrespondingFiles(expt.getArchivePath());
-                            if(labelsFiles!=null){
-                                for(File curr: labelsFiles){
-                                    String currPath = curr.getPath();
-                                    if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
-                                        niiLabelFile = curr;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if(niiImageFile!=null && niiLabelFile!=null){
-                        final String imageUri = niiImageFile.getPath();
-                        final String labelUri = niiLabelFile.getPath();
-                        final Path imagePath = Paths.get(imageUri);
-                        final Path labelPath = Paths.get(labelUri);
-                        final Path relativeImagePath = projectPath.relativize(imagePath);
-                        final Path relativeLabelPath = projectPath.relativize(labelPath);
-
-                        aggregateString += "\n{\n\"image\": \"" + relativeImagePath + "\",\n\"label\": \"" + relativeLabelPath + "\"\n},";
-                    }
+                    String exptPath = expt.getArchivePath();
+                    aggregateString += "\n{\n\"image\": \"" + getRelativePathForNiftiInScan(imagesScan, exptPath, projectPath) + "\",\n\"label\": \"" + getRelativePathForNiftiInScan(labelsScan, exptPath, projectPath) + "\"\n},";
                 }
             }
         }
         catch(Exception e){
 
         }
-        if(aggregateString.endsWith(",")){
-            aggregateString = aggregateString.substring(0,aggregateString.length()-1);
+        return aggregateString;
+    }
+
+    private Path getRelativePathForNiftiInScan(final XnatImagescandata scan, final String exptPath, String projectPathString){
+        Path relativeFilePath = null;
+
+        //Needed for now because of container services bug that assumes arc001
+        final Path projectPath = Paths.get(projectPathString,"arc001");
+
+        for(XnatAbstractresourceI resI: scan.getFile()){
+            XnatAbstractresource imagesRes = (XnatAbstractresource) resI;
+            if(imagesRes!=null) {
+                ArrayList<File> imagesFiles = imagesRes.getCorrespondingFiles(exptPath);
+                if(imagesFiles!=null){
+                    for(File curr: imagesFiles){
+                        String currPath = curr.getPath();
+                        if(currPath!=null && FilenameUtils.getExtension(currPath).equals("nii")){
+                            File niiFile = curr;
+                            final String fileUri = niiFile.getPath();
+                            final Path filePath = Paths.get(fileUri);
+                            relativeFilePath = projectPath.relativize(filePath);
+                        }
+                    }
+                }
+            }
         }
-        aggregateString+="]\n}";
-        return new ResponseEntity<>(aggregateString, HttpStatus.OK);
+        return relativeFilePath;
     }
 
     private final CollectionService _collectionService;
