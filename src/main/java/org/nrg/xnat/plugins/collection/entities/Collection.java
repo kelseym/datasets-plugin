@@ -47,6 +47,22 @@ public class Collection extends AbstractHibernateEntity {
         _description = description;
     }
 
+    public String getImagesSeriesDescription() {
+        return _imagesSeriesDescription;
+    }
+
+    public void setImagesSeriesDescription(String _imagesSeriesDescription) {
+        this._imagesSeriesDescription = _imagesSeriesDescription;
+    }
+
+    public String getLabelsSeriesDescription() {
+        return _labelsSeriesDescription;
+    }
+
+    public void setLabelsSeriesDescription(String _labelsSeriesDescription) {
+        this._labelsSeriesDescription = _labelsSeriesDescription;
+    }
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     public List<String> getTrainingExperiments() {
@@ -80,6 +96,8 @@ public class Collection extends AbstractHibernateEntity {
     private String _name;
     private String _projectId;
     private String _description;
+    private String _imagesSeriesDescription;
+    private String _labelsSeriesDescription;
     private List<String> _trainingExperiments;
     private List<String> _validationExperiments;
     private List<String> _testExperiments;

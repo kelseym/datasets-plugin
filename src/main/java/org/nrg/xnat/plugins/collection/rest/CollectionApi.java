@@ -11,6 +11,7 @@ package org.nrg.xnat.plugins.collection.rest;
 
 import io.swagger.annotations.*;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.annotations.XapiRestController;
 import org.nrg.framework.exceptions.NotFoundException;
 import org.nrg.xapi.authorization.GuestUserAccessXapiAuthorization;
@@ -113,6 +114,8 @@ public class CollectionApi extends AbstractXapiRestController {
         collection.setName(model.getName());
         collection.setProjectId(model.getProjectId());
         collection.setDescription(model.getDescription());
+        collection.setImagesSeriesDescription(model.getImagesSeriesDescription());
+        collection.setLabelsSeriesDescription(model.getLabelsSeriesDescription());
         List<String> experimentIds = model.getExperiments();
         Collections.shuffle(experimentIds);
         int exptCount = experimentIds.size();
@@ -141,6 +144,8 @@ public class CollectionApi extends AbstractXapiRestController {
         collection.setName(newCollection.getName());
         collection.setProjectId(newCollection.getProjectId());
         collection.setDescription(newCollection.getDescription());
+        collection.setImagesSeriesDescription(newCollection.getImagesSeriesDescription());
+        collection.setLabelsSeriesDescription(newCollection.getLabelsSeriesDescription());
         collection.setTrainingExperiments(newCollection.getTrainingExperiments());
         collection.setValidationExperiments(newCollection.getValidationExperiments());
         collection.setTestExperiments(newCollection.getTestExperiments());
@@ -169,16 +174,18 @@ public class CollectionApi extends AbstractXapiRestController {
     public ResponseEntity<String> jsonForCollection(@ApiParam(value = "ID of the collection", required = true) @PathVariable("id") final long id) throws NotFoundException {
         final UserI user = getSessionUser();
         final Collection currCollection = _collectionService.get(id);
+        final String imagesSeriesDescription = currCollection.getImagesSeriesDescription();
+        final String labelsSeriesDescription = currCollection.getLabelsSeriesDescription();
         String projectPath = ArcSpecManager.GetInstance().getArchivePathForProject(currCollection.getProjectId());
 
         String aggregateString = "{\n\"training\": [";
-        aggregateString+=getJsonSection(currCollection.getTrainingExperiments(), user, projectPath);
+        aggregateString+=getJsonSection(currCollection.getTrainingExperiments(), user, projectPath, imagesSeriesDescription, labelsSeriesDescription);
         if(aggregateString.endsWith(",")){
             aggregateString = aggregateString.substring(0,aggregateString.length()-1);
         }
         aggregateString+="],";
         aggregateString += "\n\"validation\": [";
-        aggregateString+=getJsonSection(currCollection.getValidationExperiments(), user, projectPath);
+        aggregateString+=getJsonSection(currCollection.getValidationExperiments(), user, projectPath, imagesSeriesDescription, labelsSeriesDescription);
         if(aggregateString.endsWith(",")){
             aggregateString = aggregateString.substring(0,aggregateString.length()-1);
         }
@@ -186,8 +193,13 @@ public class CollectionApi extends AbstractXapiRestController {
         return new ResponseEntity<>(aggregateString, HttpStatus.OK);
     }
 
-    private String getJsonSection(final List<String> experiments, final UserI user, String projectPath){
-
+    private String getJsonSection(final List<String> experiments, final UserI user, String projectPath, String imagesSeriesDescription, String labelsSeriesDescription){
+        if(StringUtils.isBlank(imagesSeriesDescription)){
+            imagesSeriesDescription = "IMAGES";
+        }
+        if(StringUtils.isBlank(labelsSeriesDescription)){
+            labelsSeriesDescription = "LABELS";
+        }
         String aggregateString = "";
         try{
             for(String exptID : experiments){
@@ -196,10 +208,10 @@ public class CollectionApi extends AbstractXapiRestController {
                 XnatImagescandata imagesScan = null;
                 XnatImagescandata labelsScan = null;
                 for(XnatImagescandata scan : scans) {
-                    if(scan.getType().equals("IMAGES")) {
+                    if(scan.getType().equals(imagesSeriesDescription)) {
                         imagesScan = scan;
                     }
-                    else if(scan.getType().equals("LABELS")) {
+                    else if(scan.getType().equals(labelsSeriesDescription)) {
                         labelsScan = scan;
                     }
                 }
