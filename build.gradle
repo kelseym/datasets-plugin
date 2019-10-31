@@ -42,7 +42,7 @@ buildscript {
 }
 
 // TODO: Change the group and version to values appropriate for your plugin project.
-def groupName = 'org.nrg.xnat.plugins'
+def groupName = 'org.nrg.xnatx.plugins'
 def pluginVersion = '1.0.0-SNAPSHOT'
 
 group groupName
@@ -52,6 +52,7 @@ version pluginVersion
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'jacoco'
 apply plugin: 'xnat-data-builder'
 
@@ -118,9 +119,14 @@ dependencies {
     implementation "io.springfox:springfox-swagger2"
 }
 
-// TODO: If the compiler is Java 8 or later, this checks for a Java 7 version of the primary Java run-time library. Building with post-Java 7 libraries can result in occasional compatibility issues.
-def javaVersion = Jvm.current().javaVersion
-if (javaVersion.java8Compatible || javaVersion.java9Compatible) {
+def javaVersion = JavaVersion.current()
+if (javaVersion.java8Compatible || javaVersion.java9Compatible || javaVersion.java10Compatible) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption("Xdoclint:none", "-quiet")
+        }
+    }
+
     if (hasProperty("rt.17.jar")) {
         // Solution for bootstrap classpath warning and possible issues with compatibility with 1.7 libraries
         // was taken from this post on discuss.gradle.org: http://bit.ly/24xD9j0
@@ -130,13 +136,22 @@ if (javaVersion.java8Compatible || javaVersion.java9Compatible) {
             tasks.withType(JavaCompile) {
                 options.fork = true
                 options.compilerArgs << "-XDignore.symbol.file"
-                options.bootClasspath = rt17jar as String
+                options.bootstrapClasspath = files(rt17jar as String)
             }
         }
     } else {
-        logger.warn "No value was set for the rt.17.jar build property, using the default bootstrap class path. You should consider setting rt.17.jar to indicate a jar file containing the Java 1.7 run-time library:\n"
+        logger.warn "No value was set for the rt.17.jar build property, but you are using a Java 8- or 9-compatible JDK. You should consider setting rt.17.jar to indicate a jar file containing the Java 1.7 run-time library:\n"
+        logger.warn "\n"
         logger.warn "  ./gradlew -Prt.17.jar=rt-1.7.0_45.jar war\n"
+        logger.warn "\n"
+        logger.warn "You can also set this property in a gradle.properties file, either in the top level of your build folder or in the folder ~/.gradle/:\n"
+        logger.warn "\n"
+        logger.warn "  rt.17.jar=/home/developer/.gradle/rt.17.jar\n"
+        logger.warn "\n"
+        logger.warn "In some isolated instances, using a bootstrap library from a JDK version later than 1.7 can result in run-time errors.\n"
     }
+} else if (!javaVersion.java7Compatible) {
+    throw new BuildCancelledException("You are using a JDK version (${javaVersion}) that is not compatible with Java 7. The XNAT build will fail. Please install a JDK version of Java 7 or later.")
 }
 
 // TODO: This configures the Jacoco test coverage plugin.
@@ -165,4 +180,72 @@ sourceSets {
             srcDir 'build/xnat-generated/src/main/resources'
         }
     }
+}
+
+task sourceJar(type: Jar, dependsOn: classes) {
+    classifier "sources"
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+    classifier "javadoc"
+    from javadoc.destinationDir
+}
+
+publishing.publications {
+    mavenJava(MavenPublication) {
+        from components.java
+
+        artifacts {
+            artifact sourceJar
+            artifact javadocJar
+        }
+
+        pom.withXml {
+            def root = asNode()
+            root.appendNode("name", "XNAT Data Collection Plugin")
+            root.appendNode("url", "https://bitbucket.org/xnatx/xnatx-collection-plugin")
+            root.appendNode("inceptionYear", "2019")
+
+            root.appendNode("scm").with {
+                appendNode("url", "https://bitbucket.org/xnatx/xnatx-ollection-plugin")
+                appendNode("connection", "scm:https://bitbucket.org/xnatx/xnatx-collection-plugin")
+                appendNode("developerConnection", "scm:git@bitbucket.org:xnatx/xnatx-collection-plugin.git")
+            }
+
+            root.appendNode("licenses").appendNode("license").with {
+                appendNode("name", "Simplified BSD 2-Clause License")
+                appendNode("url", "http://xnat.org/about/license.php")
+                appendNode("distribution", "repo")
+            }
+
+            root.appendNode("developers").with {
+                appendNode("developer").with {
+                    appendNode("id", "mfmckay")
+                    appendNode("name", "Mike McKay")
+                    appendNode("email", "mfmckay@wustl.edu")
+                }
+            }
+        }
+    }
+}
+
+publishing.repositories {
+    maven {
+        credentials {
+            // These properties must be set in the ~/.gradle/gradle.properties file or passed on the Gradle command
+            // line in the form -PrepoUsername=foo -PrepoPassword=bar.
+            username propertyWithDefault("repoUsername", "username")
+            password propertyWithDefault("repoPassword", "password")
+        }
+        if (project.version.endsWith("-SNAPSHOT")) {
+            url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot-local"
+        } else {
+            url "https://nrgxnat.jfrog.io/nrgxnat/libs-release-local"
+        }
+    }
+}
+
+def propertyWithDefault(String name, Object value) {
+    hasProperty(name) ? property(name) : value
 }

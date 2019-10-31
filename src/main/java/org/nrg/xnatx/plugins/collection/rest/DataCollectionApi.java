@@ -1,13 +1,13 @@
 /*
- * xnat-template: org.nrg.xnat.plugins.template.rest.TemplatePrefsApi
+ * xnatx-clara: org.nrg.xnatx.plugins.collection.rest.CollectionApi
  * XNAT http://www.xnat.org
- * Copyright (c) 2017, Washington University School of Medicine
+ * Copyright (c) 2019, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.
  */
 
-package org.nrg.xnat.plugins.collection.rest;
+package org.nrg.xnatx.plugins.collection.rest;
 
 import io.swagger.annotations.*;
 import org.apache.commons.io.FilenameUtils;
@@ -17,7 +17,6 @@ import org.nrg.framework.exceptions.NotFoundException;
 import org.nrg.xapi.authorization.GuestUserAccessXapiAuthorization;
 import org.nrg.xapi.rest.AbstractXapiRestController;
 import org.nrg.xapi.rest.AuthDelegate;
-import org.nrg.xapi.rest.Username;
 import org.nrg.xapi.rest.XapiRequestMapping;
 import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.model.XnatImagesessiondataI;
@@ -28,9 +27,9 @@ import org.nrg.xdat.om.XnatImagesessiondata;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
 import org.nrg.xft.security.UserI;
-import org.nrg.xnat.plugins.collection.entities.Collection;
-import org.nrg.xnat.plugins.collection.model.CollectionModel;
-import org.nrg.xnat.plugins.collection.services.CollectionService;
+import org.nrg.xnatx.plugins.collection.entities.DataCollection;
+import org.nrg.xnatx.plugins.collection.examples.DataCollectionExample;
+import org.nrg.xnatx.plugins.collection.services.DataCollectionService;
 import org.nrg.xnat.turbine.utils.ArcSpecManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,68 +48,67 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.nrg.xdat.security.helpers.AccessLevel.Admin;
 import static org.nrg.xdat.security.helpers.AccessLevel.Authorizer;
 
 @Api(description = "XNAT 1.7 Collection Plugin API")
 @XapiRestController
 @RequestMapping(value = "/collection")
-public class CollectionApi extends AbstractXapiRestController {
+public class DataCollectionApi extends AbstractXapiRestController {
     @Autowired
-    public CollectionApi(final UserManagementServiceI userManagementService, final RoleHolder roleHolder, final CollectionService collectionService) {
+    public DataCollectionApi(final UserManagementServiceI userManagementService, final RoleHolder roleHolder, final DataCollectionService collectionService) {
         super(userManagementService, roleHolder);
         _collectionService = collectionService;
     }
 
-    @ApiOperation(value = "Returns a specific collection.", response = Collection.class)
+    @ApiOperation(value = "Returns a specific collection.", response = DataCollection.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Collection successfully retrieved."),
             @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
             @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "get/{id}", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.GET, restrictTo = Authorizer)
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
-    public ResponseEntity<Collection> getCollection(@PathVariable("id") final long id) throws NotFoundException {
+    public ResponseEntity<DataCollection> getCollection(@PathVariable("id") final long id) throws NotFoundException {
         return new ResponseEntity<>(_collectionService.get(id), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Returns a list of all collections for a project.", response = Collection.class, responseContainer = "List")
+    @ApiOperation(value = "Returns a list of all collections for a project.", response = DataCollection.class, responseContainer = "List")
     @ApiResponses({@ApiResponse(code = 200, message = "Collections successfully retrieved."),
             @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
             @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "getAllForProject/{projectId}", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.GET, restrictTo = Authorizer)
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
-    public ResponseEntity<List<Collection>> getProjectCollections(@PathVariable("projectId") final String projectId) {
+    public ResponseEntity<List<DataCollection>> getProjectCollections(@PathVariable("projectId") final String projectId) {
         return new ResponseEntity<>(_collectionService.getAllByProject(projectId), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Returns a list of all collections.", response = Collection.class, responseContainer = "List")
+    @ApiOperation(value = "Returns a list of all collections.", response = DataCollection.class, responseContainer = "List")
     @ApiResponses({@ApiResponse(code = 200, message = "Collections successfully retrieved."),
             @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
             @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "getAll", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.GET, restrictTo = Authorizer)
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
-    public ResponseEntity<List<Collection>> getCollections() {
+    public ResponseEntity<List<DataCollection>> getCollections() {
         return new ResponseEntity<>(_collectionService.getAll(), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Creates a new collection.", response = Collection.class)
+    @ApiOperation(value = "Creates a new collection.", response = DataCollection.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Successfully created."),
             @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
             @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.POST, restrictTo = Authorizer)
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
-    public ResponseEntity<Collection> createCollection(@RequestBody final Collection entity) {
-        final Collection created = _collectionService.create(entity);
+    public ResponseEntity<DataCollection> createCollection(@RequestBody final DataCollection entity) {
+        final DataCollection created = _collectionService.create(entity);
         return new ResponseEntity<>(created, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Creates a new collection from a set of experiments.", response = Collection.class)
+    @ApiOperation(value = "Creates a new collection from a set of experiments.", response = DataCollection.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Successfully created."),
             @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
             @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "createFromSet", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.POST, restrictTo = Authorizer)
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
-    public ResponseEntity<Collection> createCollectionFromSet(@RequestBody final CollectionModel model) {
-        Collection collection = new Collection();
+    public ResponseEntity<DataCollection> createCollectionFromSet(@RequestBody final DataCollectionExample model) {
+        DataCollection collection = new DataCollection();
         collection.setName(model.getName());
         collection.setProjectId(model.getProjectId());
         collection.setDescription(model.getDescription());
@@ -129,18 +127,18 @@ public class CollectionApi extends AbstractXapiRestController {
         collection.setValidationExperiments(experimentIds.subList(traningEndIndex,validationEndIndex));
         collection.setTestExperiments(experimentIds.subList(validationEndIndex,exptCount));
 
-        final Collection created = _collectionService.create(collection);
+        final DataCollection created = _collectionService.create(collection);
         return new ResponseEntity<>(created, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Updates a collection.", response = Collection.class)
+    @ApiOperation(value = "Updates a collection.", response = DataCollection.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Successfully updated."),
             @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
             @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "update", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.PUT, restrictTo = Authorizer)
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
-    public ResponseEntity<Collection> updateCollection(@RequestBody final Collection newCollection) throws NotFoundException {
-        Collection collection = _collectionService.get(newCollection.getId());
+    public ResponseEntity<DataCollection> updateCollection(@RequestBody final DataCollection newCollection) throws NotFoundException {
+        DataCollection collection = _collectionService.get(newCollection.getId());
         collection.setName(newCollection.getName());
         collection.setProjectId(newCollection.getProjectId());
         collection.setDescription(newCollection.getDescription());
@@ -172,9 +170,9 @@ public class CollectionApi extends AbstractXapiRestController {
     @XapiRequestMapping(value = "jsonForCollection/{id}", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.GET, restrictTo = Authorizer)
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
     public ResponseEntity<String> jsonForCollection(@ApiParam(value = "ID of the collection", required = true) @PathVariable("id") final long id) throws NotFoundException {
-        final UserI user = getSessionUser();
-        final Collection currCollection = _collectionService.get(id);
-        final String imagesSeriesDescription = currCollection.getImagesSeriesDescription();
+        final UserI          user                    = getSessionUser();
+        final DataCollection currCollection          = _collectionService.get(id);
+        final String         imagesSeriesDescription = currCollection.getImagesSeriesDescription();
         final String labelsSeriesDescription = currCollection.getLabelsSeriesDescription();
         String projectPath = ArcSpecManager.GetInstance().getArchivePathForProject(currCollection.getProjectId());
 
@@ -253,5 +251,5 @@ public class CollectionApi extends AbstractXapiRestController {
         return relativeFilePath;
     }
 
-    private final CollectionService _collectionService;
+    private final DataCollectionService _collectionService;
 }

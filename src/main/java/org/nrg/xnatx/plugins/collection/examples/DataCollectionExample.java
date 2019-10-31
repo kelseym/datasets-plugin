@@ -1,25 +1,21 @@
 /*
- * xnat-template: org.nrg.xnat.plugins.template.entities.Template
+ * xnatx-clara: org.nrg.xnatx.plugins.collection.model.CollectionModel
  * XNAT http://www.xnat.org
- * Copyright (c) 2017, Washington University School of Medicine
+ * Copyright (c) 2019, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.
  */
 
-package org.nrg.xnat.plugins.collection.model;
+package org.nrg.xnatx.plugins.collection.examples;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.nrg.framework.orm.hibernate.AbstractHibernateEntity;
 
-import javax.persistence.*;
 import java.util.List;
 
 @ApiModel(description = "Contains the properties needed to create a collection.")
-public class CollectionModel {
+public class DataCollectionExample {
 
     @ApiModelProperty
     public String getName() {
@@ -87,7 +83,7 @@ public class CollectionModel {
                 '}';
     }
 
-    public CollectionModel(String name, String projectId, String description, String imagesSeriesDescription, String labelsSeriesDescription, List<String> experiments) {
+    public DataCollectionExample(String name, String projectId, String description, String imagesSeriesDescription, String labelsSeriesDescription, List<String> experiments) {
         _name = name;
         _projectId = projectId;
         _description = description;
@@ -96,7 +92,7 @@ public class CollectionModel {
         _experiments = experiments;
     }
 
-    public CollectionModel() {
+    public DataCollectionExample() {
 
     }
 

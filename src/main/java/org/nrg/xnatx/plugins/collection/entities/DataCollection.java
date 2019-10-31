@@ -1,27 +1,24 @@
 /*
- * xnat-template: org.nrg.xnat.plugins.template.entities.Template
+ * xnatx-clara: org.nrg.xnatx.plugins.collection.entities.Collection
  * XNAT http://www.xnat.org
- * Copyright (c) 2017, Washington University School of Medicine
+ * Copyright (c) 2019, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.
  */
 
-package org.nrg.xnat.plugins.collection.entities;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
-import org.nrg.framework.orm.hibernate.AbstractHibernateEntity;
-
-import javax.persistence.*;
+package org.nrg.xnatx.plugins.collection.entities;
 
 import java.util.List;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.nrg.framework.orm.hibernate.AbstractHibernateEntity;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = "id"))
-public class Collection extends AbstractHibernateEntity {
+public class DataCollection extends AbstractHibernateEntity {
     public String getName() {
         return _name;
     }
