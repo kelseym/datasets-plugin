@@ -28,7 +28,7 @@ import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
 import org.nrg.xft.security.UserI;
 import org.nrg.xnatx.plugins.collection.entities.DataCollection;
-import org.nrg.xnatx.plugins.collection.examples.DataCollectionExample;
+import org.nrg.xnatx.plugins.collection.models.DataCollectionModel;
 import org.nrg.xnatx.plugins.collection.services.DataCollectionService;
 import org.nrg.xnat.turbine.utils.ArcSpecManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,7 +107,7 @@ public class DataCollectionApi extends AbstractXapiRestController {
             @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "createFromSet", produces = {MediaType.APPLICATION_JSON_VALUE}, method = RequestMethod.POST, restrictTo = Authorizer)
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
-    public ResponseEntity<DataCollection> createCollectionFromSet(@RequestBody final DataCollectionExample model) {
+    public ResponseEntity<DataCollection> createCollectionFromSet(@RequestBody final DataCollectionModel model) {
         DataCollection collection = new DataCollection();
         collection.setName(model.getName());
         collection.setProjectId(model.getProjectId());

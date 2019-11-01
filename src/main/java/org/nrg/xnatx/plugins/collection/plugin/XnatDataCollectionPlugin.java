@@ -9,21 +9,19 @@
 
 package org.nrg.xnatx.plugins.collection.plugin;
 
+import lombok.extern.slf4j.Slf4j;
 import org.nrg.framework.annotations.XnatPlugin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@XnatPlugin(value = "collectionPlugin", name = "XNAT 1.7 Collection Plugin", entityPackages = "org.nrg.xnat.plugins.collection.entities")
-@ComponentScan({"org.nrg.xnat.plugins.collection.daos",
-        "org.nrg.xnat.plugins.collection.rest",
-        "org.nrg.xnat.plugins.collection.services.impl"})
+@XnatPlugin(value = "dataCollectionPlugin", name = "XNAT Data Collection Plugin", entityPackages = "org.nrg.xnatx.plugins.collection.entities")
+@ComponentScan({"org.nrg.xnatx.plugins.collection.daos",
+                "org.nrg.xnatx.plugins.collection.rest",
+                "org.nrg.xnatx.plugins.collection.services.impl"})
+@Slf4j
 public class XnatDataCollectionPlugin {
     public XnatDataCollectionPlugin() {
-        _log.info("Creating the XnatCollectionPlugin configuration class");
+        log.info("Creating the XnatDataCollectionPlugin configuration class");
     }
-
-    private static final Logger _log = LoggerFactory.getLogger(XnatDataCollectionPlugin.class);
 }

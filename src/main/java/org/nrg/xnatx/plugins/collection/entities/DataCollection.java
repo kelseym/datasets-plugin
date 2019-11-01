@@ -13,11 +13,14 @@ import java.util.List;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.nrg.framework.orm.hibernate.AbstractHibernateEntity;
 
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "nrg")
 public class DataCollection extends AbstractHibernateEntity {
     public String getName() {
         return _name;
@@ -34,7 +37,6 @@ public class DataCollection extends AbstractHibernateEntity {
     public void setProjectId(final String projectId) {
         _projectId = projectId;
     }
-
 
     public String getDescription() {
         return _description;

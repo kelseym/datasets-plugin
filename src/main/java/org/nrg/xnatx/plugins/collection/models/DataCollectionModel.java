@@ -7,7 +7,7 @@
  * Released under the Simplified BSD.
  */
 
-package org.nrg.xnatx.plugins.collection.examples;
+package org.nrg.xnatx.plugins.collection.models;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -15,7 +15,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.List;
 
 @ApiModel(description = "Contains the properties needed to create a collection.")
-public class DataCollectionExample {
+public class DataCollectionModel {
 
     @ApiModelProperty
     public String getName() {
@@ -83,7 +83,7 @@ public class DataCollectionExample {
                 '}';
     }
 
-    public DataCollectionExample(String name, String projectId, String description, String imagesSeriesDescription, String labelsSeriesDescription, List<String> experiments) {
+    public DataCollectionModel(String name, String projectId, String description, String imagesSeriesDescription, String labelsSeriesDescription, List<String> experiments) {
         _name = name;
         _projectId = projectId;
         _description = description;
@@ -92,7 +92,7 @@ public class DataCollectionExample {
         _experiments = experiments;
     }
 
-    public DataCollectionExample() {
+    public DataCollectionModel() {
 
     }
 

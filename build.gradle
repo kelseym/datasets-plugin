@@ -7,12 +7,10 @@
  * Released under the Simplified BSD.
  */
 
-import org.gradle.internal.jvm.Jvm
-
 // TODO: This block is required for the 'xnat-data-builder' plugin to function.
 buildscript {
     ext {
-        vXnat = '1.7.5.3'
+        vXnat = '1.7.5.6'
     }
     repositories {
         mavenLocal()
@@ -31,8 +29,9 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
-        classpath ("org.nrg.xnat.build:xnat-data-builder:1.7.5"){
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE"
+        classpath "io.franzbecker:gradle-lombok:3.2.0"
+        classpath ("org.nrg.xnat.build:xnat-data-builder:1.7.5.6"){
             exclude group:'torque'
         }
         classpath ("org.nrg.xnat:web:${vXnat}"){
@@ -50,6 +49,7 @@ version pluginVersion
 
 // TODO: This is the minimum set of Gradle plugins required to build most XNAT plugins. You may include many others, including plugins for testing and test coverage, IDE integration, and more.
 apply plugin: 'io.spring.dependency-management'
+apply plugin: "io.franzbecker.gradle-lombok"
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -86,6 +86,11 @@ repositories {
 // TODO: As of the 1.7.x release, XNAT is built as a Java 7-compatible (i.e. JDK 1.7) application. All plugins must be 1.7 compatible as well.
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
+
+lombok {
+    version = "1.18.10"
+    sha256 = "2836e954823bfcbad45e78c18896e3d01058e6f643749810c608b7005ee7b2fa"
+}
 
 dependencyManagement.imports {
     mavenBom "org.nrg:parent:${vXnat}"
