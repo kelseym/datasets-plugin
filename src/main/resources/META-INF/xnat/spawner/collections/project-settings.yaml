@@ -27,8 +27,6 @@ projectCollectionPanel:
 
 projectSettings:
   kind: tabs
-  name: projectSettingsPage
-  label: Project Settings for Data Collections
   meta:
     tabGroups:
       collectionsProjectTabGroup: Data Collections

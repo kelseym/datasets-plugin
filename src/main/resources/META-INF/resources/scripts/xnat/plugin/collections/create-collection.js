@@ -2,7 +2,7 @@ console.log('create-collection.js');
 
 var XNAT = getObject(XNAT || {});
 XNAT.plugin = getObject(XNAT.plugin || {});
-XNAT.plugin.collections = getObject(XNAT.plugin.collections || {});
+XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
 
 (function(factory){
     if (typeof define === 'function' && define.amd) {
@@ -15,11 +15,11 @@ XNAT.plugin.collections = getObject(XNAT.plugin.collections || {});
         return factory();
     }
 }(function() {
-    var collectionCreator;
-    var projectId = XNAT.data.context.projectID;
-
-    XNAT.plugin.collections.collectionCreator = collectionCreator =
-        getObject(XNAT.plugin.collections.collectionCreator || {});
+    var undefined,
+        projectId = XNAT.data.context.project,
+        rootUrl = XNAT.url.rootUrl,
+        restUrl = XNAT.url.restUrl,
+        csrfUrl = XNAT.url.csrfUrl;
 
     function errorHandler(e, title, closeAll){
         console.log(e);
@@ -45,6 +45,37 @@ XNAT.plugin.collections = getObject(XNAT.plugin.collections || {});
             ]
         });
     }
+    /* ========================== *
+     * FIND AVAILABLE EXPERIMENTS *
+     * ========================== */
+
+    XNAT.plugin.collection.availableExpts = [];
+
+    var getProjectDataUrl = function(){
+        return rootUrl("/data/projects/"+projectId+"/experiments?format=json")
+    };
+
+    function getProjectExperiments(){
+        XNAT.xhr.getJSON({
+            url: getProjectDataUrl(),
+            fail: function(e){ errorHandler(e, "Could not retrieve experiments for project "+projectId )},
+            success: function(data){
+                XNAT.plugin.collection.availableExpts = data.ResultSet.Result;
+            }
+        })
+    }
+    $(document).ready(function(){
+        // after primary page functions are available, we can populate this list for future use
+        getProjectExperiments();
+    });
+
+    /* ============================================== *
+     * CREATE A COLLECTION FROM AVAILABLE EXPERIMENTS *
+     * ============================================== */
+
+    var collectionCreator;
+    XNAT.plugin.collection.collectionCreator = collectionCreator =
+        getObject(XNAT.plugin.collection.collectionCreator || {});
 
     collectionCreator.openDialog = function(collection){
         collection = collection || { "list": [], "labels:": [] };
@@ -81,7 +112,7 @@ XNAT.plugin.collections = getObject(XNAT.plugin.collections || {});
                         var formData = obj.$modal.find('form');
                         var name = formData.find('input[name=name]').val();
                         var description = formData.find('input[name=description]').val();
-                        var experiments = formData.find('input[name=experiments]').val();
+                        var experiments = JSON.parse(formData.find('input[name=experiments]').val());
                         var collectionModel = {
                             "name": name,
                             "description": description,
@@ -92,8 +123,9 @@ XNAT.plugin.collections = getObject(XNAT.plugin.collections || {});
                             url: XNAT.url.csrfUrl('/xapi/collection/createFromSet'),
                             method: 'POST',
                             contentType: 'application/json',
-                            data: collectionModel,
-                            // fail: errorHandler(e,'Could not Create Collection Set'),
+                            data: JSON.stringify(collectionModel),
+                            processData: false,
+                            fail: function(e){ errorHandler(e,'Could not Create Collection Set') },
                             success: function(data){
                                 XNAT.ui.dialog.closeAll();
                                 console.log(data);
@@ -107,22 +139,30 @@ XNAT.plugin.collections = getObject(XNAT.plugin.collections || {});
     };
 
     collectionCreator.open = function(xsitype){
-        var params = "format=json";
-        params += (xsitype) ? "&xsiType="+xsitype : "";
-        XNAT.xhr.getJSON({
-            url: XNAT.url.rootUrl("/data/projects/"+projectId+"/experiments?"+params),
-            fail: function(e){
-                errorHandler(e,"Could not get experiment list for "+projectId);
-            },
-            success: function (data) {
-                var collectionData = { list: [], labels: [] };
-                data.ResultSet.Result.forEach(function(result){
-                    collectionData.list.push(result.ID);
-                    collectionData.labels.push(result.label);
-                });
-                collectionCreator.openDialog(collectionData);
-            }
-        })
+        var expts = XNAT.plugin.collection.availableExpts;
+        if (xsitype) {
+            expts = expts.filter(function(expt){ return expt.xsiType === xsitype });
+        }
+        else {
+            xsitype = '(Any)';
+        }
+
+        if (!expts.length) {
+            errorHandler({
+                status: 'Unexpected',
+                statusText: 'Empty Set',
+                responseText: 'No experiments available with xsiType: ' + xsitype
+            }, 'Could Not Create Collection');
+            return false;
+        }
+
+        var collectionData = { list: [], labels: [] };
+        expts.forEach(function(result){
+            collectionData.list.push(result.ID);
+            collectionData.labels.push(result.label);
+        });
+        collectionCreator.openDialog(collectionData);
+
     }
 
 }));
