@@ -111,8 +111,8 @@ public class DataCollectionApi extends AbstractXapiRestController {
         int    exptCount          = experimentIds.size();
         double fractionTraining   = .7;
         double fractionValidation = .2;
-        int    trainingEndIndex   = (int) (exptCount * fractionTraining);
-        int    validationEndIndex = (int) (exptCount * (fractionValidation + fractionTraining));
+        int    trainingEndIndex   = (int) Math.round(exptCount * fractionTraining);
+        int    validationEndIndex = (int) Math.round(exptCount * (fractionValidation + fractionTraining));
 
         collection.setTrainingExperiments(experimentIds.subList(0, trainingEndIndex));
         collection.setValidationExperiments(experimentIds.subList(trainingEndIndex, validationEndIndex));
