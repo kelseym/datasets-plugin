@@ -21,6 +21,8 @@ projectCollectionPanel:
           id: proj-collection-viewer
           header: false
           footer: false
+    projectCollectionCreationScript:
+      tag: script|src="/scripts/xnat/plugin/collections/create-collection.js"
     projectCollectionAdminScript:
       tag: script|src="/scripts/xnat/plugin/collections/collection-projectAdmin.js"
 

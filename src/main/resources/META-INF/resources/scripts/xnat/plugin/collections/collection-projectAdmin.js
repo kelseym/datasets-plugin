@@ -138,7 +138,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
 
         }
 
-        // get project models
+        // get project data collections
         XNAT.xhr.getJSON({
             url: getCollectionsUrl(),
             fail: function(e){ errorHandler(e,"Could not retrieve collections for "+projectId)},
@@ -185,8 +185,35 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         return collection;
     };
 
-    projCollections.viewSource = function(source,title){
+    // projCollections.viewSource = function(source,title){
+    //     title = title || 'View Source';
+    //     _source = spawn ('textarea', JSON.stringify(source, null, 4));
+    //
+    //     _editor = XNAT.app.codeEditor.init(_source, {
+    //         language: 'json'
+    //     });
+    //
+    //     _editor.openEditor({
+    //         title: title,
+    //         classes: 'plugin-json',
+    //         buttons: {
+    //             ok: {
+    //                 label: 'OK',
+    //                 isDefault: true,
+    //                 close: true
+    //             }
+    //         },
+    //         height: 680,
+    //         afterShow: function(dialog, obj){
+    //             obj.aceEditor.setReadOnly(true);
+    //         }
+    //     });
+    // };
+
+    projCollections.editSource = function(source,title,id){
         title = title || 'View Source';
+        // var sanitizedSource = projCollections.sanitizeCollection(source);
+        // _source = spawn ('textarea', JSON.stringify(sanitizedSource, null, 4));
         _source = spawn ('textarea', JSON.stringify(source, null, 4));
 
         _editor = XNAT.app.codeEditor.init(_source, {
@@ -196,39 +223,6 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         _editor.openEditor({
             title: title,
             classes: 'plugin-json',
-            buttons: {
-                ok: {
-                    label: 'OK',
-                    isDefault: true,
-                    close: true
-                }
-            },
-            height: 680,
-            afterShow: function(dialog, obj){
-                obj.aceEditor.setReadOnly(true);
-            }
-        });
-    };
-
-    projCollections.editSource = function(source,title,id){
-        title = title || 'View Source';
-        var sanitizedSource = projCollections.sanitizeCollection(source);
-        _source = spawn ('textarea', JSON.stringify(sanitizedSource, null, 4));
-
-        _editor = XNAT.app.codeEditor.init(_source, {
-            language: 'json'
-        });
-
-        _editor.openEditor({
-            title: title,
-            classes: 'plugin-json',
-            buttons: {
-                ok: {
-                    label: 'OK',
-                    isDefault: true,
-                    close: true
-                }
-            },
             height: 680,
             beforeShow: function(dialog,obj){
                 dialog.$modal.find('.body .inner').prepend(spawn('!',[
@@ -244,6 +238,32 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             },
             afterShow: function(dialog, obj){
                 obj.aceEditor.setReadOnly(false);
+            },
+            buttons: {
+                ok: {
+                    label: 'OK',
+                    isDefault: true,
+                    close: false,
+                    action: function(){
+                        var editorContent = _editor.getValue().code;
+                        XNAT.xhr.ajax({
+                            url: csrfUrl('/xapi/collection/update'),
+                            method: 'PUT',
+                            contentType: 'application/json',
+                            processData: false,
+                            data: editorContent,
+                            fail: function(e){
+                                errorHandler(e,"Could not update collection")
+                            },
+                            success: function(obj){
+                                xmodal.close(obj.$modal);
+                                XNAT.dialog.closeAll();
+                                XNAT.plugin.collection.projCollections.refresh(true);
+                                XNAT.dialog.message('Successfully updated collection.');
+                            }
+                        })
+                    }
+                }
             }
         });
     };
@@ -310,24 +330,28 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         }
     }
 
-    projCollections.init = function(){
+    projCollections.init = projCollections.refresh = function(refresh){
+        refresh = refresh || false;
+
         var $collectionList = $('div#proj-data-collection-list-container');
         $collectionList.empty();
         projCollections.table($collectionList,showCollectionCount);
 
-        var $footer = $collectionList.parents('.panel').find('.panel-footer');
-        var newCollection = spawn('button.new-collection.btn.btn-sm.submit', {
-            html: 'New Data Collection',
-            onclick: function(){
-                XNAT.plugin.collections.collectionCreator.open();
-            }
-        });
+        if (!refresh) {
+            var $footer = $collectionList.parents('.panel').find('.panel-footer');
+            var newCollection = spawn('button.new-collection.btn.btn-sm.submit', {
+                html: 'New Data Collection',
+                onclick: function(){
+                    XNAT.plugin.collections.collectionCreator.open();
+                }
+            });
 
-        // add the 'add new' button to the panel footer
-        $footer.append(spawn('div.pull-right', [
-            newCollection
-        ]));
-        $footer.append(spawn('div.clear.clearFix'));
+            // add the 'add new' button to the panel footer
+            $footer.append(spawn('div.pull-right', [
+                newCollection
+            ]));
+            $footer.append(spawn('div.clear.clearFix'));
+        }
 
     };
 

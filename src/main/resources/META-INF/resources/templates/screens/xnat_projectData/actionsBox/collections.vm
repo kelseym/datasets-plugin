@@ -12,7 +12,7 @@
             <div class="bd">
                 <ul class="first-of-type">
                     <li class="yuimenuitem">
-                        <a class="yuimenuitemlabel" href="#" onclick="XNAT.plugin.collections.collectionCreator.open()">Add Data Collection</a>
+                        <a class="yuimenuitemlabel" href="#" onclick="XNAT.plugin.collection.collectionCreator.open()">Add Data Collection</a>
                     </li>
                     <li class="yuimenuitem">
                         <a class="yuimenuitemlabel" href="$content.getURI("app/template/Page.vm?view=project/settings&id=$project.getId()#tab=project-collection-tab")">Manage Data Collections</a>

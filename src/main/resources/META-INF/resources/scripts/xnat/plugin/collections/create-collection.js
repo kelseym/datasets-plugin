@@ -50,23 +50,35 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
      * ========================== */
 
     XNAT.plugin.collection.availableExpts = [];
+    var supportedDataTypes = {};
+    XNAT.app.dataTypeAccess.getElements['browseable'].ready(function(elements){
+        supportedDataTypes = elements.elementMap;
+    });
 
-    var getProjectDataUrl = function(){
-        return rootUrl("/data/projects/"+projectId+"/experiments?format=json")
-    };
 
-    function getProjectExperiments(){
+    XNAT.plugin.collection.getProjectExperiments = function(project){
         XNAT.xhr.getJSON({
-            url: getProjectDataUrl(),
-            fail: function(e){ errorHandler(e, "Could not retrieve experiments for project "+projectId )},
+            url: rootUrl("/data/projects/"+project+"/experiments?format=json"),
+            fail: function(e){ errorHandler(e, "Could not retrieve experiments for project "+project )},
             success: function(data){
                 XNAT.plugin.collection.availableExpts = data.ResultSet.Result;
             }
         })
+    };
+    function sortByXsiType(experiments){
+        var xsiTypes = [], sortedExperiments = {};
+        experiments.forEach(function(expt){
+            if (xsiTypes.indexOf(expt.xsiType) < 0) xsiTypes.push(expt.xsiType)
+        });
+        xsiTypes.forEach(function(type){
+            sortedExperiments[type] = experiments.filter(function(expt){ return expt.xsiType === type})
+        });
+        return sortedExperiments;
     }
+
+    // populate available experiments and sort them by xsitype
     $(document).ready(function(){
-        // after primary page functions are available, we can populate this list for future use
-        getProjectExperiments();
+        XNAT.plugin.collection.getProjectExperiments(projectId);
     });
 
     /* ============================================== *
@@ -76,6 +88,60 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
     var collectionCreator;
     XNAT.plugin.collection.collectionCreator = collectionCreator =
         getObject(XNAT.plugin.collection.collectionCreator || {});
+
+    function buildSelectableTable(container, experiments, xsitype){
+        var $container = $(container);
+        $container.append(spawn('h3',{ style: { margin: '2em 0 1em' }}, supportedDataTypes[xsitype].plural));
+
+        var tableHeader = spawn('div.data-table-wrapper.no-body',{ style: { 'border':'none' }}, [
+            spawn('table.xnat-table.fixed-header.clean', { style: { 'border-bottom':'none' }}, [
+                spawn('thead',[
+                    spawn('tr',[
+                        spawn('th.toggle-all',{ style: { width: '45px' }},[
+                            spawn('input.selectable-select-all|type=checkbox',{ title: 'Toggle All '+supportedDataTypes[xsitype].plural })
+                        ]),
+                        spawn('th.left',{ style: { width: '250px' }},'Label'),
+                        spawn('th.left',{ style: { width: '263px' }},'XNAT Accession ID')
+                    ])
+                ])
+            ])
+        ]);
+
+        var tableBodyRows = [];
+        // loop over an array of data, populate the table body rows
+        // max table width in a 700-px dialog is 658px
+        experiments.forEach(function(experiment){
+            tableBodyRows.push(
+                spawn('tr.selectable-tr',{ id: experiment['ID'] },[
+                    spawn('td.table-action-controls.table-selector.center',{ style: { width: '45px' }}, [
+                        spawn('input.selectable-select-one.target|type=checkbox', { value: experiment['ID'] })
+                    ]),
+                    spawn('td',[
+                        spawn('span',{ style: { width: '226px', 'word-wrap':'break-word', 'display': 'inline-block' }},experiment['label'])
+                    ]),
+                    spawn('td',[
+                        spawn('span',{ style: { width: '239px', 'word-wrap':'break-word', 'display': 'inline-block' }},experiment['ID'])
+                    ])
+                ])
+            );
+        });
+
+        var tableBody = spawn('div.data-table-wrapper.no-header',{
+            style: {
+                'border-color': '#aaa',
+                'max-height': '300px',
+                'overflow-y': 'auto'
+            }
+        },[
+            spawn('table.xnat-table.clean.selectable',{ style: { 'border':'none' }}, [
+                spawn('tbody', tableBodyRows )
+            ])
+        ]);
+
+        container.append(
+            spawn('div.data-table-container.experiment-selector',[ tableHeader, tableBody ])
+        );
+    }
 
     collectionCreator.openDialog = function(collection){
         collection = collection || { "list": [], "labels:": [] };
@@ -88,6 +154,16 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             return spawn('ul',{style: { 'list-style-type':'none'}},labels.join(''));
         }
 
+        function getSelectedExperiments(form){
+            var selectedExperiments = [];
+            $(form).find('.experiment-selector').each(function(){
+                $(this).find('tbody').find('input[type=checkbox]:checked').each(function(){
+                    selectedExperiments.push($(this).val());
+                });
+            });
+            return selectedExperiments;
+        }
+
         XNAT.dialog.open({
             title: 'Create Data Collection',
             width: 600,
@@ -95,13 +171,16 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             beforeShow: function(obj){
                 var inputArea = obj.$modal.find('.collectionModalContent').find('.panel');
                 inputArea.append(spawn('!',[
+                    spawn('div.message',{ style: { 'margin-bottom': '1em' }},'Select the experiments you want to include in this data collection. XNAT will randomly sort your selected experiments into a 70/20/10 Train/Validation/Test format.'),
                     XNAT.ui.panel.input({ name: "name", label: "Collection Title", addClass: "required" }),
                     XNAT.ui.panel.input({ name: "description", label: "Description" }),
-                    XNAT.ui.panel.input.hidden({ name: "experiments", value: JSON.stringify(collection.list), addClass: "required" })
                 ]));
-                inputArea.append(spawn('!',[
-                    XNAT.ui.panel.element({ label: "Sessions in Collection", html: listSessions(collection.labels) }).spawned
-                ]));
+
+                var sortedExperiments = sortByXsiType(XNAT.plugin.collection.availableExpts);
+                var xsitypes = Object.keys(sortedExperiments);
+                xsitypes.forEach(function(type){
+                    buildSelectableTable(inputArea,sortedExperiments[type],type);
+                })
             },
             buttons: [
                 {
@@ -112,7 +191,13 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                         var formData = obj.$modal.find('form');
                         var name = formData.find('input[name=name]').val();
                         var description = formData.find('input[name=description]').val();
-                        var experiments = JSON.parse(formData.find('input[name=experiments]').val());
+                        var experiments = getSelectedExperiments(formData);
+
+                        if (!experiments.length) {
+                            XNAT.dialog.message('Error: No experiments selected.');
+                            return false;
+                        }
+
                         var collectionModel = {
                             "name": name,
                             "description": description,
@@ -129,7 +214,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                             success: function(data){
                                 XNAT.ui.dialog.closeAll();
                                 console.log(data);
-                                XNAT.ui.banner.top('Created Collection Set','success','3000');
+                                XNAT.dialog.message('Created Collection Set "'+data.name+'" with '+data.trainingExperiments.length+' Training, '+data.validationExperiments.length+' Validation, and '+data.testExperiments.length+' Test experiments.');
                             }
                         })
                     }
