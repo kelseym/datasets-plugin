@@ -132,10 +132,15 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                     e.preventDefault();
                     XNAT.plugin.collection.projCollections.show(id)
                 }
-            }, 'View / Edit')
+            }, [ spawn('i.fa.fa-eye',{title: 'View Collection JSON' })])
         }
-        function editButton(id){
-
+        function deleteButton(collection){
+            return spawn('button.btn.btn-sm.delete-collection',{
+                onclick: function(e){
+                    e.preventDefault();
+                    XNAT.plugin.collection.projCollections.delete(collection)
+                }
+            }, [ spawn('i.fa.fa-trash',{title: 'Delete Collection JSON', style: {color: '#c00'} })])
         }
 
         // get project data collections
@@ -155,7 +160,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                             .td(collection.description)
                             .td(listObj(buckets))
                             .td(isoDate(collection.timestamp))
-                            .td([[ 'div.center', [ viewButton(collection.id) ]]])
+                            .td([[ 'div.center', [ viewButton(collection.id), spacer(6), deleteButton(collection) ]]])
                     });
                 }
                 else {
@@ -184,31 +189,6 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         toRemove.forEach(function(key){ delete collection[key] });
         return collection;
     };
-
-    // projCollections.viewSource = function(source,title){
-    //     title = title || 'View Source';
-    //     _source = spawn ('textarea', JSON.stringify(source, null, 4));
-    //
-    //     _editor = XNAT.app.codeEditor.init(_source, {
-    //         language: 'json'
-    //     });
-    //
-    //     _editor.openEditor({
-    //         title: title,
-    //         classes: 'plugin-json',
-    //         buttons: {
-    //             ok: {
-    //                 label: 'OK',
-    //                 isDefault: true,
-    //                 close: true
-    //             }
-    //         },
-    //         height: 680,
-    //         afterShow: function(dialog, obj){
-    //             obj.aceEditor.setReadOnly(true);
-    //         }
-    //     });
-    // };
 
     projCollections.editSource = function(source,title,id){
         title = title || 'View Source';
@@ -266,6 +246,37 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                 }
             }
         });
+    };
+
+    projCollections.delete = function(collection){
+        XNAT.dialog.open({
+            title: 'Confirm Deletion',
+            content: spawn('p','Delete data collection "'+collection.name+'"?'),
+            buttons: [
+                {
+                    label: 'Delete',
+                    isDefault: true,
+                    close: false,
+                    action: function(){
+                        XNAT.xhr.ajax({
+                            url: csrfUrl('/xapi/collection/delete/'+collection.id),
+                            method: 'DELETE',
+                            fail: function(e){ errorHandler(e,"Could Not Delete Collection")},
+                            success: function(data){
+                                XNAT.dialog.closeAll();
+                                console.log(data);
+                                XNAT.plugin.collection.projCollections.refresh(true);
+                                XNAT.dialog.message('Successfully deleted data collection.');
+                            }
+                        })
+                    }
+                },
+                {
+                    label: 'Cancel',
+                    close: true
+                }
+            ]
+        })
     };
 
     projCollections.show = function(id){
@@ -342,7 +353,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             var newCollection = spawn('button.new-collection.btn.btn-sm.submit', {
                 html: 'New Data Collection',
                 onclick: function(){
-                    XNAT.plugin.collections.collectionCreator.open();
+                    XNAT.plugin.collection.collectionCreator.open();
                 }
             });
 

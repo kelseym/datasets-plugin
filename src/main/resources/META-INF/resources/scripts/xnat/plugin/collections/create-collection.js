@@ -214,6 +214,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                             success: function(data){
                                 XNAT.ui.dialog.closeAll();
                                 console.log(data);
+                                XNAT.plugin.collection.projCollections.refresh(true);
                                 XNAT.dialog.message('Created Collection Set "'+data.name+'" with '+data.trainingExperiments.length+' Training, '+data.validationExperiments.length+' Validation, and '+data.testExperiments.length+' Test experiments.');
                             }
                         })
