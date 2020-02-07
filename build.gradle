@@ -1,89 +1,53 @@
 /*
  * xnat-collection: build.gradle
- * XNAT http://www.xnat.org
- * Copyright (c) 2019, Washington University School of Medicine
+ * XNAT https://www.xnat.org
+ * Copyright (c) 2020, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.
  */
 
-// TODO: This block is required for the 'xnat-data-builder' plugin to function.
 buildscript {
     ext {
-        vXnat = '1.7.5.6'
+        vXnat = "1.7.6"
     }
     repositories {
         mavenLocal()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
+        maven { url "https://plugins.gradle.org/m2" }
         jcenter()
         mavenCentral()
-        maven {
-            url 'https://nrgxnat.jfrog.io/nrgxnat/libs-release'
-            name 'XNAT Release Repository'
-        }
-        maven {
-            url 'https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot'
-            name 'XNAT Snapshot Repository'
-        }
+        maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-release" }
+        maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot" }
     }
     dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE"
         classpath "io.franzbecker:gradle-lombok:3.2.0"
-        classpath ("org.nrg.xnat.build:xnat-data-builder:1.7.5.6"){
-            exclude group:'torque'
-        }
-        classpath ("org.nrg.xnat:web:${vXnat}"){
-            exclude group: '*'
-        }
+        classpath "org.nrg.xnat.build:xnat-data-builder:1.7.6"
     }
 }
 
-// TODO: Change the group and version to values appropriate for your plugin project.
-def groupName = 'org.nrg.xnatx.plugins'
-def pluginVersion = '1.0.0-SNAPSHOT'
-
-group groupName
-version pluginVersion
-
-// TODO: This is the minimum set of Gradle plugins required to build most XNAT plugins. You may include many others, including plugins for testing and test coverage, IDE integration, and more.
-apply plugin: 'io.spring.dependency-management'
+apply plugin: "eclipse"
+apply plugin: "idea"
+apply plugin: "jacoco"
+apply plugin: "java"
+apply plugin: "maven-publish"
+apply plugin: "io.spring.dependency-management"
 apply plugin: "io.franzbecker.gradle-lombok"
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
-apply plugin: 'jacoco'
-apply plugin: 'xnat-data-builder'
+apply plugin: "org.nrg.xnat.build.xnat-data-builder"
 
-// TODO: This provides access to all of these repositories for dependency resolution.
+group "org.nrg.xnatx.plugins"
+version "1.0.0-SNAPSHOT"
+
 repositories {
     mavenLocal()
-    maven {
-        url "http://maven.imagej.net/content/groups/public"
-        name "ImageJ Maven Repository"
-    }
-    maven {
-        url 'http://dcm4che.org/maven2'
-        name 'dcm4che Maven Repository'
-    }
+    maven { url "https://dcm4che.org/maven2" }
+    maven { url "https://maven.imagej.net/content/groups/public" }
     jcenter()
     mavenCentral()
-    maven {
-        url 'https://nrgxnat.jfrog.io/nrgxnat/libs-release'
-        name 'XNAT Release Repository'
-    }
-    maven {
-        url 'https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot'
-        name 'XNAT Snapshot Repository'
-    }
-    maven {
-        url 'https://nrgxnat.jfrog.io/nrgxnat/ext-release'
-        name 'XNAT External Release Repository'
-    }
+    maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-release" }
+    maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot" }
 }
 
-// TODO: As of the 1.7.x release, XNAT is built as a Java 7-compatible (i.e. JDK 1.7) application. All plugins must be 1.7 compatible as well.
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
@@ -96,7 +60,6 @@ dependencyManagement.imports {
     mavenBom "org.nrg:parent:${vXnat}"
 }
 
-// TODO: This is a pretty minimal set of dependencies, so don't worry if you need to add more.
 dependencies {
     implementation("org.nrg.xnat:web") {
         transitive = false
@@ -116,11 +79,10 @@ dependencies {
     implementation("org.apache.velocity:velocity") {
         transitive = false
     }
-    implementation("stratum:stratum") {
+    // Not including explicit version info for this dependency breaks the build for some reason.
+    implementation("stratum:stratum:1.0") {
         transitive = false
     }
-
-    implementation "log4j:log4j"
     implementation "io.springfox:springfox-swagger2"
 }
 
@@ -159,7 +121,6 @@ if (javaVersion.java8Compatible || javaVersion.java9Compatible || javaVersion.ja
     throw new BuildCancelledException("You are using a JDK version (${javaVersion}) that is not compatible with Java 7. The XNAT build will fail. Please install a JDK version of Java 7 or later.")
 }
 
-// TODO: This configures the Jacoco test coverage plugin.
 jacoco {
     toolVersion = dependencyManagement.importedProperties["jacoco.version"]
 }
@@ -173,16 +134,15 @@ jacocoTestReport {
     }
 }
 
-// TODO: This tells the compiler where to find source code. This isn't required in a standard build, but the XNAT data builder generates code from XNAT data-type schemas that the compiler needs to know about.
 sourceSets {
     main {
         java {
-            srcDir 'src/main/java'
-            srcDir 'build/xnat-generated/src/main/java'
+            srcDir "src/main/java"
+            srcDir "build/xnat-generated/src/main/java"
         }
         resources {
-            srcDir 'src/main/resources'
-            srcDir 'build/xnat-generated/src/main/resources'
+            srcDir "src/main/resources"
+            srcDir "build/xnat-generated/src/main/resources"
         }
     }
 }
@@ -197,56 +157,57 @@ task javadocJar(type: Jar) {
     from javadoc.destinationDir
 }
 
-publishing.publications {
-    mavenJava(MavenPublication) {
-        from components.java
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
 
-        artifacts {
-            artifact sourceJar
-            artifact javadocJar
-        }
-
-        pom.withXml {
-            def root = asNode()
-            root.appendNode("name", "XNAT Data Collection Plugin")
-            root.appendNode("url", "https://bitbucket.org/xnatx/xnatx-collection-plugin")
-            root.appendNode("inceptionYear", "2019")
-
-            root.appendNode("scm").with {
-                appendNode("url", "https://bitbucket.org/xnatx/xnatx-ollection-plugin")
-                appendNode("connection", "scm:https://bitbucket.org/xnatx/xnatx-collection-plugin")
-                appendNode("developerConnection", "scm:git@bitbucket.org:xnatx/xnatx-collection-plugin.git")
+            artifacts {
+                artifact sourceJar
+                artifact javadocJar
             }
 
-            root.appendNode("licenses").appendNode("license").with {
-                appendNode("name", "Simplified BSD 2-Clause License")
-                appendNode("url", "http://xnat.org/about/license.php")
-                appendNode("distribution", "repo")
-            }
+            pom.withXml {
+                def root = asNode()
+                root.appendNode("name", "XNAT Data Collection Plugin")
+                root.appendNode("url", "https://bitbucket.org/xnatx/xnatx-collection-plugin")
+                root.appendNode("inceptionYear", "2019")
 
-            root.appendNode("developers").with {
-                appendNode("developer").with {
-                    appendNode("id", "mfmckay")
-                    appendNode("name", "Mike McKay")
-                    appendNode("email", "mfmckay@wustl.edu")
+                root.appendNode("scm").with {
+                    appendNode("url", "https://bitbucket.org/xnatx/xnatx-ollection-plugin")
+                    appendNode("connection", "scm:https://bitbucket.org/xnatx/xnatx-collection-plugin")
+                    appendNode("developerConnection", "scm:git@bitbucket.org:xnatx/xnatx-collection-plugin.git")
+                }
+
+                root.appendNode("licenses").appendNode("license").with {
+                    appendNode("name", "Simplified BSD 2-Clause License")
+                    appendNode("url", "https://xnat.org/about/license.php")
+                    appendNode("distribution", "repo")
+                }
+
+                root.appendNode("developers").with {
+                    appendNode("developer").with {
+                        appendNode("id", "mfmckay")
+                        appendNode("name", "Mike McKay")
+                        appendNode("email", "mfmckay@wustl.edu")
+                    }
                 }
             }
         }
     }
-}
-
-publishing.repositories {
-    maven {
-        credentials {
-            // These properties must be set in the ~/.gradle/gradle.properties file or passed on the Gradle command
-            // line in the form -PrepoUsername=foo -PrepoPassword=bar.
-            username propertyWithDefault("repoUsername", "username")
-            password propertyWithDefault("repoPassword", "password")
-        }
-        if (project.version.endsWith("-SNAPSHOT")) {
-            url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot-local"
-        } else {
-            url "https://nrgxnat.jfrog.io/nrgxnat/libs-release-local"
+    repositories {
+        maven {
+            credentials {
+                // These properties must be set in the ~/.gradle/gradle.properties file or passed on the Gradle command
+                // line in the form -PrepoUsername=foo -PrepoPassword=bar.
+                username propertyWithDefault("repoUsername", "username")
+                password propertyWithDefault("repoPassword", "password")
+            }
+            if (project.version.endsWith("-SNAPSHOT")) {
+                url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot-local"
+            } else {
+                url "https://nrgxnat.jfrog.io/nrgxnat/libs-release-local"
+            }
         }
     }
 }

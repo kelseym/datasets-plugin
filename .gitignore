@@ -2,7 +2,9 @@
 *.log
 /target
 /build
+/out
 .gradle*
 /.idea
 src/beans
 src/generated
+dep*.txt
