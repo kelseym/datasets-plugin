@@ -65,8 +65,8 @@ public class HibernateDataCollectionService extends AbstractHibernateEntityServi
     @Override
     public Map<String, List<Map<String, String>>> getCollectionResources(final UserI user, final long id) throws NotFoundException {
         final DataCollection collection  = get(id);
-        final String         imagesTag   = StringUtils.defaultIfBlank(collection.getImagesSeriesDescription(), DEFAULT_IMAGES_TAG);
-        final String         labelsTag   = StringUtils.defaultIfBlank(collection.getLabelsSeriesDescription(), DEFAULT_LABELS_TAG);
+        final String         imagesTag   = StringUtils.defaultIfBlank(collection.getImageSeriesDescription(), DEFAULT_IMAGES_TAG);
+        final String         labelsTag   = StringUtils.defaultIfBlank(collection.getLabelSeriesDescription(), DEFAULT_LABELS_TAG);
         final Path           projectPath = Paths.get(ArcSpecManager.GetInstance().getArchivePathForProject(collection.getProjectId()), "arc001");
 
         final Map<String, List<Map<String, String>>> resources = new HashMap<>();

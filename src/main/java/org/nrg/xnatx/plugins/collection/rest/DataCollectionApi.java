@@ -104,8 +104,8 @@ public class DataCollectionApi extends AbstractXapiRestController {
         collection.setName(model.getName());
         collection.setProjectId(model.getProjectId());
         collection.setDescription(model.getDescription());
-        collection.setImagesSeriesDescription(model.getImagesSeriesDescription());
-        collection.setLabelsSeriesDescription(model.getLabelsSeriesDescription());
+        collection.setImageSeriesDescription(model.getImagesSeriesDescription());
+        collection.setLabelSeriesDescription(model.getLabelsSeriesDescription());
         List<String> experimentIds = model.getExperiments();
         Collections.shuffle(experimentIds);
         int    exptCount          = experimentIds.size();
@@ -133,8 +133,8 @@ public class DataCollectionApi extends AbstractXapiRestController {
         collection.setName(newCollection.getName());
         collection.setProjectId(newCollection.getProjectId());
         collection.setDescription(newCollection.getDescription());
-        collection.setImagesSeriesDescription(newCollection.getImagesSeriesDescription());
-        collection.setLabelsSeriesDescription(newCollection.getLabelsSeriesDescription());
+        collection.setImageSeriesDescription(newCollection.getImageSeriesDescription());
+        collection.setLabelSeriesDescription(newCollection.getLabelSeriesDescription());
         collection.setTrainingExperiments(newCollection.getTrainingExperiments());
         collection.setValidationExperiments(newCollection.getValidationExperiments());
         collection.setTestExperiments(newCollection.getTestExperiments());
