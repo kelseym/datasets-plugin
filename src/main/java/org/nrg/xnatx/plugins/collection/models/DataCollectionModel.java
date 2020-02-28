@@ -30,8 +30,8 @@ public class DataCollectionModel {
                 "_name='" + _name + '\'' +
                 ", _projectId='" + _projectId + '\'' +
                 ", _description='" + _description + '\'' +
-                ", _imagesSeriesDescription='" + _imagesSeriesDescription + '\'' +
-                ", _labelsSeriesDescription='" + _labelsSeriesDescription + '\'' +
+                ", _imageSeriesDescription='" + _imageSeriesDescription + '\'' +
+                ", _labelSeriesDescription='" + _labelSeriesDescription + '\'' +
                 ", _experiments=" + _experiments +
                 '}';
     }
@@ -46,10 +46,10 @@ public class DataCollectionModel {
     private String _description;
 
     @ApiModelProperty
-    private String _imagesSeriesDescription;
+    private String _imageSeriesDescription;
 
     @ApiModelProperty
-    private String _labelsSeriesDescription;
+    private String _labelSeriesDescription;
 
     @ApiModelProperty
     private List<String> _experiments;

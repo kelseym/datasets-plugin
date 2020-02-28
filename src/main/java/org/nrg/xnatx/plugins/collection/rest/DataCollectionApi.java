@@ -104,8 +104,8 @@ public class DataCollectionApi extends AbstractXapiRestController {
         collection.setName(model.getName());
         collection.setProjectId(model.getProjectId());
         collection.setDescription(model.getDescription());
-        collection.setImageSeriesDescription(model.getImagesSeriesDescription());
-        collection.setLabelSeriesDescription(model.getLabelsSeriesDescription());
+        collection.setImageSeriesDescription(model.getImageSeriesDescription());
+        collection.setLabelSeriesDescription(model.getLabelSeriesDescription());
         List<String> experimentIds = model.getExperiments();
         Collections.shuffle(experimentIds);
         int    exptCount          = experimentIds.size();
