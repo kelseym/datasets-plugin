@@ -9,7 +9,7 @@
 
 buildscript {
     ext {
-        vXnat = "1.7.6"
+        vXnat = "1.7.7-SNAPSHOT"
     }
     repositories {
         mavenLocal()
@@ -21,8 +21,8 @@ buildscript {
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE"
-        classpath "io.franzbecker:gradle-lombok:3.2.0"
-        classpath "org.nrg.xnat.build:xnat-data-builder:1.7.6"
+        classpath "io.franzbecker:gradle-lombok:3.3.0"
+        classpath "org.nrg.xnat.build:xnat-data-builder:1.7.7-SNAPSHOT"
     }
 }
 
@@ -51,16 +51,18 @@ repositories {
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
-lombok {
-    version = "1.18.10"
-    sha256 = "2836e954823bfcbad45e78c18896e3d01058e6f643749810c608b7005ee7b2fa"
-}
-
-dependencyManagement.imports {
-    mavenBom "org.nrg:parent:${vXnat}"
+dependencyManagement {
+    imports {
+        mavenBom "org.nrg:parent:${vXnat}"
+    }
+    generatedPomCustomization {
+        enabled = false
+    }
 }
 
 dependencies {
+    implementation platform("org.nrg:parent:${vXnat}")
+
     implementation("org.nrg.xnat:web") {
         transitive = false
     }
@@ -73,17 +75,21 @@ dependencies {
     implementation "org.nrg:prefs"
     implementation "org.nrg:framework"
 
+    implementation("javax.servlet:javax.servlet-api") {
+        transitive = false
+    }
+    implementation("org.aspectj:aspectjweaver") {
+        transitive = false
+    }
     implementation("turbine:turbine") {
         transitive = false
     }
     implementation("org.apache.velocity:velocity") {
         transitive = false
     }
-    // Not including explicit version info for this dependency breaks the build for some reason.
-    implementation("stratum:stratum:1.0") {
-        transitive = false
-    }
     implementation "io.springfox:springfox-swagger2"
+
+    compileOnly "log4j:log4j"
 }
 
 def javaVersion = JavaVersion.current()
@@ -119,6 +125,11 @@ if (javaVersion.java8Compatible || javaVersion.java9Compatible || javaVersion.ja
     }
 } else if (!javaVersion.java7Compatible) {
     throw new BuildCancelledException("You are using a JDK version (${javaVersion}) that is not compatible with Java 7. The XNAT build will fail. Please install a JDK version of Java 7 or later.")
+}
+
+lombok {
+    version = dependencyManagement.importedProperties["lombok.version"] as String
+    sha256 = dependencyManagement.importedProperties["lombok.checksum"] as String
 }
 
 jacoco {

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!--
+  ~ xnatx-collection: src/main/resources/schemas/collection/collection.xsd
+  ~ XNAT http://www.xnat.org
+  ~ Copyright (c) 2020, Washington University School of Medicine
+  ~ All Rights Reserved
+  ~
+  ~ Released under the Simplified BSD.
+  -->
+
+<!--suppress XmlPathReference -->
+<xs:schema targetNamespace="http://nrg.wustl.edu/xnatx" xmlns:xnatx="http://nrg.wustl.edu/xnatx" xmlns:xnat="http://nrg.wustl.edu/xnat" xmlns:xdat="http://nrg.wustl.edu/xdat" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+    <xs:import namespace="http://nrg.wustl.edu/xdat" schemaLocation="../xdat/xdat.xsd"/>
+    <xs:import namespace="http://nrg.wustl.edu/xnat" schemaLocation="../xnat/xnat.xsd"/>
+
+    <xs:element name="DataCollectionDefinition" type="xnatx:dataCollectionDefinition"/>
+    <xs:element name="DataCollection" type="xnatx:dataCollection"/>
+
+    <xs:complexType name="dataCollectionCriterion">
+        <xs:annotation>
+            <xs:documentation>
+                Indicates the class or type that can resolve this criterion, as well as a payload that defines the
+                criterion in whatever format the resolver can understand.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="resolver" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Indicates the resolver that can interpret this criterion.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="4096"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="payload" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Payload to be interpreted by the criterion resolver.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="65536"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="dataCollectionDefinition">
+        <xs:annotation>
+            <xs:documentation>Defines the primary attributes and elements for Clara processing configurations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="xnat:abstractProjectAsset">
+                <xs:sequence>
+                    <xs:element name="description">
+                        <xs:annotation>
+                            <xs:documentation>Description of the data included in the collection.</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:maxLength value="65536"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="criteria" type="xnatx:dataCollectionCriterion" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="dataCollection">
+        <xs:annotation>
+            <xs:documentation>Defines the primary attributes and elements for Clara processing configurations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="xnat:abstractProjectAsset">
+                <xs:sequence>
+                    <xs:element name="definition_id" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Indicates the collection definition used to generate this resolved collection.</xs:documentation>
+                            <xs:appinfo>
+                                <xdat:field baseElement="xnatx:dataCollectionDefinition" baseCol="id"/>
+                            </xs:appinfo>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="fileCount" minOccurs="0" type="xs:integer"/>
+                    <xs:element name="fileSize" minOccurs="0" type="xs:long"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+</xs:schema>
