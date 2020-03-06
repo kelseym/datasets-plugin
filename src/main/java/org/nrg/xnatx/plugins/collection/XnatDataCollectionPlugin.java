@@ -14,11 +14,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.extern.slf4j.Slf4j;
 import org.nrg.framework.annotations.XnatDataModel;
 import org.nrg.framework.annotations.XnatPlugin;
-import org.nrg.xdat.model.XnatxDatacollectionI;
-import org.nrg.xdat.model.XnatxDatacollectioncriterionI;
-import org.nrg.xdat.model.XnatxDatacollectiondefinitionI;
-import org.nrg.xdat.om.XnatxDatacollection;
-import org.nrg.xdat.om.XnatxDatacollectiondefinition;
+import org.nrg.xdat.om.SetsCollection;
+import org.nrg.xdat.om.SetsCriterion;
+import org.nrg.xdat.om.SetsDefinition;
 import org.nrg.xnatx.plugins.collection.converters.DataCollectionCriterionDeserializer;
 import org.nrg.xnatx.plugins.collection.converters.DataCollectionCriterionSerializer;
 import org.nrg.xnatx.plugins.collection.converters.DataCollectionDefinitionDeserializer;
@@ -31,13 +29,14 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @XnatPlugin(value = "dataCollectionPlugin", name = "XNAT Data Collection Plugin",
-            dataModels = {@XnatDataModel(value = XnatxDatacollectiondefinition.SCHEMA_ELEMENT_NAME,
-                                         singular = "Data Collection Definition",
-                                         plural = "Data Collection Definitions"),
-                          @XnatDataModel(value = XnatxDatacollection.SCHEMA_ELEMENT_NAME,
-                                         singular = "Data Collection",
-                                         plural = "Data Collections")})
+            dataModels = {@XnatDataModel(value = SetsDefinition.SCHEMA_ELEMENT_NAME,
+                                         singular = "Dataset Definition",
+                                         plural = "Dataset Definitions"),
+                          @XnatDataModel(value = SetsCollection.SCHEMA_ELEMENT_NAME,
+                                         singular = "Dataset Collection",
+                                         plural = "Dataset Collections")})
 @ComponentScan({"org.nrg.xnatx.plugins.collection.converters",
+                "org.nrg.xnatx.plugins.collection.resolvers",
                 "org.nrg.xnatx.plugins.collection.rest",
                 "org.nrg.xnatx.plugins.collection.services.impl"})
 @Slf4j
@@ -49,12 +48,12 @@ public class XnatDataCollectionPlugin {
     @Bean
     public Module dataCollectionModule() {
         final SimpleModule module = new SimpleModule();
-        module.addSerializer(XnatxDatacollectiondefinitionI.class, new DataCollectionDefinitionSerializer());
-        module.addSerializer(XnatxDatacollectionI.class, new DataCollectionSerializer());
-        module.addSerializer(XnatxDatacollectioncriterionI.class, new DataCollectionCriterionSerializer());
-        module.addDeserializer(XnatxDatacollectiondefinitionI.class, new DataCollectionDefinitionDeserializer());
-        module.addDeserializer(XnatxDatacollectionI.class, new DataCollectionDeserializer());
-        module.addDeserializer(XnatxDatacollectioncriterionI.class, new DataCollectionCriterionDeserializer());
+        module.addSerializer(SetsDefinition.class, new DataCollectionDefinitionSerializer());
+        module.addSerializer(SetsCollection.class, new DataCollectionSerializer());
+        module.addSerializer(SetsCriterion.class, new DataCollectionCriterionSerializer());
+        module.addDeserializer(SetsDefinition.class, new DataCollectionDefinitionDeserializer());
+        module.addDeserializer(SetsCollection.class, new DataCollectionDeserializer());
+        module.addDeserializer(SetsCriterion.class, new DataCollectionCriterionDeserializer());
         return module;
     }
 }

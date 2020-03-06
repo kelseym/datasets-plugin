@@ -3,11 +3,11 @@ package org.nrg.xnatx.plugins.collection.converters;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.nrg.xdat.model.XnatxDatacollectionI;
+import org.nrg.xdat.om.SetsCollection;
 
-public class DataCollectionDeserializer extends JsonDeserializer<XnatxDatacollectionI> {
+public class DataCollectionDeserializer extends JsonDeserializer<SetsCollection> {
     @Override
-    public XnatxDatacollectionI deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) {
+    public SetsCollection deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) {
         return null;
     }
 }

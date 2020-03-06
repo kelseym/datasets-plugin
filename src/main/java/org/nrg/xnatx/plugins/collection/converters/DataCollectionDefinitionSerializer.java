@@ -5,23 +5,23 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
-import org.nrg.xdat.model.XnatxDatacollectioncriterionI;
-import org.nrg.xdat.model.XnatxDatacollectiondefinitionI;
+import org.nrg.xdat.model.SetsCriterionI;
+import org.nrg.xdat.om.SetsDefinition;
 
-public class DataCollectionDefinitionSerializer extends StdSerializer<XnatxDatacollectiondefinitionI> {
+public class DataCollectionDefinitionSerializer extends StdSerializer<SetsDefinition> {
     public DataCollectionDefinitionSerializer() {
-        super(XnatxDatacollectiondefinitionI.class);
+        super(SetsDefinition.class);
     }
 
     @Override
-    public void serialize(final XnatxDatacollectiondefinitionI definition, final JsonGenerator generator, final SerializerProvider provider) throws IOException {
+    public void serialize(final SetsDefinition definition, final JsonGenerator generator, final SerializerProvider provider) throws IOException {
         generator.writeStartObject();
         writeNonBlankField(generator, "id", definition.getId());
         writeNonBlankField(generator, "label", definition.getLabel());
         writeNonBlankField(generator, "description", definition.getDescription());
         writeNonBlankField(generator, "project", definition.getProject());
         generator.writeArrayFieldStart("criteria");
-        for (final XnatxDatacollectioncriterionI criterion : definition.getCriteria()) {
+        for (final SetsCriterionI criterion : definition.getCriteria()) {
             generator.writeStartObject();
             generator.writeStringField("resolver", criterion.getResolver());
             generator.writeStringField("payload", criterion.getPayload());
