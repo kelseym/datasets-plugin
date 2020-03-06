@@ -17,12 +17,12 @@ import org.nrg.framework.annotations.XnatPlugin;
 import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsCriterion;
 import org.nrg.xdat.om.SetsDefinition;
-import org.nrg.xnatx.plugins.collection.converters.DataCollectionCriterionDeserializer;
-import org.nrg.xnatx.plugins.collection.converters.DataCollectionCriterionSerializer;
-import org.nrg.xnatx.plugins.collection.converters.DataCollectionDefinitionDeserializer;
-import org.nrg.xnatx.plugins.collection.converters.DataCollectionDefinitionSerializer;
-import org.nrg.xnatx.plugins.collection.converters.DataCollectionDeserializer;
-import org.nrg.xnatx.plugins.collection.converters.DataCollectionSerializer;
+import org.nrg.xnatx.plugins.collection.converters.CriterionDeserializer;
+import org.nrg.xnatx.plugins.collection.converters.CriterionSerializer;
+import org.nrg.xnatx.plugins.collection.converters.DefinitionDeserializer;
+import org.nrg.xnatx.plugins.collection.converters.DefinitionSerializer;
+import org.nrg.xnatx.plugins.collection.converters.CollectionDeserializer;
+import org.nrg.xnatx.plugins.collection.converters.CollectionSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -48,12 +48,12 @@ public class XnatDataCollectionPlugin {
     @Bean
     public Module dataCollectionModule() {
         final SimpleModule module = new SimpleModule();
-        module.addSerializer(SetsDefinition.class, new DataCollectionDefinitionSerializer());
-        module.addSerializer(SetsCollection.class, new DataCollectionSerializer());
-        module.addSerializer(SetsCriterion.class, new DataCollectionCriterionSerializer());
-        module.addDeserializer(SetsDefinition.class, new DataCollectionDefinitionDeserializer());
-        module.addDeserializer(SetsCollection.class, new DataCollectionDeserializer());
-        module.addDeserializer(SetsCriterion.class, new DataCollectionCriterionDeserializer());
+        module.addSerializer(SetsDefinition.class, new DefinitionSerializer());
+        module.addSerializer(SetsCollection.class, new CollectionSerializer());
+        module.addSerializer(SetsCriterion.class, new CriterionSerializer());
+        module.addDeserializer(SetsDefinition.class, new DefinitionDeserializer());
+        module.addDeserializer(SetsCollection.class, new CollectionDeserializer());
+        module.addDeserializer(SetsCriterion.class, new CriterionDeserializer());
         return module;
     }
 }

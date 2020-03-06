@@ -2,14 +2,12 @@ package org.nrg.xnatx.plugins.collection.converters;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
-import org.apache.commons.lang3.StringUtils;
 import org.nrg.xdat.model.SetsCriterionI;
 import org.nrg.xdat.om.SetsDefinition;
 
-public class DataCollectionDefinitionSerializer extends StdSerializer<SetsDefinition> {
-    public DataCollectionDefinitionSerializer() {
+public class DefinitionSerializer extends DatasetSerializer<SetsDefinition> {
+    public DefinitionSerializer() {
         super(SetsDefinition.class);
     }
 
@@ -29,11 +27,5 @@ public class DataCollectionDefinitionSerializer extends StdSerializer<SetsDefini
         }
         generator.writeEndArray();
         generator.writeEndObject();
-    }
-
-    private static void writeNonBlankField(final JsonGenerator generator, final String name, final String value) throws IOException {
-        if (StringUtils.isNotBlank(value)) {
-            generator.writeStringField(name, value);
-        }
     }
 }

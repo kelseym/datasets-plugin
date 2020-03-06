@@ -1,0 +1,45 @@
+package org.nrg.xnatx.plugins.collection.converters;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import org.nrg.xdat.om.SetsCollection;
+
+public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> {
+    public CollectionDeserializer() {
+        super(SetsCollection.class);
+    }
+
+    @Override
+    public SetsCollection deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
+        final JsonNode node = parser.getCodec().readTree(parser);
+
+        final SetsCollection collection = node.has("id") ? getCollection(node.get("id")) : new SetsCollection();
+        if (node.has("project")) {
+            collection.setProject(node.get("project").textValue());
+        }
+        if (node.has("label")) {
+            collection.setLabel(node.get("label").textValue());
+        }
+        if (node.has("definition")) {
+            collection.setDefinitionId(node.get("definition").textValue());
+        }
+        if (node.has("fileCount")) {
+            collection.setFilecount(node.get("fileCount").intValue());
+        }
+        if (node.has("fileSize")) {
+            collection.setFilesize(node.get("fileSize").longValue());
+        }
+        if (node.has("files")) {
+            collection.setFiles(node.get("files").textValue());
+        }
+
+        return collection;
+    }
+
+    private SetsCollection getCollection(final JsonNode node) {
+        final String id = node.get("id").textValue();
+        return SetsCollection.getSetsCollectionsById(id, null, false);
+    }
+}

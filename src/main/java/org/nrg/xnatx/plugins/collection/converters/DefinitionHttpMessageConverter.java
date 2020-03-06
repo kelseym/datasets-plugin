@@ -23,9 +23,12 @@ import org.springframework.stereotype.Component;
  * Handles converting XFT classes
  */
 @Component
-public class DataCollectionDefinitionHttpMessageConverter extends AbstractHttpMessageConverter<SetsDefinition> {
-    public DataCollectionDefinitionHttpMessageConverter(final SerializerService serializer) {
-        super(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML);
+public class DefinitionHttpMessageConverter extends AbstractHttpMessageConverter<SetsDefinition> {
+    public DefinitionHttpMessageConverter(final SerializerService serializer) {
+        // For JSON, should be able to use the serializer/deserializer implementations,
+        // but see if this needs to be restored in here.
+        // super(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML);
+        super(MediaType.APPLICATION_XML);
         _serializer = serializer;
     }
 
@@ -50,7 +53,7 @@ public class DataCollectionDefinitionHttpMessageConverter extends AbstractHttpMe
 
     private SetsDefinition readJson(final HttpInputMessage message) throws IOException {
         try (final InputStream input = message.getBody()) {
-            return  _serializer.getObjectMapper().readValue(input, SetsDefinition.class);
+            return _serializer.getObjectMapper().readValue(input, SetsDefinition.class);
         }
     }
 
@@ -65,6 +68,7 @@ public class DataCollectionDefinitionHttpMessageConverter extends AbstractHttpMe
         }
     }
 
+    @SuppressWarnings("unused")
     private void writeJson(final SetsDefinition definition, final HttpOutputMessage message) {
 
     }
@@ -77,6 +81,6 @@ public class DataCollectionDefinitionHttpMessageConverter extends AbstractHttpMe
         }
     }
 
-    private final SerializerService _serializer;
+    private final SerializerService            _serializer;
 }
 
