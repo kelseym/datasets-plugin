@@ -34,6 +34,7 @@ import org.nrg.xapi.exceptions.ResourceAlreadyExistsException;
 import org.nrg.xapi.rest.AbstractXapiRestController;
 import org.nrg.xapi.rest.AuthDelegate;
 import org.nrg.xapi.rest.XapiRequestMapping;
+import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsDefinition;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
@@ -175,8 +176,8 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "{id}", produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateCollection.class)
-    public void resolve(@PathVariable("id") final String id) throws NotFoundException, InsufficientPrivilegesException {
-        _definitions.resolve(getSessionUser(), id);
+    public SetsCollection resolve(@PathVariable("id") final String id) throws NotFoundException, InsufficientPrivilegesException {
+        return _definitions.resolve(getSessionUser(), id);
     }
 
     @ApiOperation(value = "Resolves the specified dataset definition.")
@@ -185,10 +186,10 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 403, message = "Insufficient privileges to resolve the dataset definition."),
                    @ApiResponse(code = 404, message = "The requested dataset definition doesn't exist."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
-    @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", produces = APPLICATION_JSON_VALUE, method = DELETE, restrictTo = Authorizer)
+    @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateCollection.class)
-    public void resolve(@PathVariable final String projectId, @PathVariable final String idOrLabel) throws NotFoundException, InsufficientPrivilegesException {
-        _definitions.resolve(getSessionUser(), projectId, idOrLabel);
+    public SetsCollection resolve(@PathVariable final String projectId, @PathVariable final String idOrLabel) throws NotFoundException, InsufficientPrivilegesException {
+        return _definitions.resolve(getSessionUser(), projectId, idOrLabel);
     }
 
     private final DatasetDefinitionService _definitions;
