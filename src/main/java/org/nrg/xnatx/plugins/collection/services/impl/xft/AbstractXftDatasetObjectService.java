@@ -73,7 +73,11 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     @Override
     public T findById(final UserI user, final String id) throws NotFoundException {
         //noinspection unchecked
-        return (T) XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
+        final T experiment = (T) XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
+        if (experiment == null) {
+            throw new NotFoundException("User " + user.getUsername() + " requested experiment with ID " + id + ", but that doesn't exist.");
+        }
+        return experiment;
     }
 
     @Override
@@ -82,7 +86,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
             //noinspection unchecked
             return (T) XnatExperimentdata.getXnatExperimentdatasById(getIdForProjectAndLabel(projectId, idOrLabel), user, false);
         } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException("Could not find an experiment with ID or label " + idOrLabel + " in the project " + projectId);
+            throw new NotFoundException("User " + user.getUsername() + " requested experiment with project " + projectId + " and label " + idOrLabel + ", but that doesn't exist.");
         }
     }
 
@@ -105,6 +109,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         return _template.queryForObject(QUERY_EXPT_PROJECT_AND_LABEL, new MapSqlParameterSource(PARAM_PROJECT, projectId).addValue(PARAM_ID_OR_LABEL, idOrLabel), String.class);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     protected boolean testProject(final String project) {
         return _template.queryForObject(QUERY_PROJECT_ID_EXISTS, new MapSqlParameterSource(PARAM_PROJECT, project), Boolean.class);
     }
@@ -172,6 +177,8 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
                     }
                 }
 
+                workflow.setId(object.getId());
+
                 final ValidationResults validation = item.validate();
                 if (validation != null && !validation.isValid()) {
                     throw new DataFormatException(validation.toFullString());
@@ -212,8 +219,6 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
                 WorkflowUtils.complete(workflow, meta);
                 //noinspection unchecked
                 return (T) XnatExperimentdata.getXnatExperimentdatasById(object.getId(), user, false);
-            } catch (InsufficientPrivilegesException | ResourceAlreadyExistsException | DataFormatException | NotFoundException e) {
-                throw e;
             } catch (Exception e) {
                 WorkflowUtils.fail(workflow, meta);
                 throw e;
@@ -231,15 +236,17 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         final XFTItem item     = object.getItem();
         final String  project  = object.getProject();
         final String  xsiType  = object.getXSIType();
+        final String  id       = object.getId();
 
         try {
             if (!_service.canDelete(user, item)) {
                 throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to delete " + xsiType + " experiments in project " + project + ".");
             }
+            SaveItemHelper.authorizedDelete(object.getItem(), user, EventUtils.DEFAULT_EVENT(user, "Deleted Clara object " + id));
         } catch (InsufficientPrivilegesException e) {
             throw e;
         } catch (Exception e) {
-            log.error("An error occurred trying to test whether the user {} can create new items of type {} in the project {}", username, xsiType, project, e);
+            log.error("An error occurred when user {} tried to delete the object with {} and type {} in the project {}", username, id, xsiType, project, e);
             throw new RuntimeException(e);
         }
     }
@@ -310,7 +317,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     private static final String QUERY_EXISTS                        = "SELECT EXISTS(%s)";
     private static final String QUERY_PROJECT_ID                    = "SELECT id FROM xnat_projectdata WHERE id = :" + PARAM_PROJECT;
     private static final String QUERY_EXPT_ID                       = "SELECT id FROM xnat_experimentdata WHERE id = :" + PARAM_EXPERIMENT;
-    private static final String QUERY_EXPT_PROJECT_AND_LABEL        = "SELECT x.id FROM xnat_experimentdata x LEFT JOIN xnat_experimentdata_share s ON x.id = s.sharing_share_xnat_experimentda_id WHERE (x.project = :" + PARAM_PROJECT + " AND (x.id =  :" + PARAM_ID_OR_LABEL + " OR x.label =  :" + PARAM_ID_OR_LABEL + ")) OR (s.project = :" + PARAM_PROJECT + " AND (s.id =  :" + PARAM_ID_OR_LABEL + " OR s.label =  :" + PARAM_ID_OR_LABEL + "))";
+    private static final String QUERY_EXPT_PROJECT_AND_LABEL        = "SELECT x.id FROM xnat_experimentdata x LEFT JOIN xnat_experimentdata_share s ON x.id = s.sharing_share_xnat_experimentda_id WHERE (x.project = :" + PARAM_PROJECT + " AND (x.id =  :" + PARAM_ID_OR_LABEL + " OR x.label =  :" + PARAM_ID_OR_LABEL + ")) OR (s.project = :" + PARAM_PROJECT + " AND (x.id =  :" + PARAM_ID_OR_LABEL + " OR s.label =  :" + PARAM_ID_OR_LABEL + "))";
     private static final String QUERY_PROJECT_ID_EXISTS             = String.format(QUERY_EXISTS, QUERY_PROJECT_ID);
     private static final String QUERY_EXPT_ID_EXISTS                = String.format(QUERY_EXISTS, QUERY_EXPT_ID);
     private static final String QUERY_EXPT_PROJECT_AND_LABEL_EXISTS = String.format(QUERY_EXISTS, QUERY_EXPT_PROJECT_AND_LABEL);

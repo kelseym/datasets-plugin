@@ -90,6 +90,11 @@ dependencies {
     implementation "io.springfox:springfox-swagger2"
 
     compileOnly "log4j:log4j"
+
+    testImplementation "org.nrg:test"
+    testImplementation "org.springframework:spring-test"
+    testImplementation "junit:junit"
+    testImplementation "org.assertj:assertj-core"
 }
 
 def javaVersion = JavaVersion.current()

@@ -1,7 +1,8 @@
 package org.nrg.xnatx.plugins.collection.resolvers;
 
+import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.arrayNodeToStrings;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import java.io.IOException;
@@ -10,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.orm.DatabaseHelper;
 import org.nrg.framework.services.SerializerService;
 import org.nrg.xdat.om.XnatAbstractresource;
@@ -78,7 +78,7 @@ import org.springframework.stereotype.Component;
  *     <li>Any value that doesn't meet the criteria above is evaluated as standard text</li>
  * </ul>
  *
- * All of the query filters generated from the same element are OR'ed together, while the filters generated from dcriterion payload are cumulative: that is, they compose a multi-column <b>WHERE</b> clause,
+ * All of the query filters generated from the same element are OR'ed together, while the filters generated from criterion payload are cumulative: that is, they compose a multi-column <b>WHERE</b> clause,
  * with each column filter
  *
  * @see <a href="https://www.postgresql.org/docs/12/functions-matching.html#FUNCTIONS-POSIX-REGEXP" target="_blank">PostgreSQL's docs on using regular expressions within SQL queries</a>
@@ -91,6 +91,7 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
     public SeriesAndResourceCriterionResolver(final SerializerService serializer, final DatabaseHelper helper) {
         super(helper);
         _serializer = serializer;
+        _resolver = new ExpressionResolver();
     }
 
     @Override
@@ -107,19 +108,20 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
                 final JsonNode node = json.get(element);
                 switch (node.getNodeType()) {
                     case ARRAY:
-                        clauses.add(getExpressions(EXPRESSION_ATTRIBUTES.get(element), ((ArrayNode) node)));
+                        clauses.add(_resolver.getExpressions(EXPRESSION_ATTRIBUTES.get(element), arrayNodeToStrings(node)));
                         break;
                     case STRING:
                     case OBJECT:
-                        clauses.add(getExpression(EXPRESSION_ATTRIBUTES.get(element), node.textValue()));
+                        clauses.add(_resolver.getExpression(EXPRESSION_ATTRIBUTES.get(element), node.textValue()));
                         break;
                     default:
                         log.warn("Skipping unknown JSON node type for {}: {}", element, node.getNodeType());
                 }
             }
         }
-        return super.resolveImpl(user, project, "(" + StringUtils.join(clauses, ") AND (") + ")");
+        return super.resolveImpl(user, project, _resolver.joinClauses(clauses));
     }
+
 
     private static final String                       SERIES_DESCRIPTION            = "SeriesDescription";
     private static final String                       RESOURCE_FORMAT               = "ResourceFormat";
@@ -135,5 +137,6 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
                                                                                                                                      .putAll(RESOURCE_LABEL, RESOURCE_LABEL_ATTRIBUTES)
                                                                                                                                      .build();
 
-    private final SerializerService _serializer;
+    private final SerializerService  _serializer;
+    private final ExpressionResolver _resolver;
 }
