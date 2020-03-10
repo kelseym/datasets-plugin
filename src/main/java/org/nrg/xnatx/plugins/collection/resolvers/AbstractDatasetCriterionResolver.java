@@ -2,8 +2,11 @@ package org.nrg.xnatx.plugins.collection.resolvers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.nrg.xdat.model.SetsCriterionI;
+import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.om.SetsCriterion;
 import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xft.security.UserI;
@@ -19,7 +22,7 @@ public abstract class AbstractDatasetCriterionResolver implements DatasetCriteri
         _resolverId = resolver.value();
     }
 
-    protected abstract List<? extends XnatAbstractresource> resolveImpl(final UserI user, final String project, final String payload);
+    protected abstract List<Map<String, XnatAbstractresource>> resolveImpl(final UserI user, final String project, final String payload);
 
     @Override
     public String getResolverId() {
@@ -27,12 +30,12 @@ public abstract class AbstractDatasetCriterionResolver implements DatasetCriteri
     }
 
     @Override
-    public boolean handles(final SetsCriterion criterion) {
+    public boolean handles(final SetsCriterionI criterion) {
         return StringUtils.equalsIgnoreCase(_resolverId, criterion.getResolver());
     }
 
     @Override
-    public List<? extends XnatAbstractresource> resolve(final UserI user, final String project, final SetsCriterion criterion) {
+    public List<Map<String, XnatAbstractresource>> resolve(final UserI user, final String project, final SetsCriterion criterion) {
         if (!StringUtils.equalsIgnoreCase(_resolverId, criterion.getResolver())) {
             log.info("Got criterion for resolver {} but I am {}, returning empty list.", criterion.getResolver(), _resolverId);
             return Collections.emptyList();

@@ -3,13 +3,13 @@ package org.nrg.xnatx.plugins.collection.resolvers;
 import static org.nrg.framework.orm.DatabaseHelper.getFunctionParameterSource;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -41,35 +41,51 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
     }
 
     @Override
-    protected List<? extends XnatAbstractresource> resolveImpl(final UserI user, final String project, final String payload) {
-        final String                normalized = StringUtils.replaceEach(payload, ATTRIBUTES, COLUMNS);
-        final List<ProjectResource> resources  = _helper.callFunction("scan_resources_with_criteria", getFunctionParameterSource("projectId", project, "criteria", normalized), ProjectResource.class);
-        log.debug("Found {} resources for the project {} with criterion: '{}'", resources.size(), project, payload);
-        return getXnatResources(user, resources);
+    protected List<Map<String, XnatAbstractresource>> resolveImpl(final UserI user, final String project, final String payload) {
+        return new ArrayList<>(getResources(user, project, payload).values());
     }
 
-    private static List<? extends XnatAbstractresource> getXnatResources(final UserI user, final List<ProjectResource> resources) {
-        return Lists.newArrayList(Iterables.filter(Iterables.transform(resources, new ProjectResourceToAbstractResource(user)), Predicates.<XnatAbstractresource>notNull()));
+    protected Map<String, Map<String, XnatAbstractresource>> getResources(final UserI user, final String project, final String payload) {
+        final List<ProjectResource> resources = getResources(project, payload);
+        log.debug("Found {} resources for the project {} with criterion: '{}'", resources.size(), project, payload);
+        return getResourceMap(user, resources);
+    }
+
+    protected List<ProjectResource> getResources(final String project, final String payload) {
+        final String normalized = StringUtils.replaceEach(payload, ATTRIBUTES, COLUMNS);
+        return _helper.callFunction("scan_resources_with_criteria", getFunctionParameterSource("projectId", project, "criteria", normalized), ProjectResource.class);
+    }
+
+    protected static Map<String, Map<String, XnatAbstractresource>> getResourceMap(final UserI user, final List<ProjectResource> resources) {
+        final ProjectResourceToAbstractResource              function   = new ProjectResourceToAbstractResource(user);
+        final Map<String, Map<String, XnatAbstractresource>> sessionMap = new HashMap<>();
+        for (final ProjectResource resource : resources) {
+            if (!sessionMap.containsKey(resource.getExperimentId())) {
+                sessionMap.put(resource.getExperimentId(), new HashMap<String, XnatAbstractresource>());
+            }
+            sessionMap.get(resource.getExperimentId()).put(resource.getResourceLabel(), function.apply(resource));
+        }
+        return sessionMap;
     }
 
     @Data
     @Accessors(prefix = "_")
     private static class ProjectResource {
         private String _subjectLabel;
-        private String _exptLabel;
+        private String _experimentLabel;
         private String _scanId;
         private int    _resourceId;
         private String _scanType;
         private String _seriesDescription;
         private String _seriesClass;
         private String _subjectId;
-        private String _imageSessionId;
+        private String _experimentId;
         private String _dataType;
-        private Date   _date;
         private String _resourceLabel;
         private String _resourceContent;
         private String _resourceFormat;
         private String _resourceDescription;
+        private Date   _resourceLastModified;
         private int    _resourceFileCount;
         private long   _resourceSize;
     }
@@ -90,5 +106,5 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
     private static final String[] ATTRIBUTES = {"subject_id", "experiment_id", "scan_id", "resource_id", "data_type", "resource_label", "resource_content", "resource_format", "subject_label", "experiment_label", "scan_type", "series_description", "series_class", "experiment_last_modified", "resource_last_modified", "resource_description", "resource_file_count", "resource_size"};
     private static final String[] COLUMNS    = {"subject.id", "expt.id", "scan.id", "abstract.xnat_abstractresource_id", "xme.element_name", "abstract.label", "resource.content", "resource.format", "subject.label", "expt.label", "scan.type", "scan.series_description", "scan.series_class", "expt_md.last_modified", "abstract_md.last_modified", "resource.description", "abstract.file_count", "abstract.file_size"};
 
-    private final DatabaseHelper     _helper;
+    private final DatabaseHelper _helper;
 }

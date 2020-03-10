@@ -10,6 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.nrg.framework.orm.DatabaseHelper;
 import org.nrg.framework.services.SerializerService;
@@ -78,13 +83,15 @@ import org.springframework.stereotype.Component;
  *     <li>Any value that doesn't meet the criteria above is evaluated as standard text</li>
  * </ul>
  *
- * All of the query filters generated from the same element are OR'ed together, while the filters generated from criterion payload are cumulative: that is, they compose a multi-column <b>WHERE</b> clause,
- * with each column filter
+ * All of the query filters generated from the same element are OR'ed together, while the filters generated from criterion payload are
+ * cumulative: that is, they compose a multi-column <b>WHERE</b> clause, with each column filter narrowing the result set.
  *
  * @see <a href="https://www.postgresql.org/docs/12/functions-matching.html#FUNCTIONS-POSIX-REGEXP" target="_blank">PostgreSQL's docs on using regular expressions within SQL queries</a>
  */
 @Resolver("SeriesDescription")
 @Component
+@Getter(AccessLevel.PROTECTED)
+@Accessors(prefix = "_")
 @Slf4j
 public class SeriesAndResourceCriterionResolver extends ResourceAttributeDatasetCriterionResolver {
     @Autowired
@@ -95,33 +102,47 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
     }
 
     @Override
-    protected List<? extends XnatAbstractresource> resolveImpl(final UserI user, final String project, final String payload) {
-        final JsonNode json;
-        try {
-            json = _serializer.deserializeJson(payload);
-        } catch (IOException e) {
-            throw new DatasetCriterionResolverException("An error occurred trying to convert the payload to a JSON object: " + payload, e);
-        }
+    protected List<Map<String, XnatAbstractresource>> resolveImpl(final UserI user, final String project, final String payload) {
+        return new ArrayList<>(getResources(user, project, payload).values());
+    }
+
+    protected Map<String, Map<String, XnatAbstractresource>> getResources(final UserI user, final String project, final String payload) {
+        return getResources(user, project, translate(payload));
+    }
+
+    protected Map<String, Map<String, XnatAbstractresource>> getResources(final UserI user, final String project, final JsonNode json) {
         final List<String> clauses = new ArrayList<>();
         for (final String element : EXPRESSION_ATTRIBUTES.keySet()) {
             if (json.has(element)) {
                 final JsonNode node = json.get(element);
                 switch (node.getNodeType()) {
                     case ARRAY:
-                        clauses.add(_resolver.getExpressions(EXPRESSION_ATTRIBUTES.get(element), arrayNodeToStrings(node)));
+                        clauses.add(getResolver().getExpressions(EXPRESSION_ATTRIBUTES.get(element), arrayNodeToStrings(node)));
                         break;
                     case STRING:
                     case OBJECT:
-                        clauses.add(_resolver.getExpression(EXPRESSION_ATTRIBUTES.get(element), node.textValue()));
+                        clauses.add(getResolver().getExpression(EXPRESSION_ATTRIBUTES.get(element), node.textValue()));
                         break;
                     default:
                         log.warn("Skipping unknown JSON node type for {}: {}", element, node.getNodeType());
                 }
             }
         }
-        return super.resolveImpl(user, project, _resolver.joinClauses(clauses));
+        final String resolved = getResolver().joinClauses(clauses);
+        log.debug("Now getting resources from project {} for user {} on the resolved query clauses: {}", project, user.getUsername(), resolved);
+        return super.getResources(user, project, resolved);
     }
 
+    @Nonnull
+    protected JsonNode translate(final String payload) {
+        final JsonNode json;
+        try {
+            json = getSerializer().deserializeJson(payload);
+        } catch (IOException e) {
+            throw new DatasetCriterionResolverException("An error occurred trying to convert the payload to a JSON object: " + payload, e);
+        }
+        return json;
+    }
 
     private static final String                       SERIES_DESCRIPTION            = "SeriesDescription";
     private static final String                       RESOURCE_FORMAT               = "ResourceFormat";

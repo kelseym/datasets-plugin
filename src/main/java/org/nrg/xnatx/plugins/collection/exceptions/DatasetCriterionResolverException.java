@@ -1,6 +1,10 @@
 package org.nrg.xnatx.plugins.collection.exceptions;
 
-public class DatasetCriterionResolverException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+public class DatasetCriterionResolverException extends BaseDatasetException {
     public DatasetCriterionResolverException(final String message) {
         super(message);
     }

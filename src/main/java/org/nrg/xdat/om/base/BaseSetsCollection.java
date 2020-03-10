@@ -1,0 +1,62 @@
+package org.nrg.xdat.om.base;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.nrg.xdat.model.XnatAbstractresourceI;
+import org.nrg.xdat.om.base.auto.AutoSetsCollection;
+import org.nrg.xft.ItemI;
+import org.nrg.xft.security.UserI;
+import org.nrg.xnatx.plugins.collection.exceptions.DatasetResourceException;
+
+/**
+ * Override of generated implementation of this class to provide JSON conversion and resource
+ * management methods.
+ */
+@Slf4j
+public abstract class BaseSetsCollection extends AutoSetsCollection {
+    public BaseSetsCollection(final ItemI item) {
+        super(item);
+    }
+
+    public BaseSetsCollection(final UserI user) {
+        super(user);
+    }
+
+    /**
+     * @deprecated Use BaseSetsCollection(UserI user)
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    public BaseSetsCollection() {
+        log.warn("This method is deprecated, you should use BaseSetsCollection(UserI) instead.");
+    }
+
+    public BaseSetsCollection(final Hashtable properties, final UserI user) {
+        super(properties,user);
+    }
+
+    public <A extends XnatAbstractresourceI> void addResources(final List<A> resources) {
+        final List<XnatAbstractresourceI> errors = new ArrayList<>();
+        for (final XnatAbstractresourceI resource : resources) {
+            try {
+                addResources_resource(resource);
+            } catch (Exception e) {
+                log.warn("An error occurred trying to add the resource {} to the collection {}", resource.getXnatAbstractresourceId(), StringUtils.defaultIfBlank(getId(), getDefinitionId()), e);
+                errors.add(resource);
+            }
+        }
+        if (!errors.isEmpty()) {
+            throw new DatasetResourceException((errors.size() == 1 ? "An error" : errors.size() + "errors") + " occurred trying to add resources to a collection. Check the server logs for more information. The following resources may or may not have been successfully added: " + StringUtils.join(Lists.transform(errors, new Function<XnatAbstractresourceI, Integer>() {
+                @Override
+                public Integer apply(final XnatAbstractresourceI resource) {
+                    return resource.getXnatAbstractresourceId();
+                }
+            }), ", "), errors);
+        }
+    }
+}

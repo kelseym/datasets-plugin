@@ -137,12 +137,7 @@ BEGIN
                        '    LEFT JOIN xnat_abstractresource_meta_data abstract_md ON abstract.abstractresource_info = abstract_md.meta_data_id ' ||
                        '    LEFT JOIN xnat_resource resource ON abstract.abstractresource_info = resource.xnat_abstractresource_id ' ||
                        'WHERE ' ||
-                       '    expt.project = ''%s'' AND (%s) ' ||
-                       'ORDER BY ' ||
-                       '    expt.project, ' ||
-                       '    subject.label, ' ||
-                       '    expt.label, ' ||
-                       '    scan.id', projectId, criteria);
+                       '    expt.project = ''%s'' AND (%s)', projectId, criteria);
 END
 $_$
     LANGUAGE plpgsql;

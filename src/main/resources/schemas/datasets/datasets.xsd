@@ -86,6 +86,21 @@
                     </xs:element>
                     <xs:element name="fileCount" minOccurs="0" type="xs:integer"/>
                     <xs:element name="fileSize" minOccurs="0" type="xs:long"/>
+                    <xs:element name="resources" minOccurs="0">
+                        <xs:complexType>
+                            <xs:sequence minOccurs="0">
+                                <xs:element name="resource" type="xnat:abstractResource" minOccurs="0" maxOccurs="unbounded">
+                                    <xs:annotation>
+                                        <xs:appinfo>
+                                            <xdat:field displayName="">
+                                                <xdat:relation relationType="multi" relationName="sets_collection_resource"/>
+                                            </xdat:field>
+                                        </xs:appinfo>
+                                    </xs:annotation>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
                     <xs:element name="files" minOccurs="0">
                         <xs:simpleType>
                             <xs:restriction base="xs:string">

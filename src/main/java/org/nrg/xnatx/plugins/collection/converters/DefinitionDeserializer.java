@@ -60,7 +60,7 @@ public class DefinitionDeserializer extends DatasetDeserializer<SetsDefinition> 
     }
 
     private SetsDefinition getDefinition(final JsonNode node) {
-        final String id = node.get("id").textValue();
+        final String id = node.textValue();
         return SetsDefinition.getSetsDefinitionsById(id, null, false);
     }
 }
