@@ -3,6 +3,8 @@ package org.nrg.xnatx.plugins.collection.converters;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
+import java.util.List;
+import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.om.SetsCollection;
 
 public class CollectionSerializer extends DatasetSerializer<SetsCollection> {
@@ -20,6 +22,18 @@ public class CollectionSerializer extends DatasetSerializer<SetsCollection> {
         writeNonBlankField(generator, "definition", collection.getDefinitionId());
         writeNonNullField(generator, "fileCount", collection.getFilecount());
         writeNonNullField(generator, "fileSize", collection.getFilesize());
+
+        final List<XnatAbstractresourceI> resources = collection.getResources_resource();
+        if (resources != null && !resources.isEmpty()) {
+            generator.writeArrayFieldStart("resources");
+            for (final XnatAbstractresourceI resource : resources) {
+                generator.writeStartObject();
+                generator.writeNumberField("id", resource.getXnatAbstractresourceId());
+                generator.writeStringField("label", resource.getLabel());
+                generator.writeEndObject();
+            }
+            generator.writeEndArray();
+        }
 
         // TODO: This should actually be a JsonNode or something injected directly.
         writeNonBlankField(generator, "files", collection.getFiles());

@@ -11,6 +11,7 @@ import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.om.base.auto.AutoSetsCollection;
 import org.nrg.xft.ItemI;
 import org.nrg.xft.security.UserI;
+import org.nrg.xnatx.plugins.collection.exceptions.DatasetCollectionHandlingException;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetResourceException;
 
 /**
@@ -37,7 +38,27 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
     }
 
     public BaseSetsCollection(final Hashtable properties, final UserI user) {
-        super(properties,user);
+        super(properties, user);
+    }
+
+    /**
+     * Overrides base <b>preSave()</b> implementations to remove resource validation, since resources
+     * for collections are always outside of the collection itself.
+     */
+    @Override
+    public void preSave() {
+        checkIsValidID(getId());
+        checkIsValidID(getLabel());
+
+        if (getPrimaryProject(false) == null) {
+            throw new DatasetCollectionHandlingException("Unable to identify project for:" + getProject());
+        }
+
+        try {
+            checkUniqueLabel();
+        } catch (Exception e) {
+            throw new DatasetCollectionHandlingException("The collection label " + getLabel() + " is not unique in the project " + getProject());
+        }
     }
 
     public <A extends XnatAbstractresourceI> void addResources(final List<A> resources) {

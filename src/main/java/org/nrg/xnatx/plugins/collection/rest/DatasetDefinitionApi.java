@@ -34,9 +34,11 @@ import org.nrg.xapi.exceptions.ResourceAlreadyExistsException;
 import org.nrg.xapi.rest.AbstractXapiRestController;
 import org.nrg.xapi.rest.AuthDelegate;
 import org.nrg.xapi.rest.XapiRequestMapping;
+import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsDefinition;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
+import org.nrg.xnatx.plugins.collection.rest.permissions.CreateCollection;
 import org.nrg.xnatx.plugins.collection.rest.permissions.CreateDefinition;
 import org.nrg.xnatx.plugins.collection.rest.permissions.EditDefinition;
 import org.nrg.xnatx.plugins.collection.rest.permissions.ReadDefinition;
@@ -164,6 +166,54 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
     @AuthDelegate(GuestUserAccessXapiAuthorization.class)
     public void delete(@PathVariable final String projectId, @PathVariable final String idOrLabel) throws NotFoundException, InsufficientPrivilegesException {
         _definitions.delete(getSessionUser(), projectId, idOrLabel);
+    }
+
+    @ApiOperation(value = "Resolves the specified dataset definition.")
+    @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully resolved."),
+                   @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
+                   @ApiResponse(code = 403, message = "Insufficient privileges to resolve the dataset definition."),
+                   @ApiResponse(code = 404, message = "The requested dataset definition doesn't exist."),
+                   @ApiResponse(code = 500, message = "Unexpected error")})
+    @XapiRequestMapping(value = "{id}", produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
+    @AuthDelegate(CreateCollection.class)
+    public SetsCollection resolve(@PathVariable("id") final String id) throws NotFoundException, InsufficientPrivilegesException {
+        return _definitions.resolve(getSessionUser(), id);
+    }
+
+    @ApiOperation(value = "Resolves the specified dataset definition.")
+    @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully resolved."),
+                   @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
+                   @ApiResponse(code = 403, message = "Insufficient privileges to resolve the dataset definition."),
+                   @ApiResponse(code = 404, message = "The requested dataset definition doesn't exist."),
+                   @ApiResponse(code = 500, message = "Unexpected error")})
+    @XapiRequestMapping(value = "{id}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
+    @AuthDelegate(CreateCollection.class)
+    public SetsCollection resolve(@PathVariable("id") final String id, final @RequestBody SetsCollection collection) throws NotFoundException, InsufficientPrivilegesException, DataFormatException, ResourceAlreadyExistsException {
+        return _definitions.resolve(getSessionUser(), id, collection);
+    }
+
+    @ApiOperation(value = "Resolves the specified dataset definition.")
+    @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully resolved."),
+                   @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
+                   @ApiResponse(code = 403, message = "Insufficient privileges to resolve the dataset definition."),
+                   @ApiResponse(code = 404, message = "The requested dataset definition doesn't exist."),
+                   @ApiResponse(code = 500, message = "Unexpected error")})
+    @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
+    @AuthDelegate(CreateCollection.class)
+    public SetsCollection resolve(@PathVariable final String projectId, @PathVariable final String idOrLabel) throws NotFoundException, InsufficientPrivilegesException {
+        return _definitions.resolve(getSessionUser(), projectId, idOrLabel);
+    }
+
+    @ApiOperation(value = "Resolves the specified dataset definition.")
+    @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully resolved."),
+                   @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
+                   @ApiResponse(code = 403, message = "Insufficient privileges to resolve the dataset definition."),
+                   @ApiResponse(code = 404, message = "The requested dataset definition doesn't exist."),
+                   @ApiResponse(code = 500, message = "Unexpected error")})
+    @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
+    @AuthDelegate(CreateCollection.class)
+    public SetsCollection resolve(@PathVariable final String projectId, @PathVariable final String idOrLabel, final @RequestBody SetsCollection collection) throws NotFoundException, InsufficientPrivilegesException, DataFormatException, ResourceAlreadyExistsException {
+        return _definitions.resolve(getSessionUser(), projectId, idOrLabel, collection);
     }
 
     private final DatasetDefinitionService _definitions;

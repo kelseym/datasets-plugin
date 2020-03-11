@@ -2,6 +2,7 @@ package org.nrg.xnatx.plugins.collection.services.impl.xft;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +31,7 @@ import org.nrg.xft.security.UserI;
 import org.nrg.xft.utils.SaveItemHelper;
 import org.nrg.xft.utils.ValidationUtils.ValidationResults;
 import org.nrg.xnat.utils.WorkflowUtils;
+import org.nrg.xnatx.plugins.collection.exceptions.DatasetObjectException;
 import org.nrg.xnatx.plugins.collection.services.DatasetObjectService;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -44,7 +46,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         try {
             _xsiType = (String) dataType.getField("SCHEMA_ELEMENT_NAME").get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
-            throw new RuntimeException("Got an error trying to get the schema element name for the data type: " + dataType.getName(), e);
+            throw new DatasetObjectException("Got an error trying to get the schema element name for the data type: " + dataType.getName(), e);
         }
         _xsiXmlPath = _xsiType + "/xsiType";
         _projectXmlPath = _xsiType + "/project";
@@ -127,6 +129,18 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     }
 
     private T createOrUpdateImpl(final boolean isCreate, final UserI user, final T object, final List<PostSaveOperation> operations) throws InsufficientPrivilegesException, ResourceAlreadyExistsException, DataFormatException, NotFoundException {
+        return createOrUpdateImpl(isCreate, user, object, operations, Collections.<String, String>emptyMap());
+    }
+
+    private T createOrUpdateImpl(final boolean isCreate, final UserI user, final T object, final List<PostSaveOperation> operations, final Map<String, String> eventDetails) throws InsufficientPrivilegesException, ResourceAlreadyExistsException, DataFormatException, NotFoundException {
+        if (StringUtils.isBlank(object.getId())) {
+            try {
+                object.setId(XnatExperimentdata.CreateNewID());
+            } catch (Exception e) {
+                throw new DatasetObjectException("An error occurred trying to create a new experiment ID while creating a new item of type " + object.getXSIType() + " in the project " + object.getProject() + " for user " + user.getUsername(), e);
+            }
+        }
+
         final String  username = user.getUsername();
         final XFTItem item     = object.getItem();
         final String  project  = object.getProject();
@@ -134,101 +148,146 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         final String  xsiType  = object.getXSIType();
         final String  label    = object.getLabel();
 
-        try {
-            final EventDetails        event    = EventUtils.newEventInstance(EventUtils.CATEGORY.DATA, EventUtils.TYPE.WEB_SERVICE, EventUtils.getAddModifyAction(item.getXSIType(), isCreate));
-            final PersistentWorkflowI workflow = WorkflowUtils.getOrCreateWorkflowData(null, user, item.getItem(), event);
-            final EventMetaI          meta     = workflow.buildEvent();
-
-            try {
-                if (isCreate) {
-                    if (testExperimentId(id)) {
-                        throw new ResourceAlreadyExistsException(xsiType, id);
-                    }
-                    if (StringUtils.isAnyBlank(project, label)) {
-                        throw new DataFormatException("New objects must have both a project and label specified");
-                    }
-                    if (!testProject(project)) {
-                        throw new NotFoundException("No project with ID " + project + " can be found.");
-                    }
-                    if (testExperimentProjectAndLabel(project, label)) {
-                        throw new ResourceAlreadyExistsException(xsiType, project + "/" + label);
-                    }
-                    if (!_service.canCreate(user, item)) {
-                        throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to create " + item.getXSIType() + " experiments in project " + project + ".");
-                    }
-                    if (StringUtils.isBlank(id)) {
-                        object.setId(XnatExperimentdata.CreateNewID());
-                    }
-                } else {
-                    if (!testExperimentId(id)) {
-                        if (StringUtils.isBlank(id)) {
-                            throw new DataFormatException("The submitted experiment has no ID. This call is for updating existing objects only.");
-                        }
-                        throw new NotFoundException("No experiment with the ID " + id + " was found. Can't update something that doesn't exist.");
-                    }
-                    if (StringUtils.isAnyBlank(project, label)) {
-                        throw new DataFormatException("Data objects must have both a project and label specified");
-                    }
-                    if (!testExperimentProjectAndLabel(project, label) && !testExperimentProjectAndLabel(project, id)) {
-                        throw new NotFoundException("The experiment with ID " + id + " does not exist in the project " + project + ". This method currently doesn't support sharing.");
-                    }
-                    if (!_service.canEdit(user, item)) {
-                        throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to edit " + xsiType + " experiments in project " + project + ".");
-                    }
-                }
-
-                workflow.setId(object.getId());
-
-                final ValidationResults validation = item.validate();
-                if (validation != null && !validation.isValid()) {
-                    throw new DataFormatException(validation.toFullString());
-                }
-
-                if (!SaveItemHelper.authorizedSave(item, user, false, true, meta)) {
-                    log.error("The {} operation failed for a new item of type {} in the project {} as requested by {}", isCreate ? "create" : "update", item.getXSIType(), project, username);
-                    return null;
-                }
-                final XFTItem xftItem = item.getItem();
-                if (xftItem.instanceOf(XnatExperimentdata.SCHEMA_ELEMENT_NAME) || xftItem.instanceOf(XnatSubjectdata.SCHEMA_ELEMENT_NAME) || xftItem.instanceOf(XnatProjectdata.SCHEMA_ELEMENT_NAME)) {
-                    XDAT.triggerXftItemEvent(xftItem, isCreate ? XftItemEvent.CREATE : XftItemEvent.UPDATE);
-                }
-                Users.clearCache(user);
-                MaterializedView.deleteByUser(user);
-                if (!operations.isEmpty()) {
-                    final Integer eventId = (Integer) meta.getEventId();
-                    if (!operations.isEmpty() && !_service.canActivate(user, item)) {
-                        WorkflowUtils.fail(workflow, workflow.buildEvent());
-                        throw new InsufficientPrivilegesException("The user " + user.getUsername() + " has insufficient privileges to perform requested post-save operations on " + item.getXSIType() + " experiments in project " + item.getStringProperty("project") + ": " + StringUtils.join(operations, ", "));
-                    }
-                    if (operations.contains(PostSaveOperation.Activate)) {
-                        activateItem(user, item, eventId);
-                    }
-                    if (operations.contains(PostSaveOperation.Quarantine)) {
-                        quarantineItem(user, item, eventId);
-                    }
-                    if (operations.contains(PostSaveOperation.Lock)) {
-                        lockItem(user, item, eventId);
-                    }
-                    if (operations.contains(PostSaveOperation.Unlock)) {
-                        unlockItem(user, item, eventId);
-                    }
-                    if (operations.contains(PostSaveOperation.Obsolete)) {
-                        obsoleteItem(user, item, eventId);
-                    }
-                }
-                WorkflowUtils.complete(workflow, meta);
-                //noinspection unchecked
-                return (T) XnatExperimentdata.getXnatExperimentdatasById(object.getId(), user, false);
-            } catch (Exception e) {
-                WorkflowUtils.fail(workflow, meta);
-                throw e;
+        if (isCreate) {
+            if (testExperimentId(id)) {
+                throw new ResourceAlreadyExistsException(xsiType, id);
             }
-        } catch (InsufficientPrivilegesException | ResourceAlreadyExistsException | DataFormatException | NotFoundException e) {
+            if (StringUtils.isAnyBlank(project, label)) {
+                throw new DataFormatException("New objects must have both a project and label specified");
+            }
+            if (!testProject(project)) {
+                throw new NotFoundException("No project with ID " + project + " can be found.");
+            }
+            if (testExperimentProjectAndLabel(project, label)) {
+                throw new ResourceAlreadyExistsException(xsiType, project + "/" + label);
+            }
+            try {
+                if (!_service.canCreate(user, item)) {
+                    throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to create " + item.getXSIType() + " experiments in project " + project + ".");
+                }
+            } catch (InsufficientPrivilegesException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new DatasetObjectException("An error occurred trying to test whether the user " + username + " can create new items of type " + item.getXSIType() + " in the project " + project, e);
+            }
+        } else {
+            if (!testExperimentId(id)) {
+                if (StringUtils.isBlank(id)) {
+                    throw new DataFormatException("The submitted experiment has no ID. This call is for updating existing objects only.");
+                }
+                throw new NotFoundException("No experiment with the ID " + id + " was found. Can't update something that doesn't exist.");
+            }
+            if (StringUtils.isAnyBlank(project, label)) {
+                throw new DataFormatException("Data objects must have both a project and label specified");
+            }
+            if (!testExperimentProjectAndLabel(project, label) && !testExperimentProjectAndLabel(project, id)) {
+                throw new NotFoundException("The experiment with ID " + id + " does not exist in the project " + project + ". This method currently doesn't support sharing.");
+            }
+            try {
+                if (!_service.canEdit(user, item)) {
+                    throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to edit " + xsiType + " experiments in project " + project + ".");
+                }
+            } catch (InsufficientPrivilegesException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new DatasetObjectException("An error occurred trying to test whether the user " + username + " can edit items of type " + item.getXSIType() + " in the project " + project, e);
+            }
+        }
+
+        try {
+            final ValidationResults validation = item.validate();
+            if (validation != null && !validation.isValid()) {
+                throw new DataFormatException(validation.toFullString());
+            }
+        } catch (Exception e) {
+            throw new DatasetObjectException("An error occurred trying to validate an item of type " + item.getXSIType() + " in the project " + project + " for user " + username, e);
+        }
+
+        final EventDetails event = EventUtils.newEventInstance(EventUtils.CATEGORY.DATA, EventUtils.TYPE.WEB_SERVICE, EventUtils.getAddModifyAction(item.getXSIType(), isCreate));
+        if (eventDetails.containsKey("action")) {
+            event.setAction(eventDetails.get("action"));
+        }
+        if (eventDetails.containsKey("comment")) {
+            event.setComment(eventDetails.get("comment"));
+        }
+        if (eventDetails.containsKey("reason")) {
+            event.setReason(eventDetails.get("reason"));
+        }
+
+        final PersistentWorkflowI workflow = getWorkflow(isCreate, user, item, event);
+        final EventMetaI          meta     = workflow.buildEvent();
+
+        try {
+            if (!SaveItemHelper.authorizedSave(item, user, false, true, meta)) {
+                throw new Exception("Save method returned false when user " + username + " tried to save object " + item.getIDValue() + " of type " + item.getXSIType());
+            }
+        } catch (Exception e) {
+            log.error("The {} operation failed for a new item of type {} in the project {} as requested by {}", isCreate ? "create" : "update", item.getXSIType(), project, username, e);
+            try {
+                WorkflowUtils.fail(workflow, meta);
+            } catch (Exception ex) {
+                log.error("An error occurred trying to fail the workflow with ID {} for object {} of type {}", workflow.getId(), id, xsiType);
+            }
+            return null;
+        }
+
+        final XFTItem xftItem = item.getItem();
+
+        try {
+            if (xftItem.instanceOf(XnatExperimentdata.SCHEMA_ELEMENT_NAME) || xftItem.instanceOf(XnatSubjectdata.SCHEMA_ELEMENT_NAME) || xftItem.instanceOf(XnatProjectdata.SCHEMA_ELEMENT_NAME)) {
+                XDAT.triggerXftItemEvent(xftItem, isCreate ? XftItemEvent.CREATE : XftItemEvent.UPDATE);
+            }
+            Users.clearCache(user);
+            MaterializedView.deleteByUser(user);
+            if (!operations.isEmpty()) {
+                final Integer eventId = (Integer) meta.getEventId();
+                if (!operations.isEmpty() && !_service.canActivate(user, item)) {
+                    WorkflowUtils.fail(workflow, workflow.buildEvent());
+                    throw new InsufficientPrivilegesException("The user " + user.getUsername() + " has insufficient privileges to perform requested post-save operations on " + item.getXSIType() + " experiments in project " + item.getStringProperty("project") + ": " + StringUtils.join(operations, ", "));
+                }
+                if (operations.contains(PostSaveOperation.Activate)) {
+                    activateItem(user, item, eventId);
+                }
+                if (operations.contains(PostSaveOperation.Quarantine)) {
+                    quarantineItem(user, item, eventId);
+                }
+                if (operations.contains(PostSaveOperation.Lock)) {
+                    lockItem(user, item, eventId);
+                }
+                if (operations.contains(PostSaveOperation.Unlock)) {
+                    unlockItem(user, item, eventId);
+                }
+                if (operations.contains(PostSaveOperation.Obsolete)) {
+                    obsoleteItem(user, item, eventId);
+                }
+            }
+            WorkflowUtils.complete(workflow, meta);
+            //noinspection unchecked
+            return (T) XnatExperimentdata.getXnatExperimentdatasById(xftItem.getIDValue(), user, false);
+        } catch (InsufficientPrivilegesException e) {
             throw e;
         } catch (Exception e) {
-            log.error("An error occurred trying to test whether the user {} can create new items of type {} in the project {}", username, item.getXSIType(), project, e);
-            throw new RuntimeException(e);
+            try {
+                WorkflowUtils.fail(workflow, meta);
+            } catch (Exception ex) {
+                log.error("An error occurred trying to fail the workflow with ID {} for object {} of type {}", workflow.getId(), id, xsiType);
+            }
+            throw new DatasetObjectException("An error occurred trying to " + (isCreate ? "create" : "modify") + " item " + id + " of type " + xsiType, e);
         }
+    }
+
+    private PersistentWorkflowI getWorkflow(final boolean isCreate, final UserI user, final XFTItem item, final EventDetails event) {
+        final PersistentWorkflowI workflow;
+        try {
+            workflow = PersistentWorkflowUtils.buildOpenWorkflow(user, item, event);
+        } catch (PersistentWorkflowUtils.ActionNameAbsent e) {
+            throw new DatasetObjectException(formatEventRequirementAbsentMessage("action", isCreate, item.getXSIType()), e);
+        } catch (PersistentWorkflowUtils.JustificationAbsent e) {
+            throw new DatasetObjectException(formatEventRequirementAbsentMessage("justification", isCreate, item.getXSIType()), e);
+        } catch (PersistentWorkflowUtils.IDAbsent e) {
+            throw new DatasetObjectException(formatEventRequirementAbsentMessage("ID", isCreate, item.getXSIType()), e);
+        }
+        return workflow;
     }
 
     private void deleteImpl(final UserI user, final T object) throws InsufficientPrivilegesException {
@@ -246,8 +305,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         } catch (InsufficientPrivilegesException e) {
             throw e;
         } catch (Exception e) {
-            log.error("An error occurred when user {} tried to delete the object with {} and type {} in the project {}", username, id, xsiType, project, e);
-            throw new RuntimeException(e);
+            throw new DatasetObjectException("An error occurred when user " + username + " tried to delete the object with " + id + " and type " + xsiType + " in the project " + project, e);
         }
     }
 
@@ -311,6 +369,10 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         }
     }
 
+    private static String formatEventRequirementAbsentMessage(final String requirement, final boolean isCreate, final String xsiType) {
+        return String.format(ERROR_EVENT_REQUIREMENT_ABSENT, requirement, isCreate ? "creating" : "modifying", xsiType);
+    }
+
     private static final String PARAM_EXPERIMENT                    = "experiment";
     private static final String PARAM_PROJECT                       = "project";
     private static final String PARAM_ID_OR_LABEL                   = "label";
@@ -321,6 +383,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     private static final String QUERY_PROJECT_ID_EXISTS             = String.format(QUERY_EXISTS, QUERY_PROJECT_ID);
     private static final String QUERY_EXPT_ID_EXISTS                = String.format(QUERY_EXISTS, QUERY_EXPT_ID);
     private static final String QUERY_EXPT_PROJECT_AND_LABEL_EXISTS = String.format(QUERY_EXISTS, QUERY_EXPT_PROJECT_AND_LABEL);
+    private static final String ERROR_EVENT_REQUIREMENT_ABSENT      = "No %1$s specified while %2$s an object of type %3$s, but %1$s is required";
 
     private final PermissionsServiceI        _service;
     private final NamedParameterJdbcTemplate _template;

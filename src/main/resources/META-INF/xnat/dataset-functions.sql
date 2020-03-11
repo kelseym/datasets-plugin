@@ -166,7 +166,7 @@ BEGIN
                  row.scan_id,
                  row.data_type,
                  row.resource_label,
-                 row.resource_format,
+                 row.resource_content,
                  row.resource_format,
                  row_to_json(row)::JSONB);
             END LOOP;
