@@ -88,7 +88,7 @@ import org.springframework.stereotype.Component;
  *
  * @see <a href="https://www.postgresql.org/docs/12/functions-matching.html#FUNCTIONS-POSIX-REGEXP" target="_blank">PostgreSQL's docs on using regular expressions within SQL queries</a>
  */
-@Resolver("SeriesDescription")
+@Resolver("SeriesAndResources")
 @Component
 @Getter(AccessLevel.PROTECTED)
 @Accessors(prefix = "_")
