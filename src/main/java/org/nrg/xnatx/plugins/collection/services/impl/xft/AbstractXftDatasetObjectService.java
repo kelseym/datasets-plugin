@@ -48,7 +48,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new DatasetObjectException("Got an error trying to get the schema element name for the data type: " + dataType.getName(), e);
         }
-        _xsiXmlPath = _xsiType + "/xsiType";
+        _xsiXmlPath = _xsiType + "/extension_item/element_name";
         _projectXmlPath = _xsiType + "/project";
     }
 

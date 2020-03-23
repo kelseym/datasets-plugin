@@ -28,7 +28,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@XnatPlugin(value = "dataCollectionPlugin", name = "XNAT Data Collection Plugin",
+@XnatPlugin(value = "dataCollectionPlugin", name = "XNAT Data Collection Plugin", logConfigurationFile = "datasets-logback.xml",
             dataModels = {@XnatDataModel(value = SetsDefinition.SCHEMA_ELEMENT_NAME,
                                          singular = "Dataset Definition",
                                          plural = "Dataset Definitions"),
@@ -48,12 +48,12 @@ public class XnatDataCollectionPlugin {
     @Bean
     public Module dataCollectionModule() {
         final SimpleModule module = new SimpleModule();
-        module.addSerializer(SetsDefinition.class, new DefinitionSerializer());
-        module.addSerializer(SetsCollection.class, new CollectionSerializer());
-        module.addSerializer(SetsCriterion.class, new CriterionSerializer());
-        module.addDeserializer(SetsDefinition.class, new DefinitionDeserializer());
         module.addDeserializer(SetsCollection.class, new CollectionDeserializer());
         module.addDeserializer(SetsCriterion.class, new CriterionDeserializer());
+        module.addDeserializer(SetsDefinition.class, new DefinitionDeserializer());
+        module.addSerializer(SetsCollection.class, new CollectionSerializer());
+        module.addSerializer(SetsCriterion.class, new CriterionSerializer());
+        module.addSerializer(SetsDefinition.class, new DefinitionSerializer());
         return module;
     }
 }
