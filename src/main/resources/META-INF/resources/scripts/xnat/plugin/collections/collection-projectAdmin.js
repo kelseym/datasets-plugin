@@ -144,38 +144,38 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         }
 
         // get project data collections
-        XNAT.xhr.getJSON({
-            url: getCollectionsUrl(),
-            fail: function(e){ errorHandler(e,"Could not retrieve collections for "+projectId)},
-            success: function(data){
-                // returns an array, not an object
-                projCollections.savedCollections = data;
-
-                if(projCollections.savedCollections.length){
-                    projCollections.savedCollections.forEach(function(collection){
-                        var buckets = identifyBuckets(collection);
-
-                        pjcTable.tr({ id: collection.id, data: {"model" : collection.label }})
-                            .td(collection.name)
-                            .td(collection.description)
-                            .td(listObj(buckets))
-                            .td(isoDate(collection.timestamp))
-                            .td([[ 'div.center', [ viewButton(collection.id), spacer(6), deleteButton(collection) ]]])
-                    });
-                }
-                else {
-                    pjcTable.tr()
-                        .td({ colspan: 5, html: 'No data collections have been set up in this project.'});
-                }
-                if (container){
-                    $$(container).append(pjcTable.table);
-                }
-
-                if (isFunction(callback)) {
-                    callback(pjcTable.table);
-                }
-            }
-        })
+        // XNAT.xhr.getJSON({
+        //     url: getCollectionsUrl(),
+        //     fail: function(e){ errorHandler(e,"Could not retrieve collections for "+projectId)},
+        //     success: function(data){
+        //         // returns an array, not an object
+        //         projCollections.savedCollections = data;
+        //
+        //         if(projCollections.savedCollections.length){
+        //             projCollections.savedCollections.forEach(function(collection){
+        //                 var buckets = identifyBuckets(collection);
+        //
+        //                 pjcTable.tr({ id: collection.id, data: {"model" : collection.label }})
+        //                     .td(collection.name)
+        //                     .td(collection.description)
+        //                     .td(listObj(buckets))
+        //                     .td(isoDate(collection.timestamp))
+        //                     .td([[ 'div.center', [ viewButton(collection.id), spacer(6), deleteButton(collection) ]]])
+        //             });
+        //         }
+        //         else {
+        //             pjcTable.tr()
+        //                 .td({ colspan: 5, html: 'No data collections have been set up in this project.'});
+        //         }
+        //         if (container){
+        //             $$(container).append(pjcTable.table);
+        //         }
+        //
+        //         if (isFunction(callback)) {
+        //             callback(pjcTable.table);
+        //         }
+        //     }
+        // })
     };
 
     function identifyBuckets(collection){
