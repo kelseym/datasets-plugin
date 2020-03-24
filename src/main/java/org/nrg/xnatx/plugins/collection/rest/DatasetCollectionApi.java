@@ -137,7 +137,7 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 403, message = "Insufficient privileges to create the dataset collection."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
-    @AuthDelegate( CreateCollection.class)
+    @AuthDelegate(CreateCollection.class)
     public SetsCollection create(@RequestBody final SetsCollection entity) throws DataFormatException, InsufficientPrivilegesException, ResourceAlreadyExistsException, NotFoundException {
         return _collections.create(getSessionUser(), entity);
     }

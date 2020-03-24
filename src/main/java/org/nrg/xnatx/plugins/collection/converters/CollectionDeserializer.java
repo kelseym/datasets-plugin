@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.nrg.xdat.om.SetsCollection;
 
 public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> {
@@ -26,10 +27,10 @@ public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> 
             collection.setDefinitionId(node.get("definition").textValue());
         }
         if (node.has("fileCount")) {
-            collection.setFilecount(node.get("fileCount").intValue());
+            collection.setFilecount(NumberUtils.toInt(node.get("fileCount").textValue(), 0));
         }
         if (node.has("fileSize")) {
-            collection.setFilesize(node.get("fileSize").longValue());
+            collection.setFilesize(NumberUtils.toLong(node.get("fileSize").textValue()));
         }
         if (node.has("files")) {
             collection.setFiles(node.get("files").textValue());

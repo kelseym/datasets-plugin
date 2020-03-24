@@ -76,7 +76,7 @@
         <xs:complexContent>
             <xs:extension base="xnat:abstractProjectAsset">
                 <xs:sequence>
-                    <xs:element name="definition_id" type="xs:string">
+                    <xs:element name="definition_id" type="xs:string" minOccurs="0">
                         <xs:annotation>
                             <xs:documentation>Indicates the collection definition used to generate this resolved collection.</xs:documentation>
                             <xs:appinfo>

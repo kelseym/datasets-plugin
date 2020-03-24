@@ -48,7 +48,6 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
     @Override
     public void preSave() {
         checkIsValidID(getId());
-        checkIsValidID(getLabel());
 
         if (getPrimaryProject(false) == null) {
             throw new DatasetCollectionHandlingException("Unable to identify project for:" + getProject());
