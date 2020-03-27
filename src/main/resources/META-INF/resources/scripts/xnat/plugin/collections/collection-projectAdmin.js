@@ -90,8 +90,8 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
     projCollections.savedCollections = [];
     projCollections.availableExpts = [];
 
-    var getCollectionsUrl = function(){
-        return rootUrl("/xapi/collection/getAllForProject/"+projectId);
+    var getCollectionsUrl = function() {
+        return rootUrl("/xapi/sets/collections/projects/" + projectId);
     };
 
     // create data table
@@ -227,7 +227,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                     action: function(){
                         var editorContent = _editor.getValue().code;
                         XNAT.xhr.ajax({
-                            url: csrfUrl('/xapi/collection/update'),
+                            url: csrfUrl('/xapi/sets/collections/' + id),
                             method: 'PUT',
                             contentType: 'application/json',
                             processData: false,
@@ -259,7 +259,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                     close: false,
                     action: function(){
                         XNAT.xhr.ajax({
-                            url: csrfUrl('/xapi/collection/delete/'+collection.id),
+                            url: csrfUrl('/xapi/sets/collections/' + collection.id),
                             method: 'DELETE',
                             fail: function(e){ errorHandler(e,"Could Not Delete Collection")},
                             success: function(data){

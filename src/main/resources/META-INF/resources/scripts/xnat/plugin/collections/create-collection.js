@@ -205,7 +205,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                             "projectId": projectId
                         };
                         XNAT.xhr.ajax({
-                            url: XNAT.url.csrfUrl('/xapi/collection/createFromSet'),
+                            url: XNAT.url.csrfUrl('/xapi/sets/collections'),
                             method: 'POST',
                             contentType: 'application/json',
                             data: JSON.stringify(collectionModel),
