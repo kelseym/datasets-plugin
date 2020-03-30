@@ -1,5 +1,6 @@
 package org.nrg.xnatx.plugins.collection.services.impl.xft;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -108,6 +109,41 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
             collection.setLabel(StringUtils.defaultIfBlank(resolved.getLabel(), generateCollectionLabel(definition.getLabel())));
         }
         return commit(user, collection);
+    }
+
+    @Override
+    public SetsCollection evaluate(final UserI user, final String projectId, final JsonNode payload) throws InsufficientPrivilegesException {
+        return evaluate(user, projectId, null, payload);
+    }
+
+    @Override
+    public SetsCollection evaluate(final UserI user, final String projectId, final String resolver, final JsonNode payload) throws InsufficientPrivilegesException {
+        try {
+            if (!getPermissions().canCreate(user, getProjectXmlPath(), projectId)) {
+                throw new InsufficientPrivilegesException(user.getUsername(), projectId);
+            }
+        } catch (InsufficientPrivilegesException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("An error occurred trying to check whether user " + user.getUsername() + " can create dataset definitions in project " + projectId, e);
+        }
+        final SetsCriterion criterion = new SetsCriterion();
+        criterion.setResolver(StringUtils.defaultIfBlank(resolver, "TaggedResourceMap"));
+        try {
+            criterion.setPayload(_serializer.toJson(payload));
+        } catch (IOException e) {
+            log.warn("An error occurred trying to convert a JSON payload to string", e);
+            return null;
+        }
+        final SetsDefinition definition = new SetsDefinition();
+        definition.setId("evaluate-" + user.getUsername() + "-" + Calendar.getInstance().getTimeInMillis());
+        definition.setProject(projectId);
+        try {
+            definition.addCriteria(criterion);
+        } catch (Exception e) {
+            log.error("An error occurred trying to add a criterion object to a temporary definition {}. The results from this operation may not be what you expect.", definition.getId(), e);
+        }
+        return resolveDefinition(user, definition);
     }
 
     private SetsCollection resolveDefinition(final UserI user, final SetsDefinition definition) {

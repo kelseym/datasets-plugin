@@ -19,12 +19,16 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.annotations.XapiRestController;
@@ -61,17 +65,17 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
         _serializer = serializer;
     }
 
-    @ApiOperation(value = "Returns all dataset collections on the system.", response = SetsCollection.class, responseContainer = "List")
+    @ApiOperation(value = "Returns a list of IDs, projects, and labels for all dataset collections on the system.", response = Map.class, responseContainer = "List")
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset collections successfully retrieved."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to access dataset collections on the system."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Admin)
-    public List<? extends SetsCollection> getAll() {
-        return _collections.findAll(getSessionUser());
+    public List<Map<String, String>> getAll() {
+        return Lists.transform(_collections.findAll(getSessionUser()), COLLECTION_TO_MAP_FUNCTION);
     }
 
-    @ApiOperation(value = "Returns a list of all dataset collections for a project.", response = SetsCollection.class, responseContainer = "List")
+    @ApiOperation(value = "Returns a list of IDs, projects, and labels for all dataset collections for a project.", response = Map.class, responseContainer = "List")
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset collections successfully retrieved."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to access dataset collections in the requested project."),
@@ -79,8 +83,8 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "projects/{projectId}", produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Authorizer)
     @AuthDelegate(ReadCollection.class)
-    public List<? extends SetsCollection> getByProject(@PathVariable("projectId") final String projectId) throws NotFoundException {
-        return _collections.findByProject(getSessionUser(), projectId);
+    public List<Map<String, String>> getByProject(@PathVariable("projectId") final String projectId) throws NotFoundException {
+        return Lists.transform(_collections.findByProject(getSessionUser(), projectId), COLLECTION_TO_MAP_FUNCTION);
     }
 
     @ApiOperation(value = "Returns the dataset collection with the submitted ID.", response = SetsCollection.class)
@@ -193,6 +197,14 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
     public void delete(@PathVariable final String projectId, @PathVariable final String idOrLabel) throws NotFoundException, InsufficientPrivilegesException {
         _collections.delete(getSessionUser(), projectId, idOrLabel);
     }
+
+    private static final Function<SetsCollection, Map<String, String>> COLLECTION_TO_MAP_FUNCTION = new Function<SetsCollection, Map<String, String>>() {
+        @Override
+        public Map<String, String> apply(final SetsCollection collection) {
+            assert collection != null;
+            return ImmutableMap.of("id", collection.getId(), "project", collection.getProject(), "label", collection.getLabel());
+        }
+    };
 
     private final DatasetCollectionService _collections;
     private final SerializerService        _serializer;

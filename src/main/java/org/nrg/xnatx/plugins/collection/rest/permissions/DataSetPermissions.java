@@ -72,10 +72,11 @@ public abstract class DataSetPermissions<T extends XnatExperimentdataI> extends 
         final boolean hasIdOrLabel = parameters.containsKey("idOrLabel");
         final boolean hasLabel     = parameters.containsKey("label");
         if ((hasProject || hasProjectId) && (hasIdOrLabel || hasLabel)) {
-            final int                projectIndex = parameters.get(hasProject ? "project" : "projectId");
-            final int                labelIndex   = parameters.get(hasProject ? "idOrLabel" : "label");
-            final String id = _template.queryForObject("SELECT id FROM xnat_experimentdata WHERE project = :project AND (id = :idOrLabel OR label = :idOrLabel)", new MapSqlParameterSource("project", joinPoint.getArgs()[projectIndex]).addValue("idOrLabel", joinPoint.getArgs()[labelIndex]), String.class);
-            final XnatExperimentdata experiment   = XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
+            final String id = _template.queryForObject("SELECT id FROM xnat_experimentdata WHERE project = :project AND (id = :idOrLabel OR label = :idOrLabel)",
+                                                       new MapSqlParameterSource("project", joinPoint.getArgs()[parameters.get(hasProject ? "project" : "projectId")])
+                                                           .addValue("idOrLabel", joinPoint.getArgs()[parameters.get(hasIdOrLabel ? "idOrLabel" : "label")]),
+                                                       String.class);
+            final XnatExperimentdata experiment = XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
             return !StringUtils.isNoneBlank(experiment.getProject(), experiment.getLabel()) || !forbidden(user, experiment.getProject(), _xmlPath, experiment.getLabel());
         }
         return true;

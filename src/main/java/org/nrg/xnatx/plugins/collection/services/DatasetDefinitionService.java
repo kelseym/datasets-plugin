@@ -9,6 +9,7 @@
 
 package org.nrg.xnatx.plugins.collection.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.nrg.xapi.exceptions.DataFormatException;
 import org.nrg.xapi.exceptions.InsufficientPrivilegesException;
 import org.nrg.xapi.exceptions.NotFoundException;
@@ -106,4 +107,29 @@ public interface DatasetDefinitionService extends DatasetObjectService<SetsDefin
      * @return The resolved {@link SetsCollection data collection}.
      */
     SetsCollection resolve(final UserI user, final SetsDefinition definition, final SetsCollection collection) throws InsufficientPrivilegesException;
+
+    /**
+     * Resolves the submitted payload in the context of the specified project. The evaluation uses the default resolver. If you need
+     * to specify a specific resolver, call {@link #evaluate(UserI, String, String, JsonNode)} instead.
+     *
+     * @param user      The user resolving the dataset definition.
+     * @param projectId The ID of the project for evaluation context.
+     * @param payload   The JSON payload to be evaluated by the resolver.
+     *
+     * @return The resolved resources and files.
+     */
+    SetsCollection evaluate(final UserI user, final String projectId, final JsonNode payload) throws InsufficientPrivilegesException;
+
+    /**
+     * Resolves the submitted payload in the context of the specified project using the specified resolver. You can omit the resolver
+     * and use the default resolver by calling {@link #evaluate(UserI, String, JsonNode)}.
+     *
+     * @param user      The user resolving the dataset definition.
+     * @param projectId The ID of the project for evaluation context.
+     * @param resolver  The ID of the resolver to use for evaluation.
+     * @param payload   The JSON payload to be evaluated by the resolver.
+     *
+     * @return The resolved resources and files.
+     */
+    SetsCollection evaluate(final UserI user, final String projectId, final String resolver, final JsonNode payload) throws InsufficientPrivilegesException;
 }

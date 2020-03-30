@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.utilities.Reflection;
@@ -37,10 +40,12 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+@Getter(AccessLevel.PROTECTED)
+@Accessors(prefix = "_")
 @Slf4j
 public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentdata> implements DatasetObjectService<T> {
-    protected AbstractXftDatasetObjectService(final PermissionsServiceI service, final NamedParameterJdbcTemplate template) {
-        _service = service;
+    protected AbstractXftDatasetObjectService(final PermissionsServiceI permissions, final NamedParameterJdbcTemplate template) {
+        _permissions = permissions;
         _template = template;
         final Class<T> dataType = Reflection.getParameterizedTypeForClass(getClass());
         try {
@@ -162,7 +167,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
                 throw new ResourceAlreadyExistsException(xsiType, project + "/" + label);
             }
             try {
-                if (!_service.canCreate(user, item)) {
+                if (!_permissions.canCreate(user, item)) {
                     throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to create " + item.getXSIType() + " experiments in project " + project + ".");
                 }
             } catch (InsufficientPrivilegesException e) {
@@ -184,7 +189,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
                 throw new NotFoundException("The experiment with ID " + id + " does not exist in the project " + project + ". This method currently doesn't support sharing.");
             }
             try {
-                if (!_service.canEdit(user, item)) {
+                if (!_permissions.canEdit(user, item)) {
                     throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to edit " + xsiType + " experiments in project " + project + ".");
                 }
             } catch (InsufficientPrivilegesException e) {
@@ -241,7 +246,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
             MaterializedView.deleteByUser(user);
             if (!operations.isEmpty()) {
                 final Integer eventId = (Integer) meta.getEventId();
-                if (!operations.isEmpty() && !_service.canActivate(user, item)) {
+                if (!operations.isEmpty() && !_permissions.canActivate(user, item)) {
                     WorkflowUtils.fail(workflow, workflow.buildEvent());
                     throw new InsufficientPrivilegesException("The user " + user.getUsername() + " has insufficient privileges to perform requested post-save operations on " + item.getXSIType() + " experiments in project " + item.getStringProperty("project") + ": " + StringUtils.join(operations, ", "));
                 }
@@ -298,7 +303,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         final String  id       = object.getId();
 
         try {
-            if (!_service.canDelete(user, item)) {
+            if (!_permissions.canDelete(user, item)) {
                 throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to delete " + xsiType + " experiments in project " + project + ".");
             }
             SaveItemHelper.authorizedDelete(object.getItem(), user, EventUtils.DEFAULT_EVENT(user, "Deleted Clara object " + id));
@@ -385,7 +390,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     private static final String QUERY_EXPT_PROJECT_AND_LABEL_EXISTS = String.format(QUERY_EXISTS, QUERY_EXPT_PROJECT_AND_LABEL);
     private static final String ERROR_EVENT_REQUIREMENT_ABSENT      = "No %1$s specified while %2$s an object of type %3$s, but %1$s is required";
 
-    private final PermissionsServiceI        _service;
+    private final PermissionsServiceI        _permissions;
     private final NamedParameterJdbcTemplate _template;
     private final String                     _xsiType;
     private final String                     _xsiXmlPath;

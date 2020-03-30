@@ -18,6 +18,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -79,6 +80,30 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
     @AuthDelegate(ReadDefinition.class)
     public List<? extends SetsDefinition> getByProject(@PathVariable("projectId") final String projectId) throws NotFoundException {
         return _definitions.findByProject(getSessionUser(), projectId);
+    }
+
+    @ApiOperation(value = "Resolves the submitted resolver payload and returns the results.")
+    @ApiResponses({@ApiResponse(code = 200, message = "Payload successfully resolved."),
+                   @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
+                   @ApiResponse(code = 403, message = "Insufficient privileges to resolve the payload."),
+                   @ApiResponse(code = 404, message = "The requested project doesn't exist."),
+                   @ApiResponse(code = 500, message = "Unexpected error")})
+    @XapiRequestMapping(value = "evaluate/{projectId}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
+    @AuthDelegate(CreateDefinition.class)
+    public SetsCollection evaluate(final @PathVariable String projectId, @RequestBody final JsonNode payload) throws InsufficientPrivilegesException {
+        return evaluate(projectId, null, payload);
+    }
+
+    @ApiOperation(value = "Resolves the submitted resolver payload and returns the results.")
+    @ApiResponses({@ApiResponse(code = 200, message = "Payload successfully resolved."),
+                   @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
+                   @ApiResponse(code = 403, message = "Insufficient privileges to resolve the payload."),
+                   @ApiResponse(code = 404, message = "The requested project doesn't exist."),
+                   @ApiResponse(code = 500, message = "Unexpected error")})
+    @XapiRequestMapping(value = "evaluate/{projectId}/{resolver}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
+    @AuthDelegate(CreateDefinition.class)
+    public SetsCollection evaluate(final @PathVariable String projectId, final @PathVariable String resolver, @RequestBody final JsonNode payload) throws InsufficientPrivilegesException {
+        return _definitions.evaluate(getSessionUser(), projectId, resolver, payload);
     }
 
     @ApiOperation(value = "Returns the dataset definition with the submitted ID.", response = SetsDefinition.class)
