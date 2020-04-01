@@ -1,0 +1,25 @@
+<!-- Sequence: 96 -->
+
+#if($userHelper.canEdit("xnat:subjectData/project", $project.getId()))
+
+</ul>
+<script src="$content.getURI("/scripts/xnat/plugin/collections/datasetDefinition.js")"></script>
+
+<ul>
+    <li class="yuimenuitem">
+        <a class="yuimenuitemlabel" href="#collectionbox">Datasets</a>
+        <div id="collectionbox" class="yuimenu">
+            <div class="bd">
+                <ul class="first-of-type">
+                    <li class="yuimenuitem">
+                        <a class="yuimenuitemlabel" href="#!" onclick="XNAT.plugin.collection.sets.createDefinition()">Create Definition</a>
+                    </li>
+                    ##<li class="yuimenuitem">
+                    ##    <a class="yuimenuitemlabel" href="$content.getURI("app/template/Page.vm?view=project/settings&id=$project.getId()#tab=project-collection-tab")">Manage Data Collections</a>
+                    ##</li>
+                </ul>
+            </div>
+        </div>
+    </li>
+
+#end

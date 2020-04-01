@@ -1,0 +1,41 @@
+#######################################################
+####  Root Project Settings Spawner Config Object  ####
+#######################################################
+
+projectSettings:
+    kind: tabs
+    groups:
+        collectionsProjectTabGroup: Data Collections
+    contains: tabs
+    tabs:
+        projectCollectionTab:
+            kind: tab
+            label: Data Collections
+            group: collectionsProjectTabGroup
+            active: true
+            contents:
+                ${projectCollectionPanel}
+
+
+projectCollectionPanel:
+    kind: panel
+    label: Data Collections in this Project
+    contents:
+        projectCollectionDescription:
+            tag: div.message
+            content:
+                "This panel lists all installed data collections associated with this project, and allows you to install new ones."
+        projectCollectionContainer:
+            tag: "div#proj-data-collection-list-container"
+        projectCollectionConfigTemplate:
+            tag: "div#proj-data-collection-template.html-template"
+            contents:
+                projCollectionViewer:
+                    kind: panel
+                    id: proj-collection-viewer
+                    header: false
+                    footer: false
+        projectCollectionCreationScript:
+            tag: script|src="/scripts/xnat/plugin/collections/create-collection.js"
+        projectCollectionAdminScript:
+            tag: script|src="/scripts/xnat/plugin/collections/collection-projectAdmin.js"
