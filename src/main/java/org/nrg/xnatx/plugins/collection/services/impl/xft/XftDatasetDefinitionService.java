@@ -1,6 +1,7 @@
 package org.nrg.xnatx.plugins.collection.services.impl.xft;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -127,22 +128,47 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
         } catch (Exception e) {
             throw new RuntimeException("An error occurred trying to check whether user " + user.getUsername() + " can create dataset definitions in project " + projectId, e);
         }
-        final SetsCriterion criterion = new SetsCriterion();
-        criterion.setResolver(StringUtils.defaultIfBlank(resolver, "TaggedResourceMap"));
-        try {
-            criterion.setPayload(_serializer.toJson(payload));
-        } catch (IOException e) {
-            log.warn("An error occurred trying to convert a JSON payload to string", e);
-            return null;
-        }
+
         final SetsDefinition definition = new SetsDefinition();
-        definition.setId("evaluate-" + user.getUsername() + "-" + Calendar.getInstance().getTimeInMillis());
+        definition.setId(payload.has("id") ? payload.get("id").asText() : "evaluate-" + user.getUsername() + "-" + Calendar.getInstance().getTimeInMillis());
         definition.setProject(projectId);
-        try {
-            definition.addCriteria(criterion);
-        } catch (Exception e) {
-            log.error("An error occurred trying to add a criterion object to a temporary definition {}. The results from this operation may not be what you expect.", definition.getId(), e);
+        definition.setLabel(payload.has("label") ? payload.get("label").asText() : definition.getId());
+        if (payload.has("description")) {
+            final String description = payload.get("description").asText();
+            if (StringUtils.isNotBlank(description)) {
+                definition.setDescription(description);
+            }
         }
+
+        final String defaultResolver = StringUtils.defaultIfBlank(resolver, "TaggedResourceMap");
+        if (payload.has("criteria")) {
+            final ArrayNode criteria = (ArrayNode) payload.get("criteria");
+            for (final JsonNode criterionNode : criteria) {
+                final SetsCriterion criterion = new SetsCriterion();
+                criterion.setResolver(criterionNode.has("resolver") ? criterionNode.get("resolver").asText() : defaultResolver);
+                criterion.setPayload(criterionNode.get("payload").asText());
+                try {
+                    definition.addCriteria(criterion);
+                } catch (Exception e) {
+                    log.error("An error occurred trying to add a criterion object to a temporary definition {}. The results from this operation may not be what you expect.", definition.getId(), e);
+                }
+            }
+        } else {
+            final SetsCriterion criterion = new SetsCriterion();
+            criterion.setResolver(defaultResolver);
+            try {
+                criterion.setPayload(_serializer.toJson(payload));
+            } catch (IOException e) {
+                log.warn("An error occurred trying to convert a JSON payload to string", e);
+                return null;
+            }
+            try {
+                definition.addCriteria(criterion);
+            } catch (Exception e) {
+                log.error("An error occurred trying to add a criterion object to a temporary definition {}. The results from this operation may not be what you expect.", definition.getId(), e);
+            }
+        }
+
         return resolveDefinition(user, definition);
     }
 
