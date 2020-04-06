@@ -16,7 +16,7 @@ public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> 
     public SetsCollection deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
         final JsonNode node = parser.getCodec().readTree(parser);
 
-        final SetsCollection collection = node.has("id") ? getCollection(node.get("id")) : new SetsCollection();
+        final SetsCollection collection = node.has("id") ? getInstance(node.get("id")) : new SetsCollection();
         if (node.has("project")) {
             collection.setProject(node.get("project").textValue());
         }
@@ -37,10 +37,5 @@ public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> 
         }
 
         return collection;
-    }
-
-    private SetsCollection getCollection(final JsonNode node) {
-        final String id = node.get("id").textValue();
-        return SetsCollection.getSetsCollectionsById(id, null, false);
     }
 }

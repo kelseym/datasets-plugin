@@ -22,7 +22,7 @@ public class DefinitionDeserializer extends DatasetDeserializer<SetsDefinition> 
     public SetsDefinition deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
         final JsonNode node = parser.getCodec().readTree(parser);
 
-        final SetsDefinition definition = node.has("id") ? getDefinition(node.get("id")) : new SetsDefinition();
+        final SetsDefinition definition = getInstance(node);
         if (node.has("project")) {
             definition.setProject(node.get("project").textValue());
         }
@@ -57,10 +57,5 @@ public class DefinitionDeserializer extends DatasetDeserializer<SetsDefinition> 
         }
 
         return definition;
-    }
-
-    private SetsDefinition getDefinition(final JsonNode node) {
-        final String id = node.textValue();
-        return SetsDefinition.getSetsDefinitionsById(id, null, false);
     }
 }
