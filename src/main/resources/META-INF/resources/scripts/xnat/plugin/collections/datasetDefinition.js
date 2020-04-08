@@ -72,7 +72,7 @@ var XNAT = getObject(XNAT || {});
         dfn = getObject(dfn);
 
         var id      = dfn.id || '';
-        var criteria = dfn.criteria ? JSON.stringify(dfn.criteria) : '[]';
+        var criteria = dfn.criteria ? JSON.stringify(dfn.criteria) : '{}';
 
         var _source = spawn('textarea', criteria);
         var _editor = XNAT.app.codeEditor.init(_source, {
@@ -88,7 +88,7 @@ var XNAT = getObject(XNAT || {});
                 ['table.xnat-table.clean.compact.borderless|style=width:100%', [
                     ['tbody', [
                         ['tr', [
-                            ['td|style=width:100px', '<b>Label</b> &nbsp;'],
+                            ['td|style=width:200px', '<b>Label</b> &nbsp;'],
                             ['td', [
                                 ['input.def-label|type=text|name=label|size=30', {
                                     value: dfn.label || ''
@@ -105,18 +105,19 @@ var XNAT = getObject(XNAT || {});
                                 }]
                             ]]
                         ]],
-                        // ['tr', [
-                        //     ['td.top', '<b>Resolver</b> &nbsp;'],
-                        //     ['td', [
-                        //         ['textarea.def-resolver|type=text|name=resolver', {
-                        //             value: dfn.description || '',
-                        //             style: { width: '100%' },
-                        //             attr: { rows: 4 }
-                        //         }]
-                        //     ]]
-                        // ]],
                         ['tr', [
-                            ['td', '<b>Criteria</b> &nbsp;'],
+                            ['td.top', '<b>Resolver</b> &nbsp;'],
+                            ['td', [
+                                ['select.def-resolver|name=resolver', [
+                                    ['option', {
+                                        value: 'TaggedResourceMap',
+                                        selected: 'selected'
+                                    }, 'Tagged Resource Map']
+                                ]]
+                            ]]
+                        ]],
+                        ['tr', [
+                            ['td', '<b>Criteria (File Matchers Only)</b> &nbsp;'],
                             ['td']
                         ]]
                     ]]
@@ -128,17 +129,14 @@ var XNAT = getObject(XNAT || {});
 
         // handle either pre-serialized JSON string or JSON object/array
         function processCriteria(criteria){
-            return JSON.parse(criteria).map(function(item, i){
-                item.payload = JSON.stringify(possiblyJSON(item.payload));
-                return item;
-            });
+            return JSON.parse(JSON.stringify(possiblyJSON(criteria)));
         }
 
 
         _editor.openEditor({
             title: dfn.id ? 'Edit Dataset Definition <b>' + dfn.label + '</b>' : 'New Dataset Definition',
             width: 800,
-            height: 600,
+            height: 450,
             classes: 'plugin-json',
             footerContent: 'Save Dataset Definition?',
             before: dfnMeta(),
@@ -161,7 +159,13 @@ var XNAT = getObject(XNAT || {});
                             project: projectId,
                             label: dialog.body$.find('[name="label"]').val(),
                             description: dialog.body$.find('[name="description"]').val(),
-                            criteria: processCriteria(_editor.aceEditor.getValue())
+                            criteria: [
+                                {
+                                    resolver: dialog.body$.find('[name="resolver"]').find('option:selected').val(),
+                                    payload: processCriteria(_editor.aceEditor.getValue())
+                                }
+                            ]
+
                         };
 
                         console.log(defData);

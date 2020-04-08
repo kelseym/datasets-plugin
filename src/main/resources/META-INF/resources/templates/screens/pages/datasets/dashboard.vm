@@ -1,0 +1,86 @@
+#* @vtlvariable name="content" type="org.apache.turbine.services.pull.tools.ContentTool" *#
+#* @vtlvariable name="projectId" type="java.lang.String" *#
+#* @vtlvariable name="data" type="org.apache.turbine.util.RunData" *#
+<!--suppress HtmlUnknownAnchorTarget -->
+<!-- BEGIN META-INF/resources/templates/screens/pages/collections/dashboard.vm -->
+#set ($SITE_ROOT = $content.getURI(""))
+
+<h2 class="edit_header1">
+    Manage Datasets for <a href="${SITE_ROOT}/data/projects/$!{projectId}?format=html">$!{projectId}</a>
+</h2>
+
+<div class="content-tabs xnat-tab-container" style="display: block;">
+
+    <div class="xnat-nav-tabs side left pull-left">
+        <ul class="nav tab-group" id="collections-ui-project-tab-group" style="display: block;">
+            <li class="tab active" data-tab="project-dataset-criteria">
+                <a title="Dataset Types and Criteria" href="#project-dataset-criteria">Dataset Types and Criteria <span class="criteria-count"></span></a>
+            </li>
+            <li class="tab" data-tab="project-saved-datasets">
+                <a title="Data Collections" href="#project-saved-datasets">Saved Datasets <span class="datasets-count"></span></a>
+            </li>
+        </ul>
+    </div>
+
+
+    <div class="xnat-tab-content side right pull-right">
+        <div class="tab-pane active" data-name="projectDatasetCriteriaTab" data-tab="project-dataset-criteria">
+            <div class="panel panel-default" style="" id="project-dataset-criteria-panel">
+                <div class="panel-heading">
+                    <span class="pull-right"><button class="btn "></button></span>
+                    <h3 class="panel-title">Dataset Criteria Definitions</h3>
+                </div>
+                <div class="panel-body" style="">
+                    <div id="proj-dataset-criteria-list-container">
+                        <div class="message no-criteria">No dataset criteria have been defined in this project. Currently supported dataset types are: "TaggedResourceMap (ClaraTrain)".</div>
+                    </div>
+                </div>
+                <div class="panel-footer"></div>
+                <div class="hidden"></div>
+            </div>
+        </div>
+        <div class="tab-pane" data-name="projectClaraDataCollectionTab" data-tab="project-clara-data-collection">
+            <div class="panel panel-default" style="" id="project-clara-data-collection-panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Data Collections</h3>
+                </div>
+                <div class="panel-body" style="">
+                    <div class="message">This panel shows all defined data collections for this project. At least one collection is required to launch a training run.</div>
+                    <div id="proj-data-collection-list-container">
+                        <p>No data collections have been installed.</p>
+                    </div>
+                </div>
+                <div class="panel-footer"></div>
+                <div class="hidden"></div>
+            </div>
+        </div>
+        <div class="tab-pane" data-name="projectClaraTrainingConfigTab" data-tab="project-clara-training-config">
+            <div class="panel panel-default" style="" id="project-clara-training-config-panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Training Configurations</h3>
+                </div>
+                <div class="panel-body" style="">
+                    <div class="message">This panel shows all defined training configurations. There is no enforced 1:1 relationship or validation between models and configs. It is assumed that you have the appropriate JSON configuration to apply training to a given model.</div>
+                    <div id="proj-clara-training-config-list-container">
+                        <p>No training configs have been installed.</p>
+                    </div>
+                    <div id="proj-clara-training-config-setup-template" class="html-template">
+                        <div class="panel panel-default" style="" id="proj-clara-training-config-viewer">
+                            <div class="hidden"></div>
+                            <div class="panel-body" style=""></div>
+                            <div class="hidden"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer"></div>
+                <div class="hidden"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="${SITE_ROOT}/scripts/xnat/plugin/clara/clara-projectAdmin.js"></script>
+<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/collection-projectAdmin.js"></script>
+<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/create-collection.js"></script>
+<script src="${SITE_ROOT}/scripts/xnat/plugin/clara/clara-launchTraining.js"></script>
+<!-- END META-INF/resources/templates/screens/pages/clara/training/dashboard.vm -->
