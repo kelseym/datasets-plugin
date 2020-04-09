@@ -36,7 +36,7 @@ var XNAT = getObject(XNAT || {});
     }
 
     function possiblyJSON(it){
-        return it && probablyJSON(it) ? JSON.parse(it) : it || '';
+        return it && probablyJSON(it) ? JSON.parse(it) : it;
     }
 
     function errorHandler(e, title, closeAll){
@@ -128,7 +128,7 @@ var XNAT = getObject(XNAT || {});
 
         // handle either pre-serialized JSON string or JSON object/array
         function processCriteria(criteria){
-            return JSON.parse(JSON.stringify(possiblyJSON(criteria)));
+            return JSON.stringify(possiblyJSON(criteria));
         }
 
 
@@ -161,7 +161,7 @@ var XNAT = getObject(XNAT || {});
                             criteria: [
                                 {
                                     resolver: dialog.body$.find('[name="resolver"]').find('option:selected').val(),
-                                    payload: JSON.parse(_editor.aceEditor.getValue())
+                                    payload: processCriteria(_editor.aceEditor.getValue())
                                 }
                             ]
 
