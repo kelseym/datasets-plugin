@@ -72,7 +72,7 @@ var XNAT = getObject(XNAT || {});
         dfn = getObject(dfn);
 
         var id      = dfn.id || '';
-        var criteria = dfn.criteria ? JSON.stringify(dfn.criteria) : '{}';
+        var criteria = (dfn.criteria) ? JSON.stringify(dfn.criteria[0].payload) : '{}';
 
         var _source = spawn('textarea', criteria);
         var _editor = XNAT.app.codeEditor.init(_source, {
@@ -80,6 +80,9 @@ var XNAT = getObject(XNAT || {});
         });
 
         sets.criteria = _editor;
+        var labelInput = (dfn.label) ?
+            spawn('input.def-label|name=label|size=30|value='+dfn.label) :
+            spawn('input.def-label|name=label|size=30');
 
         function dfnMeta(){
             return spawn('form.definition-metadata', { style: { marginBottom: 0 } }, [
@@ -89,17 +92,13 @@ var XNAT = getObject(XNAT || {});
                     ['tbody', [
                         ['tr', [
                             ['td|style=width:200px', '<b>Label</b> &nbsp;'],
-                            ['td', [
-                                ['input.def-label|type=text|name=label|size=30', {
-                                    value: dfn.label || ''
-                                }]
-                            ]]
+                            ['td', [ labelInput ]]
                         ]],
                         ['tr', [
                             ['td.top', '<b>Description</b> &nbsp;'],
                             ['td', [
                                 ['textarea.def-description|type=text|name=description', {
-                                    value: dfn.description || '',
+                                    html: dfn.description || '',
                                     style: { width: '100%' },
                                     attr: { rows: 4 }
                                 }]
@@ -162,7 +161,7 @@ var XNAT = getObject(XNAT || {});
                             criteria: [
                                 {
                                     resolver: dialog.body$.find('[name="resolver"]').find('option:selected').val(),
-                                    payload: processCriteria(_editor.aceEditor.getValue())
+                                    payload: JSON.parse(_editor.aceEditor.getValue())
                                 }
                             ]
 
@@ -172,14 +171,29 @@ var XNAT = getObject(XNAT || {});
 
                         // return;
 
-                        XNAT.xhr.postJSON({
-                            url: rootUrl('/xapi/sets/definitions'),
-                            data: JSON.stringify(defData),
-                            success: function(){
-                                dialog.close();
-                                XNAT.ui.banner.top(2000, 'Definition saved.', 'success');
-                            }
-                        })
+                        if (!dfn.id) {
+                            XNAT.xhr.postJSON({
+                                url: rootUrl('/xapi/sets/definitions'),
+                                data: JSON.stringify(defData),
+                                success: function(){
+                                    dialog.close();
+                                    XNAT.ui.banner.top(2000, 'Definition saved.', 'success');
+                                    XNAT.plugin.collection.sets.initDashboard();
+                                }
+                            })
+                        } else {
+                            XNAT.xhr.putJSON({
+                                url: csrfUrl('/xapi/sets/definitions/projects/'+dfn.project+'/'+dfn.id),
+                                data: JSON.stringify(defData),
+                                success: function(){
+                                    dialog.close();
+                                    XNAT.ui.banner.top(2000, 'Definition updated.', 'success');
+                                    XNAT.plugin.collection.sets.initDashboard();
+                                }
+                            })
+                        }
+
+
                     }
                 },
                 close: {

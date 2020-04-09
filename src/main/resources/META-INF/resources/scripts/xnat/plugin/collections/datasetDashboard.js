@@ -69,19 +69,22 @@ var XNAT = getObject(XNAT || {});
     }
 
     function getSingleDefinition(id){
-        return definitions.filter(function(d){ return d.id === id});
+        return definitions.filter(function(d){ return d.id === id})[0];
     }
-    sets.editDefinition = function(id){
-        var dfn = getSingleDefinition(id);
-        XNAT.plugin.collection.sets.openDefinitionEditor(dfn);
-    };
     sets.validateDefinition = function(id){
         var dfn = getSingleDefinition(id);
         XNAT.dialog.message('Placeholder Function','This will initiate the dataset validation process for '+dfn.label+'.');
     };
     sets.deleteDefinition = function(id){
-        var dfn = getSingleDefinition(id);
-        XNAT.dialog.message('Placeholder Function','This will delete the dataset definition named "'+dfn.label+'".');
+        XNAT.xhr.ajax({
+            method: 'DELETE',
+            url: csrfUrl('/xapi/sets/definitions/projects/'+projectId+'/'+id),
+            fail: function(e){ errorHandler(e, 'Error attempting to delete dataset with id '+id)},
+            success: function(){
+                XNAT.ui.banner.top(2000, 'Definition deleted.', 'success');
+                sets.initDashboard();
+            }
+        })
     };
 
     $(document).on('click','.validate-definition',function(e){
@@ -92,7 +95,8 @@ var XNAT = getObject(XNAT || {});
     $(document).on('click','.edit-definition',function(e){
         e.preventDefault();
         var id = $(this).data('id');
-        sets.editDefinition(id);
+        var dfn = getSingleDefinition(id);
+        XNAT.plugin.collection.sets.openDefinitionEditor(dfn);
     });
     $(document).on('click','.delete-definition',function(e){
         e.preventDefault();
@@ -101,7 +105,7 @@ var XNAT = getObject(XNAT || {});
     });
 
 
-    function displayDatasetDefinitions(container){
+    function displayDatasetDefinitions(){
         function validateButton(id){
             return spawn('button.btn.btn-sm.validate-definition',{ title: 'Validate Data with this Definition', data: {id:id} },[ spawn('i.fa.fa-cogs')])
         }
@@ -140,7 +144,7 @@ var XNAT = getObject(XNAT || {});
         container.empty().append(ddTable.table);
     }
 
-    function resetDatasetDefinitions(container){
+    function resetDatasetDefinitions(){
         var container = $('#proj-dataset-criteria-list-container');
         container.empty().append(spawn('div.message','No dataset criteria have been defined in this project. Currently supported dataset types are: "TaggedResourceMap (ClaraTrain)".'))
     }
