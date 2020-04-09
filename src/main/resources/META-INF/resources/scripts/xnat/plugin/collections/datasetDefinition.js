@@ -1,4 +1,4 @@
-console.log('create-collection-dev.js');
+console.log('datasetDefinition.js');
 
 var XNAT = getObject(XNAT || {});
 
@@ -190,6 +190,9 @@ var XNAT = getObject(XNAT || {});
         });
 
     }
+    sets.openDefinitionEditor = function(definition){
+        definitionEditor(definition);
+    };
 
     sets.createDefinition = function(){
         definitionEditor({});

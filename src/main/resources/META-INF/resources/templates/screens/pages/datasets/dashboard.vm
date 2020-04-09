@@ -5,6 +5,10 @@
 <!-- BEGIN META-INF/resources/templates/screens/pages/collections/dashboard.vm -->
 #set ($SITE_ROOT = $content.getURI(""))
 
+<style type="text/css">
+    .panel-heading .btn { margin-top: -4px; }
+</style>
+
 <h2 class="edit_header1">
     Manage Datasets for <a href="${SITE_ROOT}/data/projects/$!{projectId}?format=html">$!{projectId}</a>
 </h2>
@@ -27,7 +31,7 @@
         <div class="tab-pane active" data-name="projectDatasetCriteriaTab" data-tab="project-dataset-criteria">
             <div class="panel panel-default" style="" id="project-dataset-criteria-panel">
                 <div class="panel-heading">
-                    <span class="pull-right"><button class="btn "></button></span>
+                    <span class="pull-right"><button class="btn btn-sm" onclick="XNAT.plugin.collection.sets.createDefinition()">Create Dataset Definition</button></span>
                     <h3 class="panel-title">Dataset Criteria Definitions</h3>
                 </div>
                 <div class="panel-body" style="">
@@ -38,38 +42,30 @@
                 <div class="panel-footer"></div>
                 <div class="hidden"></div>
             </div>
-        </div>
-        <div class="tab-pane" data-name="projectClaraDataCollectionTab" data-tab="project-clara-data-collection">
-            <div class="panel panel-default" style="" id="project-clara-data-collection-panel">
+            <br>
+            <div class="panel panel-default" style="" id="project-dataset-validation-panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Data Collections</h3>
+                    <span class="pull-right"><button class="btn btn-sm disabled">Save Dataset</button></span>
+                    <h3 class="panel-title">Dataset Validation</h3>
                 </div>
                 <div class="panel-body" style="">
-                    <div class="message">This panel shows all defined data collections for this project. At least one collection is required to launch a training run.</div>
-                    <div id="proj-data-collection-list-container">
-                        <p>No data collections have been installed.</p>
+                    <div id="proj-dataset-criteria-list-container">
+                        <div class="message no-criteria">This panel will display an overview of project data as it relates to a set of defined dataset criteria. Currently, no dataset criteria have been defined for this project. </div>
                     </div>
                 </div>
                 <div class="panel-footer"></div>
                 <div class="hidden"></div>
             </div>
         </div>
-        <div class="tab-pane" data-name="projectClaraTrainingConfigTab" data-tab="project-clara-training-config">
-            <div class="panel panel-default" style="" id="project-clara-training-config-panel">
+        <div class="tab-pane" data-name="projectSavedDatasetsTab" data-tab="project-saved-datasets">
+            <div class="panel panel-default" style="" id="project-saved-datasets-panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Training Configurations</h3>
+                    <h3 class="panel-title">Saved Datasets</h3>
                 </div>
                 <div class="panel-body" style="">
-                    <div class="message">This panel shows all defined training configurations. There is no enforced 1:1 relationship or validation between models and configs. It is assumed that you have the appropriate JSON configuration to apply training to a given model.</div>
-                    <div id="proj-clara-training-config-list-container">
-                        <p>No training configs have been installed.</p>
-                    </div>
-                    <div id="proj-clara-training-config-setup-template" class="html-template">
-                        <div class="panel panel-default" style="" id="proj-clara-training-config-viewer">
-                            <div class="hidden"></div>
-                            <div class="panel-body" style=""></div>
-                            <div class="hidden"></div>
-                        </div>
+                    <div class="message">This panel shows all defined datasets for this project. </div>
+                    <div id="proj-data-collection-list-container">
+                        <p>No datasets have been saved in this project yet.</p>
                     </div>
                 </div>
                 <div class="panel-footer"></div>
@@ -79,8 +75,6 @@
     </div>
 </div>
 
-<script src="${SITE_ROOT}/scripts/xnat/plugin/clara/clara-projectAdmin.js"></script>
-<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/collection-projectAdmin.js"></script>
-<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/create-collection.js"></script>
-<script src="${SITE_ROOT}/scripts/xnat/plugin/clara/clara-launchTraining.js"></script>
+<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/datasetDefinition.js"></script>
+<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/datasetDashboard.js"></script>
 <!-- END META-INF/resources/templates/screens/pages/clara/training/dashboard.vm -->

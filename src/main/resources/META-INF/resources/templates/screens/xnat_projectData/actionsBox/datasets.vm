@@ -14,9 +14,9 @@
                     <li class="yuimenuitem">
                         <a class="yuimenuitemlabel" href="#!" onclick="XNAT.plugin.collection.sets.createDefinition()">Create Definition</a>
                     </li>
-                    ##<li class="yuimenuitem">
-                    ##    <a class="yuimenuitemlabel" href="$content.getURI("app/template/Page.vm?view=project/settings&id=$project.getId()#tab=project-collection-tab")">Manage Data Collections</a>
-                    ##</li>
+                    <li class="yuimenuitem">
+                        <a class="yuimenuitemlabel" href="${SITE_ROOT}/app/template/Page.vm?view=datasets/dashboard&project=$!{project.getId()}">Manage Datasets</a>
+                    </li>
                 </ul>
             </div>
         </div>
