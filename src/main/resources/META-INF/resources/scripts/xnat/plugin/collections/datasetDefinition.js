@@ -135,7 +135,7 @@ var XNAT = getObject(XNAT || {});
         _editor.openEditor({
             title: dfn.id ? 'Edit Dataset Definition <b>' + dfn.label + '</b>' : 'New Dataset Definition',
             width: 800,
-            height: 450,
+            height: 600,
             classes: 'plugin-json',
             footerContent: 'Save Dataset Definition?',
             before: dfnMeta(),

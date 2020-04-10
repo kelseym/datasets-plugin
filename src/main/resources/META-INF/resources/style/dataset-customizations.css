@@ -1,0 +1,37 @@
+/* Panel Style Enhancements for Dashboards */
+.panel-heading .btn { margin-top: -4px; }
+.panel-default.disabled .panel-heading {
+    background: #A8A8A8;
+}
+.panel-default.disabled .panel-heading:after {
+    content: ' (Inactive)';
+}
+
+/* xnat-table style enhancements */
+.xnat-table tr th:first-of-type {
+    text-align: left;
+}
+.panel-table-container {
+    border: 1px solid #ccc;
+    width: inherit;
+}
+.panel-table-container .xnat-table {
+    border: none;
+}
+
+/* specific table cells */
+.dataset-definition-description {
+    text-overflow: ellipsis;
+}
+.fa.success {
+    color: #339933;
+}
+.fa.failed {
+    color: #CCC;
+}
+.table-summary {
+    font-weight: bold;
+}
+.first-cell {
+    font-weight: bold;
+}

@@ -13,7 +13,7 @@
     <div class="panel-element" data-name="">
         <div class="element-label">Saved Datasets</div>
         <div class="element-wrapper">
-            <span id="ml-tab-datasets-count">0</span>
+            <span id="ml-tab-dataset-count">0</span>
         </div>
         <br class="clear">
     </div>
@@ -66,13 +66,14 @@
                 },
                 fail: function(e) {
                     console.error(e);
+                    showCount('Error: '+e.status,name);
                 }
             });
         }
 
         XNAT.plugin.collection.projectInit = function(projectId) {
-            getItems('/xapi/sets/definitions/projects/' + projectId, "definitions");
-            getItems('/xapi/sets/datasets/projects/' + projectId, "datasets");
+            getItems('/xapi/sets/definitions/projects/' + projectId, "definition");
+            getItems('/xapi/sets/collections/projects/' + projectId, "dataset");
         };
 
         $(function() {

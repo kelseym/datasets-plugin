@@ -5,10 +5,6 @@
 <!-- BEGIN META-INF/resources/templates/screens/pages/collections/dashboard.vm -->
 #set ($SITE_ROOT = $content.getURI(""))
 
-<style type="text/css">
-    .panel-heading .btn { margin-top: -4px; }
-</style>
-
 <h2 class="edit_header1">
     Manage Datasets for <a href="${SITE_ROOT}/data/projects/$!{projectId}?format=html">$!{projectId}</a>
 </h2>
@@ -29,12 +25,12 @@
 
     <div class="xnat-tab-content side right pull-right">
         <div class="tab-pane active" data-name="projectDatasetCriteriaTab" data-tab="project-dataset-criteria">
-            <div class="panel panel-default" style="" id="project-dataset-criteria-panel">
+            <div class="panel panel-default" id="project-dataset-criteria-panel">
                 <div class="panel-heading">
                     <span class="pull-right"><button class="btn btn-sm" onclick="XNAT.plugin.collection.sets.createDefinition()">Create Dataset Definition</button></span>
                     <h3 class="panel-title">Dataset Criteria Definitions</h3>
                 </div>
-                <div class="panel-body" style="">
+                <div class="panel-body">
                     <div id="proj-dataset-criteria-list-container">
                         <div class="message no-criteria">No dataset criteria have been defined in this project. Currently supported dataset types are: "TaggedResourceMap (ClaraTrain)".</div>
                     </div>
@@ -43,12 +39,12 @@
                 <div class="hidden"></div>
             </div>
             <br>
-            <div class="panel panel-default" style="" id="project-dataset-validation-panel">
+            <div class="panel panel-default disabled" id="project-dataset-validation-panel">
                 <div class="panel-heading">
-                    <span class="pull-right"><button class="btn btn-sm disabled">Save Dataset</button></span>
+                    <span class="pull-right"><button class="btn btn-sm save-dataset disabled" id="save-dataset-button">Save Dataset</button></span>
                     <h3 class="panel-title">Dataset Validation</h3>
                 </div>
-                <div class="panel-body" style="">
+                <div class="panel-body">
                     <div id="proj-dataset-validation-table-container">
                         <div class="message no-criteria">This panel will display an overview of project data as it relates to a set of defined dataset criteria. To use this panel, click the "<i class="fa fa-gears"></i> Validate" link for a definition in the table above. </div>
 
@@ -64,8 +60,8 @@
                     <h3 class="panel-title">Saved Datasets</h3>
                 </div>
                 <div class="panel-body" style="">
-                    <div class="message">This panel shows all defined datasets for this project. </div>
                     <div id="proj-saved-datasets-list-container">
+                        <div class="message">This panel shows all defined datasets for this project. </div>
                         <p>No datasets have been saved in this project yet.</p>
                     </div>
                 </div>
