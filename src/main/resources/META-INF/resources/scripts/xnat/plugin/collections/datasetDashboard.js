@@ -68,13 +68,11 @@ var XNAT = getObject(XNAT || {});
         });
     }
 
+    /* --- handle dataset definitions --- */
+
     function getSingleDefinition(id){
         return definitions.filter(function(d){ return d.id === id})[0];
     }
-    sets.validateDefinition = function(id){
-        var dfn = getSingleDefinition(id);
-        XNAT.dialog.message('Placeholder Function','This will initiate the dataset validation process for '+dfn.label+'.');
-    };
     sets.deleteDefinition = function(id){
         XNAT.xhr.ajax({
             method: 'DELETE',
@@ -163,6 +161,76 @@ var XNAT = getObject(XNAT || {});
             }
         })
     }
+
+    /* --- handle dataset validations --- */
+
+    // Temporary validation URL
+    function getValidationUrl(id){
+        var swaggerhub = 'https://virtserver.swaggerhub.com/hortonw/detailed_dataset_report/1.0.0';
+        return swaggerhub + '/sets/definitions/detailed_report/'+projectId+'/'+id;
+    }
+    
+    function displayValidationResults(items){
+        var allExperiments = items.length,
+            firstResult = items[0].results,
+            numChecks = 0,
+            validExperiments = [],
+            vrTable = XNAT.table({addClass: 'xnat-table', style: { width: '100%' }});
+
+        var headerRow = vrTable.tr()
+            .th({ addClass: 'align-left' },'Experiments');
+
+        // validation columns can be parsed from the items in the first row of results.
+        firstResult.forEach(function(criteria){
+            var file = criteria.file,
+                check = criteria.check;
+            headerRow.th({ addClass: 'align-left' },file+':<br>'+check);
+            numChecks++;
+        });
+
+        function experimentLink(experiment){
+            return spawn('a',{ href: rootUrl('/data/experiments/'+experiment.id), style: { 'font-weight':'bold' }}, experiment.label)
+        }
+        function displayIcon(validation){
+            return (validation.result) ?
+                spawn('i.fa.fa-check-circle',{ style: { color: '#339933' }}) :
+                spawn('i.fa.fa-close',{ style: { color: '#ccc' }})
+        }
+        items.forEach(function(item){
+            var experimentRow = vrTable.tr()
+                .td({ addClass: 'nowrap' },[['!',experimentLink(item)]]);
+            item.results.forEach(function(validation){
+                experimentRow
+                    .td([['div.center',[ displayIcon(validation) ]]])
+            })
+        });
+
+        var container = $('#proj-dataset-validation-table-container');
+        container.empty();
+        container.append(spawn('!',[
+            spawn('p', {style: {'font-weight':'strong'}},'10 of 100 sessions complete'),
+            spawn('div.panel-table-container',{style: { width: 'inherit' }},[
+                vrTable.table
+            ])
+        ]));
+    }
+
+    sets.validateDefinition = function(id){
+        var dfn = getSingleDefinition(id);
+        XNAT.xhr.get({
+            url: getValidationUrl(id),
+            fail: function(e){ errorHandler(e,'Error trying to query the dataset validation URL for dataset definition '+id) },
+            success: function(data){
+                if (data.length) {
+                    displayValidationResults(data);
+                }
+            }
+        });
+    };
+
+
+
+    /* --- init dashboard --- */
 
     sets.initDashboard = function(){
         definitions = []; // clear stored list of definitions

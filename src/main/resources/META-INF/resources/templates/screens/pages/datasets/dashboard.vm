@@ -49,8 +49,9 @@
                     <h3 class="panel-title">Dataset Validation</h3>
                 </div>
                 <div class="panel-body" style="">
-                    <div id="proj-dataset-criteria-list-container">
-                        <div class="message no-criteria">This panel will display an overview of project data as it relates to a set of defined dataset criteria. Currently, no dataset criteria have been defined for this project. </div>
+                    <div id="proj-dataset-validation-table-container">
+                        <div class="message no-criteria">This panel will display an overview of project data as it relates to a set of defined dataset criteria. To use this panel, click the "<i class="fa fa-gears"></i> Validate" link for a definition in the table above. </div>
+
                     </div>
                 </div>
                 <div class="panel-footer"></div>
@@ -64,7 +65,7 @@
                 </div>
                 <div class="panel-body" style="">
                     <div class="message">This panel shows all defined datasets for this project. </div>
-                    <div id="proj-data-collection-list-container">
+                    <div id="proj-saved-datasets-list-container">
                         <p>No datasets have been saved in this project yet.</p>
                     </div>
                 </div>
