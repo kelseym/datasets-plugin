@@ -1,0 +1,56 @@
+<!-- BEGIN META-INF/resources/templates/screens/sets_collection/sets_collection_summary_tabs.vm -->
+#set($definitionId=$!item.getStringProperty("sets:collection/definition_id"))
+
+<div>
+    <div id="collectionSummary" class="yui-navset">
+        <ul class="yui-nav">
+            <li class="selected"><a href="#tab1"><em>Details</em></a></li>
+            #foreach($tab in $tabs)
+                <li>
+                    <a href="#$tab.getProperty("divName")"><em>#escapeCleanHTML($tab.getProperty("title"))</em></a>
+                </li>
+            #end
+
+        </ul>
+        <div class="yui-content">
+            <div id="tab1" class="pad10">
+                <table>
+                    <tr>
+                        <th align="left">ID:</th>
+                        <td>$!item.getStringProperty("sets:collection/ID")</td>
+                    </tr>
+                    <tr>
+                        <th align="left">Date Added:</th>
+                        <td>$!item.getStringProperty("sets:collection/date")</td>
+                    </tr>
+                    <tr>
+                        <th align="left">Dataset Definition:</th>
+                        <td>
+                            #if($!definitionId)
+                                <strong><a href="$content.getURI("/data/experiments/$!{definitionId}?format=html")">$definitionId</a></strong>
+                                #else
+                                N/A
+                            #end
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="left">File Count:</th>
+                        <td>$!item.getStringProperty("sets:collection/fileCount")</td>
+                    </tr>
+                    <tr>
+                        <th align="left">File Size:</th>
+                        <td>$!item.getStringProperty("sets:collection/fileSize")</td>
+                    </tr>
+                </table>
+            </div>
+
+            #foreach($tab in $tabs)
+                <div id="$tab.getProperty("divName")" class="yui-hidden">
+                    #set($path = "screens/sets_collection/tabs/${tab.getProperty('fileName')}")
+                    #parse($path)
+                </div>
+            #end
+        </div>
+    </div>
+</div>
+<!-- END META-INF/resources/templates/screens/sets_collection/sets_collection_summary_tabs.vm -->
