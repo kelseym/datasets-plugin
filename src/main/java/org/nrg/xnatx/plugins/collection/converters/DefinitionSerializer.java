@@ -21,8 +21,8 @@ public class DefinitionSerializer extends DatasetSerializer<SetsDefinition> {
         generator.writeArrayFieldStart("criteria");
         for (final SetsCriterionI criterion : definition.getCriteria()) {
             generator.writeStartObject();
-            generator.writeStringField("resolver", criterion.getResolver());
-            generator.writeStringField("payload", criterion.getPayload());
+            writeNonBlankField(generator, "resolver", criterion.getResolver());
+            writeNonBlankJson(generator, "payload", criterion.getPayload());
             generator.writeEndObject();
         }
         generator.writeEndArray();

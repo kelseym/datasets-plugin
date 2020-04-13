@@ -135,7 +135,8 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to create the dataset definition."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
-    @XapiRequestMapping(consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
+    // @XapiRequestMapping(consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
+    @XapiRequestMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateDefinition.class)
     public SetsDefinition create(@RequestBody final SetsDefinition entity) throws DataFormatException, InsufficientPrivilegesException, ResourceAlreadyExistsException, NotFoundException {
         return _definitions.create(getSessionUser(), entity);

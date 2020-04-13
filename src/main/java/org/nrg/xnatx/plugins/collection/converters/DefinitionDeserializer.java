@@ -1,14 +1,10 @@
 package org.nrg.xnatx.plugins.collection.converters;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import java.io.IOException;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.nrg.xdat.model.SetsCriterionI;
 import org.nrg.xdat.om.SetsCriterion;
 import org.nrg.xdat.om.SetsDefinition;
 
@@ -20,42 +16,42 @@ public class DefinitionDeserializer extends DatasetDeserializer<SetsDefinition> 
 
     @Override
     public SetsDefinition deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
-        final JsonNode node = parser.getCodec().readTree(parser);
-
-        final SetsDefinition definition = getInstance(node);
-        if (node.has("project")) {
-            definition.setProject(node.get("project").textValue());
-        }
-        if (node.has("label")) {
-            definition.setLabel(node.get("label").textValue());
-        }
-        if (node.has("description")) {
-            definition.setDescription(node.get("description").textValue());
-        }
-        if (node.has("criteria")) {
-            final List<SetsCriterionI> existing = definition.getCriteria();
-            if (existing != null && !existing.isEmpty()) {
-                for (int index = existing.size() - 1; index >= 0; index--) {
-                    definition.removeCriteria(index);
-                }
-            }
-            for (final SetsCriterion criterion : Iterables.transform(node.get("criteria"), new Function<JsonNode, SetsCriterion>() {
-                @Override
-                public SetsCriterion apply(final JsonNode node) {
-                    final SetsCriterion criterion = new SetsCriterion();
-                    criterion.setResolver(node.get("resolver").textValue());
-                    criterion.setPayload(node.get("payload").textValue());
-                    return criterion;
-                }
-            })) {
-                try {
-                    definition.addCriteria(criterion);
-                } catch (Exception e) {
-                    log.error("An error occurred trying to add criteria to the definition", e);
-                }
-            }
+        if (parser.getCurrentToken() != JsonToken.START_OBJECT) {
+            throw new IOException("invalid start marker");
         }
 
+        final SetsDefinition definition = new SetsDefinition();
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            final String field = parser.getCurrentName();
+            parser.nextToken();  //move to next token in string
+            switch (field) {
+                case "id":
+                    definition.setId(parser.getText());
+                    break;
+                case "project":
+                    definition.setProject(parser.getText());
+                    break;
+                case "label":
+                    definition.setLabel(parser.getText());
+                    break;
+                case "description":
+                    definition.setDescription(parser.getText());
+                    break;
+                case "criteria":
+                    if (parser.getCurrentToken() != JsonToken.START_ARRAY) {
+                        throw new IOException("Invalid start marker for bs property");
+                    }
+                    while (parser.nextToken() != JsonToken.END_ARRAY) {
+                        final SetsCriterion criterion = context.readValue(parser, SetsCriterion.class);
+                        try {
+                            definition.addCriteria(criterion);
+                        } catch (Exception e) {
+                            log.error("An error occurred trying to add the criterion: {}", criterion);
+                        }
+                    }
+                    break;
+            }
+        }
         return definition;
     }
 }

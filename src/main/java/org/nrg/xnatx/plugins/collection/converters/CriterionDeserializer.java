@@ -1,8 +1,8 @@
 package org.nrg.xnatx.plugins.collection.converters;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import org.nrg.xdat.om.SetsCriterion;
 
@@ -13,10 +13,23 @@ public class CriterionDeserializer extends DatasetDeserializer<SetsCriterion> {
 
     @Override
     public SetsCriterion deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
-        final JsonNode node = parser.getCodec().readTree(parser);
+        if (parser.getCurrentToken() != JsonToken.START_OBJECT) {
+            throw new IOException("invalid start marker");
+        }
+
         final SetsCriterion criterion = new SetsCriterion();
-        criterion.setResolver(node.get("resolver").textValue());
-        criterion.setPayload(node.get("payload").textValue());
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            final String field = parser.getCurrentName();
+            parser.nextToken();  //move to next token in string
+            switch (field) {
+                case "resolver":
+                    criterion.setResolver(parser.getText());
+                    break;
+                case "payload":
+                    criterion.setPayload(stringify(parser, context));
+                    break;
+            }
+        }
         return criterion;
     }
 }

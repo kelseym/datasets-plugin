@@ -17,12 +17,12 @@ import org.nrg.framework.annotations.XnatPlugin;
 import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsCriterion;
 import org.nrg.xdat.om.SetsDefinition;
+import org.nrg.xnatx.plugins.collection.converters.CollectionDeserializer;
+import org.nrg.xnatx.plugins.collection.converters.CollectionSerializer;
 import org.nrg.xnatx.plugins.collection.converters.CriterionDeserializer;
 import org.nrg.xnatx.plugins.collection.converters.CriterionSerializer;
 import org.nrg.xnatx.plugins.collection.converters.DefinitionDeserializer;
 import org.nrg.xnatx.plugins.collection.converters.DefinitionSerializer;
-import org.nrg.xnatx.plugins.collection.converters.CollectionDeserializer;
-import org.nrg.xnatx.plugins.collection.converters.CollectionSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -41,10 +41,6 @@ import org.springframework.context.annotation.Configuration;
                 "org.nrg.xnatx.plugins.collection.services.impl"})
 @Slf4j
 public class XnatDataCollectionPlugin {
-    public XnatDataCollectionPlugin() {
-        log.info("Creating the XnatDataCollectionPlugin configuration class");
-    }
-
     @Bean
     public Module dataCollectionModule() {
         final SimpleModule module = new SimpleModule();

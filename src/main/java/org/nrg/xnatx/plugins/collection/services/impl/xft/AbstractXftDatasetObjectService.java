@@ -79,10 +79,13 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
 
     @Override
     public T findById(final UserI user, final String id) throws NotFoundException {
+        if (!_template.queryForObject(QUERY_EXPT_ID_WITH_DATA_TYPE_EXISTS, new MapSqlParameterSource(PARAM_EXPERIMENT, id).addValue(PARAM_DATA_TYPE, _xsiType), Boolean.class)) {
+            throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
+        }
         //noinspection unchecked
         final T experiment = (T) XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
         if (experiment == null) {
-            throw new NotFoundException("User " + user.getUsername() + " requested experiment with ID " + id + ", but that doesn't exist.");
+            throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
         }
         return experiment;
     }
@@ -381,12 +384,15 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     private static final String PARAM_EXPERIMENT                    = "experiment";
     private static final String PARAM_PROJECT                       = "project";
     private static final String PARAM_ID_OR_LABEL                   = "label";
+    private static final String PARAM_DATA_TYPE                     = "dataType";
     private static final String QUERY_EXISTS                        = "SELECT EXISTS(%s)";
     private static final String QUERY_PROJECT_ID                    = "SELECT id FROM xnat_projectdata WHERE id = :" + PARAM_PROJECT;
     private static final String QUERY_EXPT_ID                       = "SELECT id FROM xnat_experimentdata WHERE id = :" + PARAM_EXPERIMENT;
+    private static final String QUERY_EXPT_ID_WITH_DATA_TYPE        = "SELECT id FROM xnat_experimentdata e LEFT JOIN xdat_meta_element m ON e.extension = m.xdat_meta_element_id WHERE e.id = :" + PARAM_EXPERIMENT + " AND m.element_name = :" + PARAM_DATA_TYPE;
     private static final String QUERY_EXPT_PROJECT_AND_LABEL        = "SELECT x.id FROM xnat_experimentdata x LEFT JOIN xnat_experimentdata_share s ON x.id = s.sharing_share_xnat_experimentda_id WHERE (x.project = :" + PARAM_PROJECT + " AND (x.id =  :" + PARAM_ID_OR_LABEL + " OR x.label =  :" + PARAM_ID_OR_LABEL + ")) OR (s.project = :" + PARAM_PROJECT + " AND (x.id =  :" + PARAM_ID_OR_LABEL + " OR s.label =  :" + PARAM_ID_OR_LABEL + "))";
     private static final String QUERY_PROJECT_ID_EXISTS             = String.format(QUERY_EXISTS, QUERY_PROJECT_ID);
     private static final String QUERY_EXPT_ID_EXISTS                = String.format(QUERY_EXISTS, QUERY_EXPT_ID);
+    private static final String QUERY_EXPT_ID_WITH_DATA_TYPE_EXISTS = String.format(QUERY_EXISTS, QUERY_EXPT_ID_WITH_DATA_TYPE);
     private static final String QUERY_EXPT_PROJECT_AND_LABEL_EXISTS = String.format(QUERY_EXISTS, QUERY_EXPT_PROJECT_AND_LABEL);
     private static final String ERROR_EVENT_REQUIREMENT_ABSENT      = "No %1$s specified while %2$s an object of type %3$s, but %1$s is required";
 

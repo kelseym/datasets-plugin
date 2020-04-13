@@ -1,10 +1,9 @@
 package org.nrg.xnatx.plugins.collection.converters;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.nrg.xdat.om.SetsCollection;
 
 public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> {
@@ -14,28 +13,35 @@ public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> 
 
     @Override
     public SetsCollection deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
-        final JsonNode node = parser.getCodec().readTree(parser);
-
-        final SetsCollection collection = node.has("id") ? getInstance(node.get("id")) : new SetsCollection();
-        if (node.has("project")) {
-            collection.setProject(node.get("project").textValue());
-        }
-        if (node.has("label")) {
-            collection.setLabel(node.get("label").textValue());
-        }
-        if (node.has("definition")) {
-            collection.setDefinitionId(node.get("definition").textValue());
-        }
-        if (node.has("fileCount")) {
-            collection.setFilecount(NumberUtils.toInt(node.get("fileCount").textValue(), 0));
-        }
-        if (node.has("fileSize")) {
-            collection.setFilesize(NumberUtils.toLong(node.get("fileSize").textValue()));
-        }
-        if (node.has("files")) {
-            collection.setFiles(node.get("files").textValue());
+        if (parser.getCurrentToken() != JsonToken.START_OBJECT) {
+            throw new IOException("invalid start marker");
         }
 
+        final SetsCollection collection = new SetsCollection();
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            final String field = parser.getCurrentName();
+            parser.nextToken();
+            switch (field) {
+                case "project":
+                    collection.setProject(parser.getText());
+                    break;
+                case "label":
+                    collection.setLabel(parser.getText());
+                    break;
+                case "definition":
+                    collection.setDefinitionId(parser.getText());
+                    break;
+                case "fileCount":
+                    collection.setFilecount(parser.getIntValue());
+                    break;
+                case "fileSize":
+                    collection.setFilesize(parser.getLongValue());
+                    break;
+                case "files":
+                    collection.setFiles(parser.getText());
+                    break;
+            }
+        }
         return collection;
     }
 }
