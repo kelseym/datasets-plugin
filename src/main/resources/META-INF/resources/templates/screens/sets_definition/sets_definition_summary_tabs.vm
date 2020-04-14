@@ -1,0 +1,45 @@
+<!-- BEGIN META-INF/resources/templates/screens/sets_definition/sets_definition_summary_tabs.vm -->
+
+<div>
+    <div id="definitionSummary" class="yui-navset">
+        <ul class="yui-nav">
+            <li class="selected"><a href="#tab1"><em>Details</em></a></li>
+            #foreach($tab in $tabs)
+                <li>
+                    <a href="#$tab.getProperty("divName")"><em>#escapeCleanHTML($tab.getProperty("title"))</em></a>
+                </li>
+            #end
+
+        </ul>
+        <div class="yui-content">
+            <div id="tab1" class="pad10">
+                <table>
+                    <tr>
+                        <th align="left">ID:</th>
+                        <td>$!item.getStringProperty("sets:definition/ID")</td>
+                    </tr>
+                    <tr>
+                        <th align="left">Date Added:</th>
+                        <td>$!item.getStringProperty("sets:definition/date")</td>
+                    </tr>
+                    <tr>
+                        <th align="left">Definition Type (Resolver):</th>
+                        <td>$!item.getStringProperty("sets:definition/criteria/resolver")</td>
+                    </tr>
+                    <tr>
+                        <th align="left">Description:</th>
+                        <td>$!item.getStringProperty("sets:definition/description")</td>
+                    </tr>
+                </table>
+            </div>
+
+            #foreach($tab in $tabs)
+                <div id="$tab.getProperty("divName")" class="yui-hidden">
+                    #set($path = "screens/sets_definition/tabs/${tab.getProperty('fileName')}")
+                    #parse($path)
+                </div>
+            #end
+        </div>
+    </div>
+</div>
+<!-- END META-INF/resources/templates/screens/sets_definition/sets_definition_summary_tabs.vm -->
