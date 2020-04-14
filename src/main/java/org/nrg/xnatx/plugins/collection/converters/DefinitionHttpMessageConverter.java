@@ -81,6 +81,6 @@ public class DefinitionHttpMessageConverter extends AbstractHttpMessageConverter
         }
     }
 
-    private final SerializerService            _serializer;
+    private final SerializerService _serializer;
 }
 

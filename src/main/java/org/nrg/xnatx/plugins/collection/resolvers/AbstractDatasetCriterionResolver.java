@@ -6,7 +6,6 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.xdat.model.SetsCriterionI;
-import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.om.SetsCriterion;
 import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xft.security.UserI;

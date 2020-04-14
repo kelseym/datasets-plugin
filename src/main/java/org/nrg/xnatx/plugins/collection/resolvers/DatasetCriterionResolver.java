@@ -3,8 +3,8 @@ package org.nrg.xnatx.plugins.collection.resolvers;
 import java.util.List;
 import java.util.Map;
 import org.nrg.xdat.model.SetsCriterionI;
-import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xdat.om.SetsCriterion;
+import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xft.security.UserI;
 
 public interface DatasetCriterionResolver {

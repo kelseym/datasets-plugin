@@ -12,11 +12,11 @@ import org.apache.commons.lang3.RandomUtils;
 public class DatasetUtils {
     public static <T> Map<String, List<T>> partition(final Collection<T> items, final Map<String, Integer> splits) {
         // Check percentage adds up
-        if (sum(splits)  != 100) {
+        if (sum(splits) != 100) {
             throw new RuntimeException("Percentages must add up to 100");
         }
         final ArrayListMultimap<String, T> partitions = ArrayListMultimap.create();
-        final List<T> remaining = new ArrayList<>(items);
+        final List<T>                      remaining  = new ArrayList<>(items);
         for (final String partitionName : splits.keySet()) {
             final int numItems = getPercentage(items.size(), splits.get(partitionName));
             for (int index = 0; index < numItems; index++) {
