@@ -1,6 +1,9 @@
 package org.nrg.xnatx.plugins.collection.resolvers;
 
 import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.arrayNodeToStrings;
+import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.getExpression;
+import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.getExpressions;
+import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.joinClauses;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableListMultimap;
@@ -16,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.orm.DatabaseHelper;
 import org.nrg.framework.services.SerializerService;
 import org.nrg.xdat.om.XnatAbstractresource;
@@ -98,7 +102,6 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
     public SeriesAndResourceCriterionResolver(final SerializerService serializer, final DatabaseHelper helper) {
         super(helper);
         _serializer = serializer;
-        _resolver = new ExpressionResolver();
     }
 
     @Override
@@ -106,31 +109,52 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
         return new ArrayList<>(getResources(user, project, payload).values());
     }
 
+    @Override
+    protected Map<String, List<ProjectResourceReport>> reportImpl(final UserI user, final String project, final String payload) {
+        final JsonNode     node      = translate(payload);
+        final List<String> flattened = getAttributeClauses(node);
+        return super.reportImpl(user, project, StringUtils.join(flattened, ", "));
+    }
+
     protected Map<String, Map<String, XnatAbstractresource>> getResources(final UserI user, final String project, final String payload) {
         return getResources(user, project, translate(payload));
     }
 
     protected Map<String, Map<String, XnatAbstractresource>> getResources(final UserI user, final String project, final JsonNode json) {
+        final String resolved = joinClauses(getClauses(json));
+        log.debug("Now getting resources from project {} for user {} on the resolved query clauses: {}", project, user.getUsername(), resolved);
+        return super.getResources(user, project, resolved);
+    }
+
+    protected List<String> getAttributeClauses(final JsonNode json) {
         final List<String> clauses = new ArrayList<>();
+        for (final List<String> clause : getClauses(json)) {
+            for (final String attribute : clause) {
+                clauses.add("(" + attribute + ")::BOOLEAN AS " + StringUtils.substringBefore(attribute, " ") + "_matches");
+            }
+        }
+        return clauses;
+    }
+
+    private List<List<String>> getClauses(final JsonNode json) {
+        final List<List<String>> clauses = new ArrayList<>();
         for (final String element : EXPRESSION_ATTRIBUTES.keySet()) {
             if (json.has(element)) {
                 final JsonNode node = json.get(element);
                 switch (node.getNodeType()) {
                     case ARRAY:
-                        clauses.add(getResolver().getExpressions(EXPRESSION_ATTRIBUTES.get(element), arrayNodeToStrings(node)));
+                        clauses.addAll(getExpressions(EXPRESSION_ATTRIBUTES.get(element), arrayNodeToStrings(node)));
                         break;
                     case STRING:
                     case OBJECT:
-                        clauses.add(getResolver().getExpression(EXPRESSION_ATTRIBUTES.get(element), node.textValue()));
+                        clauses.add(getExpression(EXPRESSION_ATTRIBUTES.get(element), node.textValue()));
                         break;
                     default:
                         log.warn("Skipping unknown JSON node type for {}: {}", element, node.getNodeType());
                 }
             }
         }
-        final String resolved = getResolver().joinClauses(clauses);
-        log.debug("Now getting resources from project {} for user {} on the resolved query clauses: {}", project, user.getUsername(), resolved);
-        return super.getResources(user, project, resolved);
+        return clauses;
     }
 
     @Nonnull
@@ -158,6 +182,5 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
                                                                                                                                      .putAll(RESOURCE_LABEL, RESOURCE_LABEL_ATTRIBUTES)
                                                                                                                                      .build();
 
-    private final SerializerService  _serializer;
-    private final ExpressionResolver _resolver;
+    private final SerializerService _serializer;
 }

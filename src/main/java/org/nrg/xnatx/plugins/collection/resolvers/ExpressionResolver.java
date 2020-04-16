@@ -4,11 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class ExpressionResolver {
+    private ExpressionResolver() {
+        // No public constructor...
+    }
+
     public static Iterable<String> arrayNodeToStrings(final JsonNode node) {
         return Iterables.transform(node, new Function<JsonNode, String>() {
             @Override
@@ -18,33 +23,46 @@ public class ExpressionResolver {
         });
     }
 
-    public String joinClauses(final List<String> clauses) {
-        return "(" + StringUtils.join(clauses, ") AND (") + ")";
+    public static String joinClauses(final List<List<String>> clauses) {
+        return "(" + StringUtils.join(Lists.transform(clauses, new Function<List<String>, String>() {
+            @Override
+            public String apply(final List<String> expressions) {
+                return StringUtils.join(expressions, " OR ");
+            }
+        }), ") AND (") + ")";
     }
 
-    public String getExpressions(final List<String> attributes, final Iterable<String> values) {
-        return StringUtils.join(Iterables.transform(values, new Function<String, String>() {
+    public static List<List<String>> getExpressions(final List<String> attributes, final Iterable<String> values) {
+        return Lists.newArrayList(Iterables.transform(values, new Function<String, List<String>>() {
             @Override
-            public String apply(final String value) {
+            public List<String> apply(final String value) {
                 return getExpression(attributes, value);
             }
-        }), " OR ");
+        }));
     }
 
-    public String getExpression(final List<String> attributes, final String value) {
+    public static List<String> getExpression(final List<String> attributes, final String value) {
         return getClauses(attributes, getRegexType(value));
     }
 
-    protected String getClauses(final List<String> attributes, final Pair<RegexType, String> criteria) {
-        return StringUtils.join(Lists.transform(attributes, new Function<String, String>() {
+    public static List<String> getMatchAttributes(final List<String> attributes, final Iterable<String> values) {
+        final List<String> matches = new ArrayList<>();
+        for (final List<String> clause : getExpressions(attributes, values)) {
+            matches.addAll(clause);
+        }
+        return matches;
+    }
+
+    protected static List<String> getClauses(final List<String> attributes, final Pair<RegexType, String> criteria) {
+        return Lists.transform(attributes, new Function<String, String>() {
             @Override
             public String apply(final String attribute) {
                 return StringUtils.joinWith(" ", attribute, criteria.getKey().operator(), StringUtils.wrap(criteria.getValue(), "'"));
             }
-        }), " OR ");
+        });
     }
 
-    private Pair<RegexType, String> getRegexType(final String payload) {
+    private static Pair<RegexType, String> getRegexType(final String payload) {
         final boolean startsWithSlash = StringUtils.startsWith(payload, "/");
         final boolean endsWithSlash   = StringUtils.endsWith(payload, "/");
         final boolean endsWithSlashI  = StringUtils.endsWith(payload, "/i");

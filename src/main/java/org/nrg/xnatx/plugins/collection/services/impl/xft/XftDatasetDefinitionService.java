@@ -31,6 +31,8 @@ import org.nrg.xft.utils.ResourceFile;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetCriterionResolverException;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetDefinitionHandlingException;
 import org.nrg.xnatx.plugins.collection.resolvers.DatasetCriterionResolver;
+import org.nrg.xnatx.plugins.collection.resolvers.ProjectResourceReport;
+import org.nrg.xnatx.plugins.collection.resolvers.ResolutionReport;
 import org.nrg.xnatx.plugins.collection.services.DatasetCollectionService;
 import org.nrg.xnatx.plugins.collection.services.DatasetDefinitionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,6 +121,24 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
 
     @Override
     public SetsCollection evaluate(final UserI user, final String projectId, final String resolver, final JsonNode payload) throws InsufficientPrivilegesException {
+        final SetsDefinition definition = getDefinitionFromJson(user, projectId, resolver, payload);
+        if (definition == null) {
+            return null;
+        }
+
+        return resolveDefinition(user, definition);
+    }
+
+    @Override
+    public ResolutionReport report(final UserI user, final String projectId, final String resolver, final JsonNode payload) throws InsufficientPrivilegesException {
+        final SetsDefinition definition = getDefinitionFromJson(user, projectId, resolver, payload);
+        if (definition == null) {
+            return null;
+        }
+        return reportDefinition(user, definition);
+    }
+
+    private SetsDefinition getDefinitionFromJson(final UserI user, final String projectId, final String resolver, final JsonNode payload) throws InsufficientPrivilegesException {
         try {
             if (!getPermissions().canCreate(user, getProjectXmlPath(), projectId)) {
                 throw new InsufficientPrivilegesException(user.getUsername(), projectId);
@@ -169,25 +189,18 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
                 log.error("An error occurred trying to add a criterion object to a temporary definition {}. The results from this operation may not be what you expect.", definition.getId(), e);
             }
         }
-
-        return resolveDefinition(user, definition);
+        return definition;
     }
 
     private SetsCollection resolveDefinition(final UserI user, final SetsDefinition definition) {
         final String                                  project   = definition.getProject();
         final List<Map<String, XnatAbstractresource>> resources = new ArrayList<>();
         for (final SetsCriterionI criterion : definition.getCriteria()) {
-            if (!_resolvers.containsKey(criterion.getResolver())) {
-                log.warn("Can't find a valid resolver for the criterion {}, wants ID {}", criterion.getSetsCriterionId(), criterion.getResolver());
-                continue;
+            final DatasetCriterionResolver resolver = validate(criterion);
+            if (resolver != null) {
+                final List<Map<String, XnatAbstractresource>> resolve = resolver.resolve(user, project, (SetsCriterion) criterion);
+                resources.addAll(resolve);
             }
-
-            final DatasetCriterionResolver resolver = _resolvers.get(criterion.getResolver());
-            if (!resolver.handles(criterion)) {
-                throw new DatasetCriterionResolverException("The criterion " + criterion.getSetsCriterionId() + " says it wants the resolver with ID " + criterion.getResolver() + ", but that resolver says it can't handle that criterion");
-            }
-            final List<Map<String, XnatAbstractresource>> resolve = resolver.resolve(user, project, (SetsCriterion) criterion);
-            resources.addAll(resolve);
         }
 
         final AtomicInteger              totalCount    = new AtomicInteger();
@@ -228,6 +241,33 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
         collection.setFiles(json);
         collection.addResources(baseResources);
         return collection;
+    }
+
+    private ResolutionReport reportDefinition(final UserI user, final SetsDefinition definition) {
+        final ResolutionReport.ResolutionReportBuilder builder = ResolutionReport.builder().username(user.getUsername()).project(definition.getProject());
+        final String                                   project = definition.getProject();
+        for (final SetsCriterionI criterion : definition.getCriteria()) {
+            final DatasetCriterionResolver resolver = validate(criterion);
+            if (resolver != null) {
+                builder.criterion(criterion);
+                for (final Map.Entry<String, List<ProjectResourceReport>> entry : resolver.report(user, project, (SetsCriterion) criterion).entrySet()) {
+                    builder.resource(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return builder.build();
+    }
+
+    private DatasetCriterionResolver validate(final SetsCriterionI criterion) {
+        if (!_resolvers.containsKey(criterion.getResolver())) {
+            log.warn("Can't find a valid resolver for the criterion {}, wants ID {}", criterion.getSetsCriterionId(), criterion.getResolver());
+            return null;
+        }
+        final DatasetCriterionResolver resolver = _resolvers.get(criterion.getResolver());
+        if (!resolver.handles(criterion)) {
+            throw new DatasetCriterionResolverException("The criterion " + criterion.getSetsCriterionId() + " says it wants the resolver with ID " + criterion.getResolver() + ", but that resolver says it can't handle that criterion");
+        }
+        return resolver;
     }
 
     private SetsCollection commit(final UserI user, final SetsCollection collection) throws InsufficientPrivilegesException {

@@ -13,4 +13,6 @@ public interface DatasetCriterionResolver {
     boolean handles(final SetsCriterionI criterion);
 
     List<Map<String, XnatAbstractresource>> resolve(final UserI user, final String project, final SetsCriterion criterion);
+
+    Map<String, List<ProjectResourceReport>> report(final UserI user, final String project, final SetsCriterion criterion);
 }

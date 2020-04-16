@@ -2,6 +2,8 @@ package org.nrg.xnatx.plugins.collection.resolvers;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.getExpression;
+import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.getExpressions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableListMultimap;
@@ -23,10 +25,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {TestCriterionResolversConfig.class})
 @Slf4j
 public class TestCriterionResolvers {
-    public TestCriterionResolvers() {
-        _resolver = new ExpressionResolver();
-    }
-
     @Autowired
     public void setSerializerService(final SerializerService serializer) {
         _serializer = serializer;
@@ -36,17 +34,17 @@ public class TestCriterionResolvers {
     public void testCriterionResolver() throws IOException {
         final JsonNode json = _serializer.deserializeJson(DEFINITION_JSON);
 
-        final List<String> clauses = new ArrayList<>();
+        final List<List<String>> clauses = new ArrayList<>();
         for (final String element : EXPRESSION_ATTRIBUTES.keySet()) {
             if (json.has(element)) {
                 final JsonNode node = json.get(element);
                 switch (node.getNodeType()) {
                     case ARRAY:
-                        clauses.add(_resolver.getExpressions(EXPRESSION_ATTRIBUTES.get(element), ExpressionResolver.arrayNodeToStrings(node)));
+                        clauses.addAll(getExpressions(EXPRESSION_ATTRIBUTES.get(element), ExpressionResolver.arrayNodeToStrings(node)));
                         break;
                     case STRING:
                     case OBJECT:
-                        clauses.add(_resolver.getExpression(EXPRESSION_ATTRIBUTES.get(element), node.textValue()));
+                        clauses.add(getExpression(EXPRESSION_ATTRIBUTES.get(element), node.textValue()));
                         break;
                     default:
                         log.warn("Skipping unknown JSON node type for {}: {}", element, node.getNodeType());
@@ -54,7 +52,7 @@ public class TestCriterionResolvers {
             }
         }
         assertThat(clauses).isNotNull().isNotEmpty();
-        final String resolved = _resolver.joinClauses(clauses);
+        final String resolved = ExpressionResolver.joinClauses(clauses);
         assertThat(resolved).isNotBlank().isEqualTo(RESOLVED_CLAUSE);
     }
 
@@ -73,8 +71,6 @@ public class TestCriterionResolvers {
                                                                                                                                      .putAll(RESOURCE_CONTENT, RESOURCE_CONTENT_ATTRIBUTES)
                                                                                                                                      .putAll(RESOURCE_LABEL, RESOURCE_LABEL_ATTRIBUTES)
                                                                                                                                      .build();
-
-    private final ExpressionResolver _resolver;
 
     private SerializerService _serializer;
 }

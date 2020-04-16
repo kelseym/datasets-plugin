@@ -17,6 +17,7 @@ import org.nrg.xapi.exceptions.ResourceAlreadyExistsException;
 import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsDefinition;
 import org.nrg.xft.security.UserI;
+import org.nrg.xnatx.plugins.collection.resolvers.ResolutionReport;
 
 /**
  * Provides high-level calls for managing data collection definitions and resolved collections.
@@ -132,4 +133,6 @@ public interface DatasetDefinitionService extends DatasetObjectService<SetsDefin
      * @return The resolved resources and files.
      */
     SetsCollection evaluate(final UserI user, final String projectId, final String resolver, final JsonNode payload) throws InsufficientPrivilegesException;
+
+    ResolutionReport report(final UserI user, final String projectId, final String resolver, JsonNode payload) throws InsufficientPrivilegesException;
 }

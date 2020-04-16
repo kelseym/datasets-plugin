@@ -6,12 +6,9 @@ import com.google.common.base.Function;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.orm.DatabaseHelper;
@@ -19,6 +16,8 @@ import org.nrg.framework.utilities.BasicXnatResourceLocator;
 import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xft.security.UserI;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 @Resolver("ResourceAttributes")
@@ -45,6 +44,13 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
         return new ArrayList<>(getResources(user, project, payload).values());
     }
 
+    @Override
+    protected Map<String, List<ProjectResourceReport>> reportImpl(final UserI user, final String project, final String payload) {
+        final Map<String, List<ProjectResourceReport>> map = new HashMap<>();
+        map.put("", _helper.getParameterizedTemplate().query(String.format(QUERY_ATTRIBUTE_MATCH_REPORT, project, payload), PROJECT_RESOURCE_REPORT_ROW_MAPPER));
+        return map;
+    }
+
     protected Map<String, Map<String, XnatAbstractresource>> getResources(final UserI user, final String project, final String payload) {
         final List<ProjectResource> resources = getResources(project, payload);
         log.debug("Found {} resources for the project {} with criterion: '{}'", resources.size(), project, payload);
@@ -68,28 +74,6 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
         return sessionMap;
     }
 
-    @Data
-    @Accessors(prefix = "_")
-    private static class ProjectResource {
-        private String _subjectLabel;
-        private String _experimentLabel;
-        private String _scanId;
-        private int    _resourceId;
-        private String _scanType;
-        private String _seriesDescription;
-        private String _seriesClass;
-        private String _subjectId;
-        private String _experimentId;
-        private String _dataType;
-        private String _resourceLabel;
-        private String _resourceContent;
-        private String _resourceFormat;
-        private String _resourceDescription;
-        private Date   _resourceLastModified;
-        private int    _resourceFileCount;
-        private long   _resourceSize;
-    }
-
     private static class ProjectResourceToAbstractResource implements Function<ProjectResource, XnatAbstractresource> {
         ProjectResourceToAbstractResource(final UserI user) {
             _user = user;
@@ -105,6 +89,37 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
 
     private static final String[] ATTRIBUTES = {"subject_id", "experiment_id", "scan_id", "resource_id", "data_type", "resource_label", "resource_content", "resource_format", "subject_label", "experiment_label", "scan_type", "series_description", "series_class", "experiment_last_modified", "resource_last_modified", "resource_description", "resource_file_count", "resource_size"};
     private static final String[] COLUMNS    = {"subject.id", "expt.id", "scan.id", "abstract.xnat_abstractresource_id", "xme.element_name", "abstract.label", "resource.content", "resource.format", "subject.label", "expt.label", "scan.type", "scan.series_description", "scan.series_class", "expt_md.last_modified", "abstract_md.last_modified", "resource.description", "abstract.file_count", "abstract.file_size"};
+
+    private static final String QUERY_ATTRIBUTE_MATCH_REPORT = "WITH " +
+                                                               "    all_resources AS ( " +
+                                                               "        SELECT * " +
+                                                               "        FROM " +
+                                                               "            scan_resources('%s') " +
+                                                               "    ) " +
+                                                               "SELECT " +
+                                                               "    subject_id, " +
+                                                               "    experiment_id, " +
+                                                               "    scan_id, " +
+                                                               "    resource_id, " +
+                                                               "    subject_label, " +
+                                                               "    experiment_label, " +
+                                                               "    data_type, " +
+                                                               "    scan_type, " +
+                                                               "    series_description, " +
+                                                               "    series_class, " +
+                                                               "    resource_label, " +
+                                                               "    resource_content, " +
+                                                               "    resource_format, " +
+                                                               "    resource_description, " +
+                                                               "    experiment_last_modified, " +
+                                                               "    resource_last_modified, " +
+                                                               "    resource_file_count, " +
+                                                               "    resource_size, " +
+                                                               "    %s " +
+                                                               "FROM " +
+                                                               "    all_resources";
+
+    private static final RowMapper<ProjectResourceReport> PROJECT_RESOURCE_REPORT_ROW_MAPPER = BeanPropertyRowMapper.newInstance(ProjectResourceReport.class);
 
     private final DatabaseHelper _helper;
 }

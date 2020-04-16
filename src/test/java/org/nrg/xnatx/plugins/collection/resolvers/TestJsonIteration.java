@@ -22,10 +22,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {TestCriterionResolversConfig.class})
 @Slf4j
 public class TestJsonIteration {
-    public TestJsonIteration() {
-        _resolver = new ExpressionResolver();
-    }
-
     @Autowired
     public void setSerializerService(final SerializerService serializer) {
         _serializer = serializer;
@@ -56,8 +52,6 @@ public class TestJsonIteration {
                                                                                                                                      .putAll(RESOURCE_CONTENT, RESOURCE_CONTENT_ATTRIBUTES)
                                                                                                                                      .putAll(RESOURCE_LABEL, RESOURCE_LABEL_ATTRIBUTES)
                                                                                                                                      .build();
-
-    private final ExpressionResolver _resolver;
 
     private SerializerService _serializer;
 }

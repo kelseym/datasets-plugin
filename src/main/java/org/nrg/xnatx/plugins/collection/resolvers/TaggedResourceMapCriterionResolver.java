@@ -114,4 +114,19 @@ public class TaggedResourceMapCriterionResolver extends SeriesAndResourceCriteri
 
         return new ArrayList<>(resourceMap.values());
     }
+
+    @Override
+    protected Map<String, List<ProjectResourceReport>> reportImpl(final UserI user, final String project, final String payload) {
+        final Map<String, List<ProjectResourceReport>> reports  = new HashMap<>();
+        final JsonNode                                 json     = translate(payload);
+        final Iterator<String>                         iterator = json.fieldNames();
+        while (iterator.hasNext()) {
+            final String                                   fieldName   = iterator.next();
+            final JsonNode                                 node        = json.get(fieldName);
+            final String                                   tagName     = node.has("tag") ? node.get("tag").textValue() : StringUtils.uncapitalize(fieldName);
+            final Map<String, List<ProjectResourceReport>> nodeReports = super.reportImpl(user, project, node.toString());
+            reports.put(tagName, nodeReports.get(""));
+        }
+        return reports;
+    }
 }
