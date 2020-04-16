@@ -82,24 +82,24 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
      * DISPLAY LIST OF COLLECTIONS  *
      * =========================== */
 
-    var projCollections;
+    var projDatasets, savedDatasets;
 
-    XNAT.plugin.collection.projCollections = projCollections =
-        getObject(XNAT.plugin.collection.projCollections || {});
+    XNAT.plugin.collection.projDatasets = projDatasets =
+        getObject(XNAT.plugin.collection.projDatasets || {});
 
-    projCollections.savedCollections = [];
-    projCollections.availableExpts = [];
+    projDatasets.savedDatasets = savedDatasets = [];
+    projDatasets.availableExpts = [];
 
-    var getCollectionsUrl = function() {
+    var getDatasetsUrl = function() {
         return rootUrl("/xapi/sets/collections/projects/" + projectId);
     };
 
-    // create data table
-    projCollections.table = function(container, callback) {
+    /* --- display and manage datasets --- */
 
-        // initialize the table - we'll add to it below
-        var pjcTable = XNAT.table({
-            className: 'collection-list xnat-table',
+    projDatasets.viewDataset = function(dataset) {
+
+        var vdTable = XNAT.table({
+            className: 'xnat-table compact',
             style: {
                 width: '100%',
                 marginTop: '15px',
@@ -107,267 +107,183 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             }
         });
 
-        // add table header row
-        pjcTable.tr()
-            .th({addClass: 'left', html: '<b>Name</b>'})
-            .th('<b>Description</b>')
-            .th('<b>Contents</b>')
-            .th('<b>Created</b>')
-            .th('<b>Actions</b>');
+        var allTables = [spawn('h3', 'Contents of Saved Dataset'), vdTable.table];
 
-        function listObj(obj){
-            var keys = Object.keys(obj), text = "";
-            keys.forEach(function(key){
-                text += key + ": [" + obj[key].length + " items]<br>";
-            });
-            return text;
+        for (var key in dataset) {
+            var val = dataset[key], formattedVal = '', putInTable = true;
+
+            if (Array.isArray(val) && val.length > 0) {
+                // Display a table
+                var columns = [];
+                val.forEach(function (item) {
+                    if (typeof item === 'object') {
+                        Object.keys(item).forEach(function(itemKey){
+                            if(columns.indexOf(itemKey)===-1){
+                                columns.push(itemKey);
+                            }
+                        });
+                    }
+                });
+
+                formattedVal="<table class='xnat-table'>";
+
+                val.forEach(function (item) {
+                    formattedVal+="<tr>";
+                    if (typeof item === 'object') {
+                        columns.forEach(function (itemKey) {
+                            formattedVal += "<td nowrap>";
+                            var temp = item[itemKey];
+                            if (typeof temp === 'object') temp = JSON.stringify(temp);
+                            formattedVal += temp;
+                            formattedVal += "</td>";
+                        });
+                    } else {
+                        formattedVal += "<td nowrap>";
+                        formattedVal += item;
+                        formattedVal += "</td>";
+                    }
+                    formattedVal+="</tr>";
+                });
+                formattedVal+="</table>";
+                putInTable = false;
+            } else if (typeof val === 'object') {
+                formattedVal = spawn('code', JSON.stringify(val));
+            } else if (!val) {
+                formattedVal = spawn('code', 'false');
+            } else {
+                formattedVal = spawn('code', val);
+            }
+
+            if (putInTable) {
+                vdTable.tr()
+                    .td('<b>' + key + '</b>')
+                    .td([spawn('div', {style: {'word-break': 'break-all', 'max-width': '600px', 'overflow':'auto'}}, formattedVal)]);
+            } else {
+                allTables.push(
+                    spawn('div', {style: {'word-break': 'break-all', 'overflow':'auto', 'margin-bottom': '10px', 'max-width': 'max-content'}},
+                        [spawn('div.data-table-actionsrow', {}, spawn('strong', {class: "textlink-sm data-table-action"}, key)), formattedVal])
+                );
+            }
         }
-        function isoDate(timestamp){
-            var date = new Date(timestamp);
-            return date.toISOString().slice(0,10);
-        }
-        function viewButton(id){
-            return spawn('button.btn.btn-sm.view-collection',{
-                onclick: function(e){
-                    e.preventDefault();
-                    XNAT.plugin.collection.projCollections.show(id)
-                }
-            }, [ spawn('i.fa.fa-eye',{title: 'View Collection JSON' })])
-        }
-        function deleteButton(collection){
-            return spawn('button.btn.btn-sm.delete-collection',{
-                onclick: function(e){
-                    e.preventDefault();
-                    XNAT.plugin.collection.projCollections.delete(collection)
-                }
-            }, [ spawn('i.fa.fa-trash',{title: 'Delete Collection JSON', style: {color: '#c00'} })])
-        }
 
-        // get project data collections
-        // XNAT.xhr.getJSON({
-        //     url: getCollectionsUrl(),
-        //     fail: function(e){ errorHandler(e,"Could not retrieve collections for "+projectId)},
-        //     success: function(data){
-        //         // returns an array, not an object
-        //         projCollections.savedCollections = data;
-        //
-        //         if(projCollections.savedCollections.length){
-        //             projCollections.savedCollections.forEach(function(collection){
-        //                 var buckets = identifyBuckets(collection);
-        //
-        //                 pjcTable.tr({ id: collection.id, data: {"model" : collection.label }})
-        //                     .td(collection.name)
-        //                     .td(collection.description)
-        //                     .td(listObj(buckets))
-        //                     .td(isoDate(collection.timestamp))
-        //                     .td([[ 'div.center', [ viewButton(collection.id), spacer(6), deleteButton(collection) ]]])
-        //             });
-        //         }
-        //         else {
-        //             pjcTable.tr()
-        //                 .td({ colspan: 5, html: 'No data collections have been set up in this project.'});
-        //         }
-        //         if (container){
-        //             $$(container).append(pjcTable.table);
-        //         }
-        //
-        //         if (isFunction(callback)) {
-        //             callback(pjcTable.table);
-        //         }
-        //     }
-        // })
-    };
-
-    function identifyBuckets(collection){
-        var buckets = {}, params = Object.keys(collection);
-        params.forEach(function(param){ if (isArray(collection[param])) buckets[param] = collection[param] });
-        return buckets;
-    }
-
-    projCollections.sanitizeCollection = function(collection){
-        var toRemove = ["id","timestamp","enabled","disabled","created"];
-        toRemove.forEach(function(key){ delete collection[key] });
-        return collection;
-    };
-
-    projCollections.editSource = function(source,title,id){
-        title = title || 'View Source';
-        // var sanitizedSource = projCollections.sanitizeCollection(source);
-        // _source = spawn ('textarea', JSON.stringify(sanitizedSource, null, 4));
-        _source = spawn ('textarea', JSON.stringify(source, null, 4));
-
-        _editor = XNAT.app.codeEditor.init(_source, {
-            language: 'json'
-        });
-
-        _editor.openEditor({
-            title: title,
-            classes: 'plugin-json',
-            height: 680,
-            beforeShow: function(dialog,obj){
-                dialog.$modal.find('.body .inner').prepend(spawn('!',[
-                    XNAT.ui.panel.input.hidden({
-                        name: 'id',
-                        value: id
-                    }),
-                    XNAT.ui.panel.element({
-                        label: 'ID',
-                        value: id
-                    }).spawned
-                ]))
-            },
-            afterShow: function(dialog, obj){
-                obj.aceEditor.setReadOnly(false);
-            },
+        // display history
+        XNAT.ui.dialog.open({
+            title: dataset['label'],
+            width: 800,
+            scroll: true,
+            content: spawn('div', allTables),
             buttons: {
                 ok: {
                     label: 'OK',
                     isDefault: true,
-                    close: false,
-                    action: function(){
-                        var editorContent = _editor.getValue().code;
-                        XNAT.xhr.ajax({
-                            url: csrfUrl('/xapi/sets/collections/' + id),
-                            method: 'PUT',
-                            contentType: 'application/json',
-                            processData: false,
-                            data: editorContent,
-                            fail: function(e){
-                                errorHandler(e,"Could not update collection")
-                            },
-                            success: function(obj){
-                                xmodal.close(obj.$modal);
-                                XNAT.dialog.closeAll();
-                                XNAT.plugin.collection.projCollections.refresh(true);
-                                XNAT.dialog.message('Successfully updated collection.');
-                            }
-                        })
-                    }
+                    close: true
                 }
-            }
+            },
+            header: true,
+            maxBtn: true
         });
     };
 
-    projCollections.delete = function(collection){
-        XNAT.dialog.open({
-            title: 'Confirm Deletion',
-            content: spawn('p','Delete data collection "'+collection.name+'"?'),
-            buttons: [
-                {
-                    label: 'Delete',
-                    isDefault: true,
-                    close: false,
-                    action: function(){
-                        XNAT.xhr.ajax({
-                            url: csrfUrl('/xapi/sets/collections/' + collection.id),
-                            method: 'DELETE',
-                            fail: function(e){ errorHandler(e,"Could Not Delete Collection")},
-                            success: function(data){
-                                XNAT.dialog.closeAll();
-                                console.log(data);
-                                XNAT.plugin.collection.projCollections.refresh(true);
-                                XNAT.dialog.message('Successfully deleted data collection.');
-                            }
-                        })
-                    }
-                },
-                {
-                    label: 'Cancel',
-                    close: true
+    projDatasets.displaySavedDatasets = function(datasets){
+        function viewButton(id){
+            return spawn('button.btn.btn-sm.view-dataset',{ title: 'View Dataset', data: {id:id}},[ spawn('i.fa.fa-eye')])
+        }
+        function deleteButton(dataset){
+            return spawn('button.btn.btn-sm.delete-dataset', { title: 'Delete Dataset', data: {id:dataset.id, label:dataset.label}},[ spawn('i.fa.fa-trash-o')])
+        }
+        function datasetLink(dataset){
+            return spawn('a.view-dataset',{href: 'javascript:void', data: {id: dataset.id}},dataset.label);
+        }
+        function resolveDate(label){
+            var timestamp = label.split('-')[label.split('-').length-1];
+            var d = new Date(timestamp*1); // simple hack to convert string to integer
+            return spawn('span',d.toUTCString());
+        }
+
+        var sdTable = XNAT.table({addClass: 'xnat-table', style: { width: '100%' }});
+        sdTable.tr()
+            .th('Dataset Label')
+            .th('Number of Files')
+            .th('Date Created')
+            .th('Actions');
+
+        datasets.forEach(function(dataset){
+            sdTable.tr()
+                .td({ addClass: 'first-cell'},[[ '!',datasetLink(dataset) ]])
+                .td('')
+                .td([[ '!',resolveDate(dataset.label)]])
+                .td([[ 'div.center', [
+                    viewButton(dataset.id),
+                    spacer(6),
+                    deleteButton(dataset)]
+                ]])
+        });
+
+        var container = $('#proj-saved-datasets-list-container');
+        container.empty().append(sdTable.table);
+    };
+
+    projDatasets.resetSavedDatasets = function(){
+        var container = $('#proj-saved-datasets-list-container');
+        container.empty().append(spawn('div.message','No datasets have been defined in this project.'))
+    };
+
+    projDatasets.getSavedDatasets = function(){
+        XNAT.xhr.getJSON({
+            url: rootUrl('/xapi/sets/collections/projects/'+projectId),
+            fail: function(e){ errorHandler(e,'Error trying to retrieve saved dataset for '+projectId+'.')},
+            success: function(data){
+                if (data.length) {
+                    XNAT.plugin.collection.projDatasets.savedDatasets = data;
+                    projDatasets.displaySavedDatasets(data);
+                } else {
+                    projDatasets.resetSavedDatasets();
                 }
-            ]
+            }
         })
     };
 
-    projCollections.show = function(id){
-        var collection = projCollections.savedCollections.filter(function(a){ return a.id === id })[0];
-
-        XNAT.dialog.open({
-            title: 'Data Collection: '+collection.name,
-            width: 600,
-            content: spawn('div.collection-dialog-viewer'),
-            beforeShow: function(obj){
-                var viewer = obj.$modal.find('.collection-dialog-viewer');
-                viewer.append(spawn('!',[
-                    XNAT.ui.panel.element({
-                        label: 'Collection Name',
-                        value: collection.name
-                    }),
-                    XNAT.ui.panel.element({
-                        label: 'Description',
-                        value: collection.description
-                    })
-                ]));
-                var buckets = identifyBuckets(collection);
-                var bucketTypes = Object.keys(buckets);
-                bucketTypes.forEach(function(type){
-                    var bucketContents = [];
-                    buckets[type].forEach(function(element){
-                        var label = XNAT.plugin.collection.availableExpts.filter(function(item){ return item.ID === element })[0].label;
-                        bucketContents.push(label + " ("+element+")");
-                    });
-                    viewer.append(spawn('!',[
-                        XNAT.ui.panel.element({
-                            label: unCamelCase(type),
-                            value: '('+buckets[type].length+' items)'
-                        }).spawned,
-                        spawn('div.inset-viewer',{
-                            html: bucketContents.join(', ')
-                        })
-                    ]))
-                })
-            },
-            buttons: [
-                {
-                    label: 'OK',
-                    isDefault: true,
-                    close: true
-                },
-                {
-                    label: 'Edit Original',
-                    close: false,
-                    action: function(){
-                        // projCollections.viewSource(collection, 'RAW Collection JSON for '+collection.name);
-                        projCollections.editSource(collection, 'RAW Collection JSON for '+collection.name, collection.id);
-                    }
-                }
-            ]
+    $(document).on('click','.view-dataset',function(e){
+        e.preventDefault();
+        var id = $(this).data('id');
+        XNAT.xhr.getJSON({
+            url: rootUrl('/xapi/sets/collections/'+id),
+            fail: function(e){ errorHandler(e,'Error trying to get the dataset '+id)},
+            success: function(data){
+                XNAT.plugin.collection.projDatasets.viewDataset(data);
+            }
         })
-    };
+    });
+    $(document).on('click','.delete-dataset',function(e){
+        e.preventDefault();
+        var id = $(this).data('id'),
+            label = $(this).data('label');
+        XNAT.xhr.ajax({
+            method: 'DELETE',
+            url: csrfUrl('/xapi/sets/collections/'+id),
+            fail: function(e){ errorHandler(e,'Error trying to delete the dataset '+id)},
+            success: function(){
+                XNAT.ui.banner.top(2000,'Successfully deleted the dataset '+label,'success');
+                XNAT.plugin.collection.projDatasets.init();
+            }
+        })
+    });
 
     function showCollectionCount(){
-        if (projCollections.savedCollections.length) {
-            $(document).find('.collection-count').append(" ("+projCollections.savedCollections.length+")");
+        if (projDatasets.savedDatasets.length) {
+            $(document).find('.collection-count').append(" ("+projDatasets.savedDatasets.length+")");
         }
     }
 
-    projCollections.init = projCollections.refresh = function(refresh){
+    projDatasets.init = projDatasets.refresh = function(refresh){
         refresh = refresh || false;
 
-        var $collectionList = $('div#proj-data-collection-list-container');
-        $collectionList.empty();
-        projCollections.table($collectionList,showCollectionCount);
-
-        if (!refresh) {
-            var $footer = $collectionList.parents('.panel').find('.panel-footer');
-            var newCollection = spawn('button.new-collection.btn.btn-sm.submit', {
-                html: 'New Data Collection',
-                onclick: function(){
-                    XNAT.plugin.collection.collectionCreator.open();
-                }
-            });
-
-            // add the 'add new' button to the panel footer
-            $footer.append(spawn('div.pull-right', [
-                newCollection
-            ]));
-            $footer.append(spawn('div.clear.clearFix'));
-        }
-
+        projDatasets.resetSavedDatasets();
+        projDatasets.getSavedDatasets();
     };
 
     try {
-        projCollections.init();
+        projDatasets.init();
     } catch(e) {
         errorHandler(e);
     }

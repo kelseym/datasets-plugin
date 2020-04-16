@@ -51,9 +51,11 @@
             var results = data.ResultSet && data.ResultSet.Result
                     ? data.ResultSet.Result
                     : data;
-            if (results.length) {
+            if (Array.isArray(results) && results.length) {
                 $('#ml-tab-'+type+'-count').html(results.length);
                 itemsFound = true;
+            } else {
+                $('#ml-tab-'+type+'-count').html(results);
             }
         }
 
@@ -65,8 +67,14 @@
                     showCount(data, name);
                 },
                 fail: function(e) {
-                    console.error(e);
-                    showCount('Error: '+e.status,name);
+                    // add a workaround for false-positive jQuery XHR errors
+                    if (/ok/i.test(e.statusText)) {
+                        var data = e.responseText;
+                        showCount(data,name);
+                    } else {
+                        console.log(e);
+                        showCount('Error: '+e.status,name);
+                    }
                 }
             });
         }

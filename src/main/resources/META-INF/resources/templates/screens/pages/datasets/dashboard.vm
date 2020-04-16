@@ -72,6 +72,7 @@
     </div>
 </div>
 
+<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/collection-projectAdmin.js"></script>
 <script src="${SITE_ROOT}/scripts/xnat/plugin/collections/datasetDefinition.js"></script>
 <script src="${SITE_ROOT}/scripts/xnat/plugin/collections/datasetDashboard.js"></script>
 <!-- END META-INF/resources/templates/screens/pages/clara/training/dashboard.vm -->

@@ -5,12 +5,12 @@
 projectSettings:
     kind: tabs
     groups:
-        collectionsProjectTabGroup: Data Collections
+        collectionsProjectTabGroup: Datasets
     contains: tabs
     tabs:
         projectCollectionTab:
             kind: tab
-            label: Data Collections
+            label: Saved Datasets
             group: collectionsProjectTabGroup
             active: true
             contents:
@@ -19,23 +19,9 @@ projectSettings:
 
 projectCollectionPanel:
     kind: panel
-    label: Data Collections in this Project
+    label: Saved Datasets in this Project
     contents:
-        projectCollectionDescription:
-            tag: div.message
-            content:
-                "This panel lists all installed data collections associated with this project, and allows you to install new ones."
         projectCollectionContainer:
-            tag: "div#proj-data-collection-list-container"
-        projectCollectionConfigTemplate:
-            tag: "div#proj-data-collection-template.html-template"
-            contents:
-                projCollectionViewer:
-                    kind: panel
-                    id: proj-collection-viewer
-                    header: false
-                    footer: false
-        projectCollectionCreationScript:
-            tag: script|src="/scripts/xnat/plugin/collections/create-collection.js"
+            tag: "div#proj-saved-datasets-list-container"
         projectCollectionAdminScript:
             tag: script|src="/scripts/xnat/plugin/collections/collection-projectAdmin.js"

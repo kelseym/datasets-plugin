@@ -167,15 +167,23 @@ var XNAT = getObject(XNAT || {});
 
                         };
 
+                        if (/(\d|\w)+/.test(defData.label)){
+                            defData.label = defData.label.replace(/(\d|\w)+/,'_');
+                            // errorHandler({status: 'Not Allowed',responseText: 'Definition labels cannot have spaces or special characters.'});
+                        }
+
                         console.log(defData);
 
                         // return;
+
+                        xmodal.loading.open('Saving Dataset Definition');
 
                         if (!dfn.id) {
                             XNAT.xhr.postJSON({
                                 url: rootUrl('/xapi/sets/definitions'),
                                 data: JSON.stringify(defData),
                                 success: function(){
+                                    xmodal.loading.close();
                                     dialog.close();
                                     XNAT.ui.banner.top(2000, 'Definition saved.', 'success');
                                     XNAT.plugin.collection.sets.initDashboard();
@@ -186,14 +194,13 @@ var XNAT = getObject(XNAT || {});
                                 url: csrfUrl('/xapi/sets/definitions/projects/'+dfn.project+'/'+dfn.id),
                                 data: JSON.stringify(defData),
                                 success: function(){
+                                    xmodal.loading.close();
                                     dialog.close();
                                     XNAT.ui.banner.top(2000, 'Definition updated.', 'success');
                                     XNAT.plugin.collection.sets.initDashboard();
                                 }
                             })
                         }
-
-
                     }
                 },
                 close: {
