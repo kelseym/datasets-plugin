@@ -146,7 +146,8 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
             for (final JsonNode criterionNode : criteria) {
                 final SetsCriterion criterion = new SetsCriterion();
                 criterion.setResolver(criterionNode.has("resolver") ? criterionNode.get("resolver").asText() : defaultResolver);
-                criterion.setPayload(criterionNode.get("payload").asText());
+                final JsonNode payloadNode = criterionNode.get("payload");
+                criterion.setPayload(payloadNode.isObject() ? payloadNode.toString() : payloadNode.asText());
                 try {
                     definition.addCriteria(criterion);
                 } catch (Exception e) {

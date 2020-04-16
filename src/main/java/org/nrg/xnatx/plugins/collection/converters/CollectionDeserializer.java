@@ -38,7 +38,7 @@ public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> 
                     collection.setFilesize(parser.getLongValue());
                     break;
                 case "files":
-                    collection.setFiles(parser.getText());
+                    collection.setFiles(parser.getValueAsString());
                     break;
             }
         }

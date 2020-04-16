@@ -22,6 +22,7 @@ public class CollectionSerializer extends DatasetSerializer<SetsCollection> {
         writeNonBlankField(generator, "definition", collection.getDefinitionId());
         writeNonNullField(generator, "fileCount", collection.getFilecount());
         writeNonNullField(generator, "fileSize", collection.getFilesize());
+        writeNonBlankJson(generator, "files", collection.getFiles());
 
         final List<XnatAbstractresourceI> resources = collection.getResources_resource();
         if (resources != null && !resources.isEmpty()) {
@@ -34,9 +35,6 @@ public class CollectionSerializer extends DatasetSerializer<SetsCollection> {
             }
             generator.writeEndArray();
         }
-
-        // TODO: This should actually be a JsonNode or something injected directly.
-        writeNonBlankField(generator, "files", collection.getFiles());
 
         generator.writeEndObject();
     }
