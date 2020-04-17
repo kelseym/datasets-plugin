@@ -27,6 +27,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ import org.nrg.xapi.exceptions.ResourceAlreadyExistsException;
 import org.nrg.xapi.rest.AbstractXapiRestController;
 import org.nrg.xapi.rest.AuthDelegate;
 import org.nrg.xapi.rest.XapiRequestMapping;
+import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
@@ -202,7 +204,24 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
         @Override
         public Map<String, String> apply(final SetsCollection collection) {
             assert collection != null;
-            return ImmutableMap.of("id", collection.getId(), "project", collection.getProject(), "label", collection.getLabel());
+            final Map<String, String> attributes = new HashMap<>();
+            attributes.put("id", collection.getId());
+            attributes.put("project", collection.getProject());
+            attributes.put("label", collection.getLabel());
+            attributes.put("definitionId", collection.getDefinitionId());
+            final Integer fileCount = collection.getFilecount();
+            if (fileCount != null) {
+                attributes.put("fileCount", Integer.toString(fileCount));
+            }
+            final Object fileSize = collection.getFilesize();
+            if (fileSize != null) {
+                attributes.put("fileSize", Long.toString((Long) fileSize));
+            }
+            final List<XnatAbstractresourceI> resources = collection.getResources_resource();
+            if (resources != null) {
+                attributes.put("resourceCount", Integer.toString(resources.size()));
+            }
+            return attributes;
         }
     };
 

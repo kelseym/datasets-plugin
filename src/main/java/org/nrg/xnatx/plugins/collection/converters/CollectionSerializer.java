@@ -18,6 +18,7 @@ public class CollectionSerializer extends DatasetSerializer<SetsCollection> {
         writeNonBlankField(generator, "id", collection.getId());
         writeNonBlankField(generator, "label", collection.getLabel());
         writeNonBlankField(generator, "description", collection.getDescription());
+        writeNonBlankField(generator, "note", collection.getNote());
         writeNonBlankField(generator, "project", collection.getProject());
         writeNonBlankField(generator, "definition", collection.getDefinitionId());
         writeNonNullField(generator, "fileCount", collection.getFilecount());

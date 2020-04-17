@@ -40,6 +40,12 @@ public class CollectionDeserializer extends DatasetDeserializer<SetsCollection> 
                 case "files":
                     collection.setFiles(parser.getValueAsString());
                     break;
+                case "note":
+                    collection.setNote(parser.getText());
+                    break;
+                case "visit":
+                    collection.setVisit(parser.getText());
+                    break;
             }
         }
         return collection;
