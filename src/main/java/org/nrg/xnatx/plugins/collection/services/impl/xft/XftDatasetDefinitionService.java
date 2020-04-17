@@ -249,7 +249,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
         for (final SetsCriterionI criterion : definition.getCriteria()) {
             final DatasetCriterionResolver resolver = validate(criterion);
             if (resolver != null) {
-                builder.criterion(criterion);
+                builder.criterion((SetsCriterion) criterion);
                 for (final Map.Entry<String, List<ProjectResourceReport>> entry : resolver.report(user, project, (SetsCriterion) criterion).entrySet()) {
                     builder.resource(entry.getKey(), entry.getValue());
                 }
