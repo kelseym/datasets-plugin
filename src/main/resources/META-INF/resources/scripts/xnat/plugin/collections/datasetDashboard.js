@@ -174,16 +174,40 @@ var XNAT = getObject(XNAT || {});
 
     /* --- handle dataset validations --- */
 
-    // Temporary validation URL
     function getValidationUrl(id){
-        var swaggerhub = 'https://virtserver.swaggerhub.com/hortonw/detailed_dataset_report/1.0.0';
-        return swaggerhub + '/sets/definitions/detailed_report/'+projectId+'/'+id;
+        // Temporary validation URL
+        // var swaggerhub = 'https://virtserver.swaggerhub.com/hortonw/detailed_dataset_report/1.0.0';
+        // return swaggerhub + '/sets/definitions/detailed_report/'+projectId+'/'+id;
+
+        return csrfUrl('/xapi/sets/definitions/report/'+projectId);
     }
     function evaluateResult(experiment,list){
         var valid = true;
         experiment.results.forEach(function(result){ if (!result.result) { valid = false }});
         if (valid) { list.push(experiment.id) }
         return list;
+    }
+
+    // temp function
+    function displayAltValidationResults(obj){
+        var results = JSON.parse(obj);
+        XNAT.dialog.open({
+            title: 'Resource Report Results',
+            width: 600,
+            content: '<div id="intro"></div><div id="results"></div>',
+            beforeShow: function(obj){
+                var resultsContainer = obj.$modal.find('#results');
+                resultsContainer.append(prettifyJSON(results.resources));
+
+            },
+            buttons: [
+                {
+                    label: 'OK',
+                    isDefault: true,
+                    close: true
+                }
+            ]
+        })
     }
     
     function displayValidationResults(items){
@@ -249,8 +273,11 @@ var XNAT = getObject(XNAT || {});
     sets.validateDefinition = function(id){
         var dfn = getSingleDefinition(id);
         xmodal.loading.open('Validating Project Data');
-        XNAT.xhr.getJSON({
-            url: getValidationUrl(id),
+        XNAT.xhr.postJSON({
+            url: getValidationUrl(),
+            data: JSON.stringify(dfn.criteria[0].payload),
+            processData: false,
+            dataType: 'text',
             fail: function(e){
                 xmodal.loading.close();
                 errorHandler(e,'Error trying to query the dataset validation URL for dataset definition '+id);
@@ -259,7 +286,8 @@ var XNAT = getObject(XNAT || {});
             success: function(data){
                 xmodal.loading.close();
                 if (data.length) {
-                    displayValidationResults(data,dfn);
+                    displayAltValidationResults(data);
+                    // displayValidationResults(data,dfn);
                     enablePanel(id);
                 } else {
                     XNAT.dialog.message('Error','Could not validate your project data against this data definition. No results were returned.');

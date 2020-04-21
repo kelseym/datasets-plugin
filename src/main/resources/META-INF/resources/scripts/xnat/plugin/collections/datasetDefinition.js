@@ -72,7 +72,8 @@ var XNAT = getObject(XNAT || {});
         dfn = getObject(dfn);
 
         var id      = dfn.id || '';
-        var criteria = (dfn.criteria) ? JSON.stringify(JSON.parse(dfn.criteria[0].payload)) : '{}';
+        if (dfn && typeof dfn !== 'object') dfn = JSON.parse(dfn);
+        var criteria = (dfn.criteria) ? JSON.stringify(dfn.criteria[0].payload) : '{}';
 
         var _source = spawn('textarea', criteria);
         var _editor = XNAT.app.codeEditor.init(_source, {
