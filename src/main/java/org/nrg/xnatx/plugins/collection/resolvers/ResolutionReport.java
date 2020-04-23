@@ -36,4 +36,7 @@ public class ResolutionReport {
 
     @Singular
     private final Map<String, List<ProjectResourceReport>> _resources;
+
+    @Singular
+    private final List<SessionReport> _sessions;
 }

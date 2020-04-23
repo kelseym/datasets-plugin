@@ -40,6 +40,7 @@ import org.nrg.xdat.om.SetsDefinition;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
 import org.nrg.xnatx.plugins.collection.resolvers.ResolutionReport;
+import org.nrg.xnatx.plugins.collection.resolvers.SessionReport;
 import org.nrg.xnatx.plugins.collection.rest.permissions.CreateCollection;
 import org.nrg.xnatx.plugins.collection.rest.permissions.CreateDefinition;
 import org.nrg.xnatx.plugins.collection.rest.permissions.EditDefinition;
@@ -115,7 +116,7 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "report/{projectId}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateDefinition.class)
-    public ResolutionReport report(final @PathVariable String projectId, @RequestBody final JsonNode payload) throws InsufficientPrivilegesException {
+    public List<SessionReport> report(final @PathVariable String projectId, @RequestBody final JsonNode payload) throws InsufficientPrivilegesException {
         return report(projectId, null, payload);
     }
 
@@ -127,8 +128,8 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "report/{projectId}/{resolver}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateDefinition.class)
-    public ResolutionReport report(final @PathVariable String projectId, final @PathVariable String resolver, @RequestBody final JsonNode payload) throws InsufficientPrivilegesException {
-        return _definitions.report(getSessionUser(), projectId, resolver, payload);
+    public List<SessionReport> report(final @PathVariable String projectId, final @PathVariable String resolver, @RequestBody final JsonNode payload) throws InsufficientPrivilegesException {
+        return _definitions.report(getSessionUser(), projectId, resolver, payload).getSessions();
     }
 
     @ApiOperation(value = "Returns the dataset definition with the submitted ID.", response = SetsDefinition.class)

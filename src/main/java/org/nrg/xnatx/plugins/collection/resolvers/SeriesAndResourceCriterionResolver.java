@@ -98,6 +98,11 @@ import org.springframework.stereotype.Component;
 @Accessors(prefix = "_")
 @Slf4j
 public class SeriesAndResourceCriterionResolver extends ResourceAttributeDatasetCriterionResolver {
+    public static final String SERIES_DESCRIPTION = "SeriesDescription";
+    public static final String RESOURCE_FORMAT    = "ResourceFormat";
+    public static final String RESOURCE_CONTENT   = "ResourceContent";
+    public static final String RESOURCE_LABEL     = "ResourceLabel";
+
     @Autowired
     public SeriesAndResourceCriterionResolver(final SerializerService serializer, final DatabaseHelper helper) {
         super(helper);
@@ -143,7 +148,7 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
                 final JsonNode node = json.get(element);
                 switch (node.getNodeType()) {
                     case ARRAY:
-                        clauses.addAll(getExpressions(EXPRESSION_ATTRIBUTES.get(element), arrayNodeToStrings(node)));
+                        clauses.add(getExpressions(EXPRESSION_ATTRIBUTES.get(element), arrayNodeToStrings(node)));
                         break;
                     case STRING:
                     case OBJECT:
@@ -168,10 +173,6 @@ public class SeriesAndResourceCriterionResolver extends ResourceAttributeDataset
         return json;
     }
 
-    private static final String                       SERIES_DESCRIPTION            = "SeriesDescription";
-    private static final String                       RESOURCE_FORMAT               = "ResourceFormat";
-    private static final String                       RESOURCE_CONTENT              = "ResourceContent";
-    private static final String                       RESOURCE_LABEL                = "ResourceLabel";
     private static final List<String>                 SERIES_DESCRIPTION_ATTRIBUTES = Arrays.asList("scan_type", "series_description", "series_class");
     private static final List<String>                 RESOURCE_LABEL_ATTRIBUTES     = Collections.singletonList("resource_label");
     private static final List<String>                 RESOURCE_CONTENT_ATTRIBUTES   = Collections.singletonList("resource_content");

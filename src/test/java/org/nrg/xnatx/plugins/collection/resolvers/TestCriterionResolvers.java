@@ -4,6 +4,10 @@ package org.nrg.xnatx.plugins.collection.resolvers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.getExpression;
 import static org.nrg.xnatx.plugins.collection.resolvers.ExpressionResolver.getExpressions;
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_CONTENT;
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_FORMAT;
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_LABEL;
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.SERIES_DESCRIPTION;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableListMultimap;
@@ -40,7 +44,7 @@ public class TestCriterionResolvers {
                 final JsonNode node = json.get(element);
                 switch (node.getNodeType()) {
                     case ARRAY:
-                        clauses.addAll(getExpressions(EXPRESSION_ATTRIBUTES.get(element), ExpressionResolver.arrayNodeToStrings(node)));
+                        clauses.add(getExpressions(EXPRESSION_ATTRIBUTES.get(element), ExpressionResolver.arrayNodeToStrings(node)));
                         break;
                     case STRING:
                     case OBJECT:
@@ -58,10 +62,6 @@ public class TestCriterionResolvers {
 
     private static final String                       RESOLVED_CLAUSE               = "(scan_type = 'MPRAGE T1 AX' OR series_description = 'MPRAGE T1 AX' OR series_class = 'MPRAGE T1 AX' OR scan_type ~ '^.T2[[:space:]]+FLAIR.$' OR series_description ~ '^.T2[[:space:]]+FLAIR.$' OR series_class ~ '^.T2[[:space:]]+FLAIR.$') AND (resource_format = 'NIFTI' OR resource_format = 'BIDS' OR resource_format ~ '^JPE?G$') AND (resource_content ~* 'infarct ROIS' OR resource_content = '4dfp') AND (resource_label = 'SNAPSHOTS' OR resource_label ~* 'nifti')";
     private static final String                       DEFINITION_JSON               = "{ \"SeriesDescription\": [ \"MPRAGE T1 AX\", \"/^.T2[[:space:]]+FLAIR.$/\" ], \"ResourceFormat\": [ \"NIFTI\", \"BIDS\", \"/^JPE?G$/\" ], \"ResourceContent\": [ \"/infarct ROIS/i\", \"4dfp\" ], \"ResourceLabel\": [ \"SNAPSHOTS\", \"/nifti/i\" ] }";
-    private static final String                       SERIES_DESCRIPTION            = "SeriesDescription";
-    private static final String                       RESOURCE_FORMAT               = "ResourceFormat";
-    private static final String                       RESOURCE_CONTENT              = "ResourceContent";
-    private static final String                       RESOURCE_LABEL                = "ResourceLabel";
     private static final List<String>                 SERIES_DESCRIPTION_ATTRIBUTES = Arrays.asList("scan_type", "series_description", "series_class");
     private static final List<String>                 RESOURCE_LABEL_ATTRIBUTES     = Collections.singletonList("resource_label");
     private static final List<String>                 RESOURCE_CONTENT_ATTRIBUTES   = Collections.singletonList("resource_content");

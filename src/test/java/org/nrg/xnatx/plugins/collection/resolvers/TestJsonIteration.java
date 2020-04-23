@@ -1,6 +1,11 @@
 package org.nrg.xnatx.plugins.collection.resolvers;
 
 
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_CONTENT;
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_FORMAT;
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_LABEL;
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.SERIES_DESCRIPTION;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -32,17 +37,13 @@ public class TestJsonIteration {
         final JsonNode         json     = _serializer.deserializeJson(DEFINITION_JSON);
         final Iterator<String> iterator = json.fieldNames();
         while (iterator.hasNext()) {
-            final String fieldName = iterator.next();
-            final JsonNode node = json.get(fieldName);
-            final String tagName = node.has("tag") ? node.get("tag").textValue() : StringUtils.uncapitalize(fieldName);
+            final String   fieldName = iterator.next();
+            final JsonNode node      = json.get(fieldName);
+            final String   tagName   = node.has("tag") ? node.get("tag").textValue() : StringUtils.uncapitalize(fieldName);
         }
     }
 
     private static final String                       DEFINITION_JSON               = "{\"Images\": {\"tag\": \"image\", \"SeriesDescription\": [\"T1%\"], \"ResourceFormat\": [\"NIFTI\"], \"ResourceContent\": [\"/T1./i\"], \"ResourceLabel\": [\"/nifti/i\"]}, \"Labels\": {\"tag\": \"label\", \"SeriesDescription\": [\"Segment%\"], \"ResourceFormat\": [\"NIFTI\"], \"ResourceContent\": [\"/Segmentat.{3}/i\"], \"ResourceLabel\": [\"/nifti/i\"]}}";
-    private static final String                       SERIES_DESCRIPTION            = "SeriesDescription";
-    private static final String                       RESOURCE_FORMAT               = "ResourceFormat";
-    private static final String                       RESOURCE_CONTENT              = "ResourceContent";
-    private static final String                       RESOURCE_LABEL                = "ResourceLabel";
     private static final List<String>                 SERIES_DESCRIPTION_ATTRIBUTES = Arrays.asList("scan_type", "series_description", "series_class");
     private static final List<String>                 RESOURCE_LABEL_ATTRIBUTES     = Collections.singletonList("resource_label");
     private static final List<String>                 RESOURCE_CONTENT_ATTRIBUTES   = Collections.singletonList("resource_content");

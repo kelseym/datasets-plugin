@@ -32,25 +32,21 @@ public class ExpressionResolver {
         }), ") AND (") + ")";
     }
 
-    public static List<List<String>> getExpressions(final List<String> attributes, final Iterable<String> values) {
-        return Lists.newArrayList(Iterables.transform(values, new Function<String, List<String>>() {
+    public static List<String> getExpressions(final List<String> attributes, final Iterable<String> values) {
+        final List<String> expression = new ArrayList<>();
+        for (final List<String> clause : Iterables.transform(values, new Function<String, List<String>>() {
             @Override
             public List<String> apply(final String value) {
                 return getExpression(attributes, value);
             }
-        }));
+        })) {
+            expression.addAll(clause);
+        }
+        return expression;
     }
 
     public static List<String> getExpression(final List<String> attributes, final String value) {
         return getClauses(attributes, getRegexType(value));
-    }
-
-    public static List<String> getMatchAttributes(final List<String> attributes, final Iterable<String> values) {
-        final List<String> matches = new ArrayList<>();
-        for (final List<String> clause : getExpressions(attributes, values)) {
-            matches.addAll(clause);
-        }
-        return matches;
     }
 
     protected static List<String> getClauses(final List<String> attributes, final Pair<RegexType, String> criteria) {
