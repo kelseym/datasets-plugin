@@ -168,8 +168,8 @@ var XNAT = getObject(XNAT || {});
 
                         };
 
-                        if (/(\d|\w)+/.test(defData.label)){
-                            defData.label = defData.label.replace(/(\d|\w)+/,'_');
+                        if (/([!@#$%^&*\'\"\[\]]|\-|\s)+/g.test(defData.label)){
+                            defData.label = defData.label.replace(/([!@#$%^&*\'\"\[\]]|\-|\s)+/g,'_');
                             // errorHandler({status: 'Not Allowed',responseText: 'Definition labels cannot have spaces or special characters.'});
                         }
 

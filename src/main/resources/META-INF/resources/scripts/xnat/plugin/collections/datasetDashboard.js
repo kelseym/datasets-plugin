@@ -208,8 +208,8 @@ var XNAT = getObject(XNAT || {});
             return spawn('a',{ href: rootUrl('/data/experiments/'+experiment.id), style: { 'font-weight':'bold' }}, experiment.label)
         }
         function displayIcon(validation){
-            return (validation.result) ?
-                spawn('i.fa.fa-check-circle.success') :
+            return (validation.scans.length) ?
+                spawn('i.fa.fa-check-circle.success',{ title: 'Matching Scans: '+validation.scans.join(', ')}) :
                 spawn('i.fa.fa-close.failed')
         }
         items.forEach(function(item){
