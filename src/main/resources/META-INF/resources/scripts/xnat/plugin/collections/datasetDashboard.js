@@ -183,31 +183,9 @@ var XNAT = getObject(XNAT || {});
     }
     function evaluateResult(experiment,list){
         var valid = true;
-        experiment.results.forEach(function(result){ if (!result.result) { valid = false }});
+        experiment.results.forEach(function(result){ if (!result.scans.length) { valid = false }});
         if (valid) { list.push(experiment.id) }
         return list;
-    }
-
-    // temp function
-    function displayAltValidationResults(obj){
-        var results = JSON.parse(obj);
-        XNAT.dialog.open({
-            title: 'Resource Report Results',
-            width: 600,
-            content: '<div id="intro"></div><div id="results"></div>',
-            beforeShow: function(obj){
-                var resultsContainer = obj.$modal.find('#results');
-                resultsContainer.append(prettifyJSON(results.resources));
-
-            },
-            buttons: [
-                {
-                    label: 'OK',
-                    isDefault: true,
-                    close: true
-                }
-            ]
-        })
     }
     
     function displayValidationResults(items){
@@ -285,9 +263,9 @@ var XNAT = getObject(XNAT || {});
             },
             success: function(data){
                 xmodal.loading.close();
-                if (data.length) {
-                    displayAltValidationResults(data);
-                    // displayValidationResults(data,dfn);
+                var results = JSON.parse(data);
+                if (results.length) {
+                    displayValidationResults(results,dfn);
                     enablePanel(id);
                 } else {
                     XNAT.dialog.message('Error','Could not validate your project data against this data definition. No results were returned.');
