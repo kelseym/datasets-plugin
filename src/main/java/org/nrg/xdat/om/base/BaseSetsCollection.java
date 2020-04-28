@@ -7,12 +7,14 @@ import java.util.Hashtable;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.nrg.xdat.XDAT;
 import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.om.base.auto.AutoSetsCollection;
 import org.nrg.xft.ItemI;
 import org.nrg.xft.security.UserI;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetCollectionHandlingException;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetResourceException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
  * Override of generated implementation of this class to provide JSON conversion and resource
@@ -39,6 +41,10 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
 
     public BaseSetsCollection(final Hashtable properties, final UserI user) {
         super(properties, user);
+    }
+
+    public static boolean validateCollectionId(final String collectionId) {
+        return XDAT.getNamedParameterJdbcTemplate().queryForObject(QUERY_VERIFY_COLLECTION_ID, new MapSqlParameterSource("collectionId", collectionId), Boolean.class);
     }
 
     /**
@@ -79,4 +85,6 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
             }), ", "), errors);
         }
     }
+
+    private static final String QUERY_VERIFY_COLLECTION_ID = "SELECT EXISTS(SELECT x.id FROM sets_collection s LEFT JOIN xnat_experimentdata x ON s.id = x.id WHERE s.id = :collectionId)";
 }

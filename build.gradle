@@ -128,8 +128,6 @@ if (javaVersion.java8Compatible || javaVersion.java9Compatible || javaVersion.ja
         logger.warn "\n"
         logger.warn "In some isolated instances, using a bootstrap library from a JDK version later than 1.7 can result in run-time errors.\n"
     }
-} else if (!javaVersion.java7Compatible) {
-    throw new BuildCancelledException("You are using a JDK version (${javaVersion}) that is not compatible with Java 7. The XNAT build will fail. Please install a JDK version of Java 7 or later.")
 }
 
 lombok {
