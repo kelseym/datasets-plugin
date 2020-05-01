@@ -229,6 +229,8 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
             if (!SaveItemHelper.authorizedSave(item, user, false, true, meta)) {
                 throw new Exception("Save method returned false when user " + username + " tried to save object " + item.getIDValue() + " of type " + item.getXSIType());
             }
+        } catch (IllegalArgumentException e) {
+            throw new DataFormatException("User " + username + " failed to create new object of type " + item.getXSIType() + " in project " + project + ": " + e.getMessage());
         } catch (Exception e) {
             log.error("The {} operation failed for a new item of type {} in the project {} as requested by {}", isCreate ? "create" : "update", item.getXSIType(), project, username, e);
             try {

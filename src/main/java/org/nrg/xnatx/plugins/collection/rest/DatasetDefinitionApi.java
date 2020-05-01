@@ -39,7 +39,6 @@ import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsDefinition;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
-import org.nrg.xnatx.plugins.collection.resolvers.ResolutionReport;
 import org.nrg.xnatx.plugins.collection.resolvers.SessionReport;
 import org.nrg.xnatx.plugins.collection.rest.permissions.CreateCollection;
 import org.nrg.xnatx.plugins.collection.rest.permissions.CreateDefinition;

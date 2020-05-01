@@ -312,7 +312,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
             }
         }
         for (final Pair<String, String> experiment : reports.keySet()) {
-            final SessionReport.SessionReportBuilder                                    session = SessionReport.builder().id(experiment.getKey()).label(experiment.getValue());
+            final SessionReport.SessionReportBuilder                                  session = SessionReport.builder().id(experiment.getKey()).label(experiment.getValue());
             final Pair<Set<String>, Map<Triple<String, String, String>, Set<String>>> data    = reports.get(experiment);
             session.scans(data.getKey());
             final Map<Triple<String, String, String>, Set<String>> results = data.getValue();
@@ -326,7 +326,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
 
     private void addScanToResults(final Map<Triple<String, String, String>, Set<String>> results, final String scanId, final String attribute, final String file, final Map<Pair<String, String>, String> matchers) {
         final Triple<String, String, String> triple = Triple.of(file, attribute, matchers.get(Pair.of(file, attribute)));
-        final Set<String>                   scans;
+        final Set<String>                    scans;
         if (results.containsKey(triple)) {
             scans = results.get(triple);
         } else {

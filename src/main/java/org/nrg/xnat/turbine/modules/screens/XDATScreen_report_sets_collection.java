@@ -22,5 +22,5 @@ public class XDATScreen_report_sets_collection extends SecureReport {
     }
 
     private static final String SETS_COLLECTION_TABS = "sets_collection/tabs";
-    private static final String DEFAULT_TABS     = "sets_collection_summary_details";
+    private static final String DEFAULT_TABS         = "sets_collection_summary_details";
 }
