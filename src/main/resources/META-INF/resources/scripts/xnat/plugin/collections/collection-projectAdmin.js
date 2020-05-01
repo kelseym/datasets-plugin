@@ -112,7 +112,20 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         for (var key in dataset) {
             var val = dataset[key], formattedVal = '', putInTable = true;
 
-            if (Array.isArray(val) && val.length > 0) {
+            // exception for files
+            if (key === "files") {
+                if (Array.isArray(val) && val.length > 0){
+                    formattedVal = spawn('pre',JSON.stringify(val,null,4));
+                }
+                else {
+                    formattedVal = spawn('span','No files');
+                }
+            }
+            // exception for resources
+            else if (key === "resources") {
+                formattedVal = spawn('span',val.length + ' Resource(s) found');
+            }
+            else if (Array.isArray(val) && val.length > 0) {
                 // Display a table
                 var columns = [];
                 val.forEach(function (item) {
@@ -147,7 +160,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                 formattedVal+="</table>";
                 putInTable = false;
             } else if (typeof val === 'object') {
-                formattedVal = spawn('code', JSON.stringify(val));
+                formattedVal = spawn('pre', JSON.stringify(val,null,4));
             } else if (!val) {
                 formattedVal = spawn('code', 'false');
             } else {
@@ -156,7 +169,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
 
             if (putInTable) {
                 vdTable.tr()
-                    .td('<b>' + key + '</b>')
+                    .td({ style: { 'vertical-align':'top'}}, '<b>' + key + '</b>')
                     .td([spawn('div', {style: {'word-break': 'break-all', 'max-width': '600px', 'overflow':'auto'}}, formattedVal)]);
             } else {
                 allTables.push(
@@ -210,7 +223,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         datasets.forEach(function(dataset){
             sdTable.tr()
                 .td({ addClass: 'first-cell'},[[ '!',datasetLink(dataset) ]])
-                .td('')
+                .td([[ 'div.right', dataset.fileCount ]])
                 .td([[ '!',resolveDate(dataset.label)]])
                 .td([[ 'div.center', [
                     viewButton(dataset.id),

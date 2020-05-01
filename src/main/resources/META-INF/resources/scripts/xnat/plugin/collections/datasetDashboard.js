@@ -189,6 +189,9 @@ var XNAT = getObject(XNAT || {});
     }
     
     function displayValidationResults(items){
+        // sort list of items
+        items = items.sort(function(a,b){ return (a.label > b.label) ? 1 : -1 });
+
         var allExperiments = items.length,
             validExperiments = [],
             vrTable = XNAT.table({addClass: 'xnat-table', style: { width: '100%' }});
@@ -209,7 +212,7 @@ var XNAT = getObject(XNAT || {});
         }
         function displayIcon(validation){
             return (validation.scans.length) ?
-                spawn('i.fa.fa-check-circle.success',{ title: 'Matching Scans: '+validation.scans.join(', ')}) :
+                spawn('i.fa.fa-check-circle.success.validation-cell',{ title: 'Matching Scan ID(s): '+validation.scans.join(', '), data: { scans: JSON.stringify(validation.scans) }}) :
                 spawn('i.fa.fa-close.failed')
         }
         items.forEach(function(item){
@@ -237,6 +240,13 @@ var XNAT = getObject(XNAT || {});
         if($(this).hasClass('disabled')) return false;
         var id = $(this).data('id');
         sets.saveDataset(id);
+    });
+    $(document).on('click','.validation-cell.success',function(){
+        var matchingScans = JSON.parse($(this).data('scans'));
+        XNAT.ui.dialog.message({
+            title: 'Matching Scans Detail',
+            content: 'Scan IDs: '+matchingScans.join(', ')
+        });
     });
 
     function enablePanel(id){
@@ -275,12 +285,18 @@ var XNAT = getObject(XNAT || {});
     };
 
     sets.saveDataset = function(id){
+        xmodal.loading.open('Creating Dataset...');
         XNAT.xhr.ajax({
             method: 'POST',
             url: csrfUrl('/xapi/sets/definitions/'+id),
-            fail: function(e){ errorHandler(e,'Error trying to save dataset from definition '+id); },
+            fail: function(e){
+                xmodal.loading.close();
+                errorHandler(e,'Error trying to save dataset from definition '+id);
+            },
             success: function(data){
+                xmodal.loading.close();
                 XNAT.ui.banner.top(2000,'New dataset '+data.label+' created with '+data.fileCount+' files.','success');
+                XNAT.plugin.collection.sets.initDatasets();
             }
         })
     };
