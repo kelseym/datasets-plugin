@@ -2,26 +2,26 @@
 ####  Root Project Settings Spawner Config Object  ####
 #######################################################
 
-projectSettings:
-    kind: tabs
-    groups:
-        collectionsProjectTabGroup: Datasets
-    contains: tabs
-    tabs:
-        projectCollectionTab:
-            kind: tab
-            label: Saved Datasets
-            group: collectionsProjectTabGroup
-            active: true
-            contents:
-                ${projectCollectionPanel}
-
-
-projectCollectionPanel:
-    kind: panel
-    label: Saved Datasets in this Project
-    contents:
-        projectCollectionContainer:
-            tag: "div#proj-saved-datasets-list-container"
-        projectCollectionAdminScript:
-            tag: script|src="/scripts/xnat/plugin/collections/collection-projectAdmin.js"
+#projectSettings:
+#    kind: tabs
+#    groups:
+#        collectionsProjectTabGroup: Datasets
+#    contains: tabs
+#    tabs:
+#        projectCollectionTab:
+#            kind: tab
+#            label: Saved Datasets
+#            group: collectionsProjectTabGroup
+#            active: true
+#            contents:
+#                ${projectCollectionPanel}
+#
+#
+#projectCollectionPanel:
+#    kind: panel
+#    label: Saved Datasets in this Project
+#    contents:
+#        projectCollectionContainer:
+#            tag: "div#proj-saved-datasets-list-container"
+#        projectCollectionAdminScript:
+#            tag: script|src="/scripts/xnat/plugin/collections/collection-projectAdmin.js"

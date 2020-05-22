@@ -6,7 +6,7 @@
 #set ($SITE_ROOT = $content.getURI(""))
 
 <h2 class="edit_header1">
-    Manage Datasets for <a href="${SITE_ROOT}/data/projects/$!{projectId}?format=html">$!{projectId}</a>
+    Manage Datasets
 </h2>
 
 <div class="content-tabs xnat-tab-container" style="display: block;">
