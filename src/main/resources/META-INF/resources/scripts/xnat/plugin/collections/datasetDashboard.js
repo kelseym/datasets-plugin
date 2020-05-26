@@ -74,15 +74,21 @@ var XNAT = getObject(XNAT || {});
         return definitions.filter(function(d){ return d.id === id})[0];
     }
     sets.deleteDefinition = function(id){
-        XNAT.xhr.ajax({
-            method: 'DELETE',
-            url: csrfUrl('/xapi/sets/definitions/projects/'+projectId+'/'+id),
-            fail: function(e){ errorHandler(e, 'Error attempting to delete dataset with id '+id)},
-            success: function(){
-                XNAT.ui.banner.top(2000, 'Definition deleted.', 'success');
-                sets.initDashboard();
+        XNAT.dialog.confirm({
+            title: 'Delete Definition?',
+            content: 'Are you sure you want to delete this dataset definition? This operation cannot be undone.',
+            okAction: function(){
+                XNAT.xhr.ajax({
+                    method: 'DELETE',
+                    url: csrfUrl('/xapi/sets/definitions/projects/'+projectId+'/'+id),
+                    fail: function(e){ errorHandler(e, 'Error attempting to delete dataset with id '+id)},
+                    success: function(){
+                        XNAT.ui.banner.top(2000, 'Definition deleted.', 'success');
+                        sets.initDashboard();
+                    }
+                })
             }
-        })
+        });
     };
 
     $(document).on('click','.validate-definition',function(e){
@@ -208,7 +214,7 @@ var XNAT = getObject(XNAT || {});
         });
 
         function experimentLink(experiment){
-            return spawn('a',{ href: rootUrl('/data/experiments/'+experiment.id), style: { 'font-weight':'bold' }}, experiment.label)
+            return spawn('a',{ href: rootUrl('/data/experiments/'+experiment.id+'?format=html'), style: { 'font-weight':'bold' }}, experiment.label)
         }
         function displayIcon(validation){
             return (validation.scans.length) ?

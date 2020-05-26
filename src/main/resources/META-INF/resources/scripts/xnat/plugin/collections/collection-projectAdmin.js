@@ -261,7 +261,13 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         var id = $(this).data('id');
         XNAT.xhr.getJSON({
             url: rootUrl('/xapi/sets/collections/'+id),
-            fail: function(e){ errorHandler(e,'Error trying to get the dataset '+id)},
+            fail: function(e){
+                console.log(e);
+                XNAT.ui.dialog.message({
+                    title: 'Error',
+                    content: 'There was an error attempting to retrieve the dataset with id <b>'+id+'</b>. Could it have been deleted?'
+                })
+            },
             success: function(data){
                 XNAT.plugin.collection.projDatasets.viewDataset(data);
             }
@@ -271,15 +277,23 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         e.preventDefault();
         var id = $(this).data('id'),
             label = $(this).data('label');
-        XNAT.xhr.ajax({
-            method: 'DELETE',
-            url: csrfUrl('/xapi/sets/collections/'+id),
-            fail: function(e){ errorHandler(e,'Error trying to delete the dataset '+id)},
-            success: function(){
-                XNAT.ui.banner.top(2000,'Successfully deleted the dataset '+label,'success');
-                XNAT.plugin.collection.projDatasets.init();
+        XNAT.dialog.confirm({
+            title: 'Delete Dataset?',
+            content: 'Are you sure you want to delete the dataset <b>' + label + '</b>? This operation cannot be undone.',
+            okAction: function () {
+                XNAT.xhr.ajax({
+                    method: 'DELETE',
+                    url: csrfUrl('/xapi/sets/collections/' + id),
+                    fail: function (e) {
+                        errorHandler(e, 'Error trying to delete the dataset ' + id)
+                    },
+                    success: function () {
+                        XNAT.ui.banner.top(2000, 'Successfully deleted the dataset ' + label, 'success');
+                        XNAT.plugin.collection.projDatasets.init();
+                    }
+                })
             }
-        })
+        });
     });
 
     function showCollectionCount(){
