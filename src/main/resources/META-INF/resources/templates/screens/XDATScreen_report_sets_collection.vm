@@ -43,10 +43,10 @@
         var container = $('#sets-collection-files');
         var files = JSON.parse(container.html());
         if (files.length){
-            container.html(prettifyJSON(JSON.parse(files)));
+            container.html(spawn('pre',{style: { border: '1px solid #ccc', padding: '6px' }},JSON.stringify(files,null,4)));
         }
         else {
-            container.html('<pre class="json">None</pre>')
+            container.html('<pre>None</pre>')
         }
     });
 </script>

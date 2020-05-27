@@ -42,7 +42,7 @@
     $(document).ready(function(){
         var container = $('#sets-definition-payload');
         var criteria = JSON.parse(container.html());
-        container.html(prettifyJSON(criteria));
+        container.html(spawn('pre',{style: { border: '1px solid #ccc', padding: '6px' }},JSON.stringify(criteria,null,4)));
     });
 </script>
 <!-- END META-INF/resources/templates/screens/XDATScreen_report_clara_model.vm -->
