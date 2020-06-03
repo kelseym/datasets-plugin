@@ -197,6 +197,9 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                             XNAT.dialog.message('Error: No experiments selected.');
                             return false;
                         }
+                        if (!description.length) {
+                            description = "(None)"
+                        }
 
                         var collectionModel = {
                             "name": name,
