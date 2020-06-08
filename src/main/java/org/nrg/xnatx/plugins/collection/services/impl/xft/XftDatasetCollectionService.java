@@ -137,7 +137,7 @@ public class XftDatasetCollectionService extends AbstractXftDatasetObjectService
             // partitions.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> Math.round(itemCount * ((float) entry.getValue() / 100))))
             // final Integer newTotal = mapped.values().stream().reduce(Integer::sum).orElseThrow(DatasetCollectionHandlingException::new);
             accumulator.set(0);
-            final Map<String, Integer> mapped = Maps.transformValues(partitions, new Function<Integer, Integer>() {
+            final Map<String, Integer> mappedView = Maps.transformValues(partitions, new Function<Integer, Integer>() {
                 @Override
                 public Integer apply(final Integer value) {
                     final int adjusted = Math.round(itemCount * ((float) value / 100));
@@ -145,6 +145,7 @@ public class XftDatasetCollectionService extends AbstractXftDatasetObjectService
                     return adjusted;
                 }
             });
+            final Map<String, Integer> mapped = Maps.newHashMap(mappedView);
             if (accumulator.get() != itemCount) {
                 // final Map.Entry<String, Integer> entry = mapped.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).orElseThrow(ClaraException::new);
                 final Map.Entry<String, Integer> max = DatasetUtils.findMaxValueEntry(mapped);
