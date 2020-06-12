@@ -155,7 +155,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
 
     private SetsDefinition getDefinitionFromJson(final UserI user, final String projectId, final String resolver, final JsonNode payload) throws InsufficientPrivilegesException {
         try {
-            if (!getPermissions().canCreate(user, getProjectXmlPath(), projectId)) {
+            if (!getPermissions().canCreate(user, getProjectXmlPath(), (Object) projectId)) {
                 throw new InsufficientPrivilegesException(user.getUsername(), projectId);
             }
         } catch (InsufficientPrivilegesException e) {
