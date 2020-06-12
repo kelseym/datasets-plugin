@@ -7,7 +7,7 @@
 
 <ul>
     <li class="yuimenuitem">
-        <a class="yuimenuitemlabel" href=${SITE_ROOT}/app/template/Page.vm?view=datasets/dashboard&project=$!{project.getId()}">Manage Datasets</a>
+        <a class="yuimenuitemlabel" href="$content.getURI("/app/template/Page.vm?view=datasets/dashboard&project=")$!{project.getId()}">Manage Datasets</a>
     </li>
 
 #end
