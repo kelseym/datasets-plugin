@@ -1,9 +1,5 @@
 package org.nrg.xnatx.plugins.collection.services.impl.xft;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -40,18 +36,33 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import javax.annotation.Nonnull;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 @Getter(AccessLevel.PROTECTED)
 @Accessors(prefix = "_")
 @Slf4j
 public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentdata> implements DatasetObjectService<T> {
+    private final Class<? extends T>       _dataType;
+    private final Constructor<? extends T> _itemIConstructor;
+
     protected AbstractXftDatasetObjectService(final PermissionsServiceI permissions, final NamedParameterJdbcTemplate template) {
         _permissions = permissions;
         _template = template;
-        final Class<T> dataType = Reflection.getParameterizedTypeForClass(getClass());
+        _dataType = Reflection.getParameterizedTypeForClass(getClass());
         try {
-            _xsiType = (String) dataType.getField("SCHEMA_ELEMENT_NAME").get(null);
+            _itemIConstructor = _dataType.getConstructor(ItemI.class);
+        } catch (NoSuchMethodException e) {
+            throw new DatasetObjectException("Got an error trying to get the ItemI constructor for the data type: " + _dataType.getName(), e);
+        }
+        try {
+            _xsiType = (String) _dataType.getField("SCHEMA_ELEMENT_NAME").get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
-            throw new DatasetObjectException("Got an error trying to get the schema element name for the data type: " + dataType.getName(), e);
+            throw new DatasetObjectException("Got an error trying to get the schema element name for the data type: " + _dataType.getName(), e);
         }
         _xsiXmlPath = _xsiType + "/extension_item/element_name";
         _projectXmlPath = _xsiType + "/project";
@@ -87,7 +98,12 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         if (experiment == null) {
             throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
         }
-        return experiment;
+        try {
+            return _itemIConstructor.newInstance(experiment.getItem());
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            log.error("An error occurred invoking the XFTItem constructor for the class implementation of the schema element for XSI type {}", _xsiType, e);
+        }
+        return null;
     }
 
     @Override
@@ -133,11 +149,11 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     }
 
     private T createOrUpdateImpl(final boolean isCreate, final UserI user, final T item) throws InsufficientPrivilegesException, ResourceAlreadyExistsException, DataFormatException, NotFoundException {
-        return createOrUpdateImpl(isCreate, user, item, Collections.<PostSaveOperation>emptyList());
+        return createOrUpdateImpl(isCreate, user, item, Collections.emptyList());
     }
 
     private T createOrUpdateImpl(final boolean isCreate, final UserI user, final T object, final List<PostSaveOperation> operations) throws InsufficientPrivilegesException, ResourceAlreadyExistsException, DataFormatException, NotFoundException {
-        return createOrUpdateImpl(isCreate, user, object, operations, Collections.<String, String>emptyMap());
+        return createOrUpdateImpl(isCreate, user, object, operations, Collections.emptyMap());
     }
 
     private T createOrUpdateImpl(final boolean isCreate, final UserI user, final T object, final List<PostSaveOperation> operations, final Map<String, String> eventDetails) throws InsufficientPrivilegesException, ResourceAlreadyExistsException, DataFormatException, NotFoundException {
