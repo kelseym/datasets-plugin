@@ -71,14 +71,18 @@ public abstract class DataSetPermissions<T extends XnatExperimentdataI> extends 
         final boolean              hasLabel     = parameters.containsKey("label");
         if (parameters.containsKey("id")) {
             experiment = _template.queryForObject(QUERY_EXPT_BY_ID, new MapSqlParameterSource("experimentId", parameters.get("id")), EXPT_MAPPER_ID_PROJECT_LABEL);
-        } else if ((hasProject || hasProjectId) && (hasIdOrLabel || hasLabel)) {
+        } else if (hasProject || hasProjectId) {
             final String projectId = (String) joinPoint.getArgs()[parameters.get(hasProject ? "project" : "projectId")];
-            final Object idOrLabel = joinPoint.getArgs()[parameters.get(hasIdOrLabel ? "idOrLabel" : "label")];
-            experiment = _template.queryForObject(QUERY_EXPT_BY_PROJECT_AND_ID_OR_LABEL, new MapSqlParameterSource("project", projectId).addValue("idOrLabel", idOrLabel), EXPT_MAPPER_ID_PROJECT_LABEL);
+            if (hasIdOrLabel || hasLabel) {
+                final Object idOrLabel = joinPoint.getArgs()[parameters.get(hasIdOrLabel ? "idOrLabel" : "label")];
+                experiment = _template.queryForObject(QUERY_EXPT_BY_PROJECT_AND_ID_OR_LABEL, new MapSqlParameterSource("project", projectId).addValue("idOrLabel", idOrLabel), EXPT_MAPPER_ID_PROJECT_LABEL);
+            } else {
+                experiment = Pair.of(projectId, null);
+            }
         } else {
             experiment = null;
         }
-        return experiment != null && (!StringUtils.isNoneBlank(experiment.getKey(), experiment.getValue()) || !forbidden(user, experiment.getKey(), _xmlPath, experiment.getValue()));
+        return experiment != null && (StringUtils.isNotBlank(experiment.getValue()) ? !forbidden(user, experiment.getKey(), _xmlPath, experiment.getValue()) : !forbidden(user, experiment.getKey(), _xmlPath));
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -101,10 +105,18 @@ public abstract class DataSetPermissions<T extends XnatExperimentdataI> extends 
         return false;
     }
 
+    private boolean forbidden(final UserI user, final String projectId, final String xmlPath) {
+        return forbidden(user, projectId, xmlPath, null);
+    }
+
     private boolean forbidden(final UserI user, final String projectId, final String xmlPath, final String name) {
         try {
             if (!_permissions.can(user, xmlPath, projectId, getAction())) {
-                log.info("The user {} wanted to {} a data collection \"{}\" in the project {} but doesn't have adequate permission on collections in that project.", user.getUsername(), getAction(), name, projectId);
+                if (StringUtils.isNotBlank(name)) {
+                    log.info("The user {} wanted to {} data collection \"{}\" in the project {} but doesn't have adequate permission on collections in that project.", user.getUsername(), getAction(), name, projectId);
+                } else {
+                    log.info("The user {} wanted to {} data collections in the project {} but doesn't have adequate permission on collections in that project.", user.getUsername(), getAction(), projectId);
+                }
                 return true;
             }
         } catch (Exception e) {
