@@ -13,22 +13,13 @@ import static org.nrg.xdat.security.helpers.AccessLevel.Admin;
 import static org.nrg.xdat.security.helpers.AccessLevel.Authorizer;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.annotations.XapiRestController;
@@ -54,6 +45,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @Api("XNAT 1.7 Dataset Collection Plugin API")
 @XapiRestController
 @RequestMapping(value = "/sets/collections")
@@ -73,7 +71,7 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Admin)
     public List<Map<String, String>> getAll() {
-        return Lists.transform(_collections.findAll(getSessionUser()), COLLECTION_TO_MAP_FUNCTION);
+        return _collections.findAll(getSessionUser()).stream().map(COLLECTION_TO_MAP_FUNCTION).collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Returns a list of IDs, projects, and labels for all dataset collections for a project.", response = Map.class, responseContainer = "List")
@@ -85,7 +83,7 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
     @XapiRequestMapping(value = "projects/{projectId}", produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Authorizer)
     @AuthDelegate(ReadCollection.class)
     public List<Map<String, String>> getByProject(@PathVariable("projectId") final String projectId) throws NotFoundException {
-        return Lists.transform(_collections.findByProject(getSessionUser(), projectId), COLLECTION_TO_MAP_FUNCTION);
+        return _collections.findByProject(getSessionUser(), projectId).stream().map(COLLECTION_TO_MAP_FUNCTION).collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Returns the dataset collection with the submitted ID.", response = SetsCollection.class)
@@ -199,29 +197,26 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
         _collections.delete(getSessionUser(), projectId, idOrLabel);
     }
 
-    private static final Function<SetsCollection, Map<String, String>> COLLECTION_TO_MAP_FUNCTION = new Function<SetsCollection, Map<String, String>>() {
-        @Override
-        public Map<String, String> apply(final SetsCollection collection) {
-            assert collection != null;
-            final Map<String, String> attributes = new HashMap<>();
-            attributes.put("id", collection.getId());
-            attributes.put("project", collection.getProject());
-            attributes.put("label", collection.getLabel());
-            attributes.put("definitionId", collection.getDefinitionId());
-            final Integer fileCount = collection.getFilecount();
-            if (fileCount != null) {
-                attributes.put("fileCount", Integer.toString(fileCount));
-            }
-            final Object fileSize = collection.getFilesize();
-            if (fileSize != null) {
-                attributes.put("fileSize", Long.toString((Long) fileSize));
-            }
-            final List<XnatAbstractresourceI> resources = collection.getResources_resource();
-            if (resources != null) {
-                attributes.put("resourceCount", Integer.toString(resources.size()));
-            }
-            return attributes;
+    private static final Function<SetsCollection, Map<String, String>> COLLECTION_TO_MAP_FUNCTION = collection -> {
+        assert collection != null;
+        final Map<String, String> attributes = new HashMap<>();
+        attributes.put("id", collection.getId());
+        attributes.put("project", collection.getProject());
+        attributes.put("label", collection.getLabel());
+        attributes.put("definitionId", collection.getDefinitionId());
+        final Integer fileCount = collection.getFilecount();
+        if (fileCount != null) {
+            attributes.put("fileCount", Integer.toString(fileCount));
         }
+        final Object fileSize = collection.getFilesize();
+        if (fileSize != null) {
+            attributes.put("fileSize", Long.toString((Long) fileSize));
+        }
+        final List<XnatAbstractresourceI> resources = collection.getResources_resource();
+        if (resources != null) {
+            attributes.put("resourceCount", Integer.toString(resources.size()));
+        }
+        return attributes;
     };
 
     private final DatasetCollectionService _collections;

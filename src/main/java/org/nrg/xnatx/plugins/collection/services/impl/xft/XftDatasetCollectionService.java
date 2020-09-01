@@ -3,16 +3,6 @@ package org.nrg.xnatx.plugins.collection.services.impl.xft;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -31,16 +21,22 @@ import org.nrg.xft.security.UserI;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetCollectionHandlingException;
 import org.nrg.xnatx.plugins.collection.services.DatasetCollectionService;
 import org.nrg.xnatx.plugins.collection.services.DatasetUtils;
-import org.nrg.xnatx.plugins.collection.services.Partitioner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 @Getter(AccessLevel.PROTECTED)
 @Accessors(prefix = "_")
 @Slf4j
 public class XftDatasetCollectionService extends AbstractXftDatasetObjectService<SetsCollection> implements DatasetCollectionService {
+
     @Autowired
     public XftDatasetCollectionService(final PermissionsServiceI service, final SerializerService serializer, final NamedParameterJdbcTemplate template) {
         super(service, template);
@@ -75,7 +71,7 @@ public class XftDatasetCollectionService extends AbstractXftDatasetObjectService
                 final XFTItem scan      = resource.getParent().getItem();
                 final String  sessionId = scan.getParent().getItem().getIDValue();
                 if (!resources.containsKey(sessionId)) {
-                    resources.put(sessionId, new HashMap<String, String>());
+                    resources.put(sessionId, new HashMap<>());
                 }
             } catch (XFTInitException | ElementNotFoundException e) {
                 log.error("Got an exception, so sad", e);
@@ -137,17 +133,13 @@ public class XftDatasetCollectionService extends AbstractXftDatasetObjectService
             // partitions.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> Math.round(itemCount * ((float) entry.getValue() / 100))))
             // final Integer newTotal = mapped.values().stream().reduce(Integer::sum).orElseThrow(DatasetCollectionHandlingException::new);
             accumulator.set(0);
-            final Map<String, Integer> mappedView = Maps.transformValues(partitions, new Function<Integer, Integer>() {
-                @Override
-                public Integer apply(final Integer value) {
-                    final int adjusted = Math.round(itemCount * ((float) value / 100));
-                    accumulator.addAndGet(adjusted);
-                    return adjusted;
-                }
-            });
-            final Map<String, Integer> mapped = Maps.newHashMap(mappedView);
+            final Map<String, Integer> mapped = partitions.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> {
+                final int value = entry.getValue();
+                final int adjusted = Math.round(itemCount * ((float) value / 100));
+                accumulator.addAndGet(adjusted);
+                return adjusted;
+            }));
             if (accumulator.get() != itemCount) {
-                // final Map.Entry<String, Integer> entry = mapped.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).orElseThrow(ClaraException::new);
                 final Map.Entry<String, Integer> max = DatasetUtils.findMaxValueEntry(mapped);
                 mapped.put(max.getKey(), max.getValue() + itemCount - accumulator.get());
             }
@@ -156,11 +148,9 @@ public class XftDatasetCollectionService extends AbstractXftDatasetObjectService
         }
 
         Collections.shuffle(collection);
-        // return partitions.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> collection.subList(offset.get(), offset.addAndGet(entry.getValue()))));
-        // Wrap the transform call in a new map so the partitioner is invoked now rather than later:
-        // getting called later causes a weird issue where each value is transformed twice, resulting
-        // in IndexOutOfBoundsException.
-        return new HashMap<>(Maps.transformValues(partitions, new Partitioner<>(collection)));
+
+        final AtomicInteger offset = new AtomicInteger();
+        return partitions.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> collection.subList(offset.get(), offset.addAndGet(entry.getValue()))));
     }
 
     protected List<HashMap<String, String>> deserialize(final String serialized) {

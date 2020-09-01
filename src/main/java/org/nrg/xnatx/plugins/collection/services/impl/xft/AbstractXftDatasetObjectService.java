@@ -37,11 +37,12 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter(AccessLevel.PROTECTED)
 @Accessors(prefix = "_")
@@ -52,7 +53,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         _template = template;
         _dataType = Reflection.getParameterizedTypeForClass(getClass());
         try {
-            _constructor = _dataType.getConstructor(ItemI.class);
+            _factoryMethod = _dataType.getMethod("get" + _dataType.getName() + "ById", Object.class, UserI.class, Boolean.TYPE);
         } catch (NoSuchMethodException e) {
             throw new DatasetObjectException("Got an error trying to get the ItemI constructor for the data type: " + _dataType.getName(), e);
         }
@@ -72,8 +73,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
 
     @Override
     public List<T> findAll(final UserI user) {
-        //noinspection unchecked
-        return (List<T>) XnatExperimentdata.getXnatExperimentdatasByField(_xsiXmlPath, _xsiType, user, false);
+        return getExperimentsByField(_xsiXmlPath, _xsiType, user);
     }
 
     @Override
@@ -81,8 +81,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         if (!testProject(project)) {
             throw new NotFoundException("No project with ID " + project + " can be found.");
         }
-        //noinspection unchecked
-        return (List<T>) XnatExperimentdata.getXnatExperimentdatasByField(_projectXmlPath, project, user, false);
+        return getExperimentsByField(_projectXmlPath, project, user);
     }
 
     @Override
@@ -110,26 +109,31 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         deleteImpl(user, findByProjectAndIdOrLabel(user, project, idOrLabel));
     }
 
+    protected T getExperimentSafely(final UserI user, final String id) {
+        try {
+            return getExperiment(user, id);
+        } catch (NotFoundException e) {
+            throw new RuntimeException("Got a not found exception when getting experiment ID " + id + " safely: you shouldn't call this method unless you *know* the object exists", e);
+        }
+    }
+
     protected T getExperiment(final UserI user, final String id) throws NotFoundException {
         if (!_template.queryForObject(QUERY_EXPT_ID_WITH_DATA_TYPE_EXISTS, new MapSqlParameterSource(PARAM_EXPERIMENT, id).addValue(PARAM_DATA_TYPE, _xsiType), Boolean.class)) {
             throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
         }
-        final XnatExperimentdata experiment = XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
-        if (experiment == null) {
-            throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
-        }
-        if (!StringUtils.equals(T.SCHEMA_ELEMENT_NAME, experiment.getXSIType())) {
-            throw new NotFoundException("Found an experiment with ID " + id + " but it's not the correct data type: expected " + _xsiType + " but found " + experiment.getXSIType() + ".");
-        }
         try {
-            return _constructor.newInstance(experiment.getItem());
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-            throw new DatasetDefinitionHandlingException("An error occurred invoking the XFTItem constructor for the class implementation of the schema element for XSI type " + _xsiType, e);
+            return _dataType.cast(_factoryMethod.invoke(null, id, user, true));
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new DatasetDefinitionHandlingException("An error occurred invoking the factory method " + _dataType.getName() + "." + _factoryMethod.getName() + "() for the class implementation of the schema element for XSI type " + _xsiType, e);
         }
     }
 
     protected T getExperiment(final UserI user, final String projectId, final String idOrLabel) throws NotFoundException {
         return getExperiment(user, getIdForProjectAndLabel(projectId, idOrLabel));
+    }
+
+    protected List<T> getExperimentsByField(final String xmlPath, final String value, final UserI user) {
+        return XnatExperimentdata.getXnatExperimentdatasByField(xmlPath, value, user, false).stream().map(XnatExperimentdata::getId).map(id -> getExperimentSafely(user, id)).collect(Collectors.toList());
     }
 
     protected String getIdForProjectAndLabel(final String projectId, final String idOrLabel) {
@@ -407,6 +411,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     private static final String QUERY_PROJECT_ID                    = "SELECT id FROM xnat_projectdata WHERE id = :" + PARAM_PROJECT;
     private static final String QUERY_EXPT_ID                       = "SELECT id FROM xnat_experimentdata WHERE id = :" + PARAM_EXPERIMENT;
     private static final String QUERY_EXPT_ID_WITH_DATA_TYPE        = "SELECT id FROM xnat_experimentdata e LEFT JOIN xdat_meta_element m ON e.extension = m.xdat_meta_element_id WHERE e.id = :" + PARAM_EXPERIMENT + " AND m.element_name = :" + PARAM_DATA_TYPE;
+    private static final String QUERY_VALIDATE_EXPT_DATA_TYPE       = "SELECT e.element_name FROM xnat_experimentdata x LEFT JOIN xdat_meta_element e ON x.extension = e.xdat_meta_element_id WHERE x.id = :" + PARAM_EXPERIMENT;
     private static final String QUERY_EXPT_PROJECT_AND_LABEL        = "SELECT x.id FROM xnat_experimentdata x LEFT JOIN xnat_experimentdata_share s ON x.id = s.sharing_share_xnat_experimentda_id WHERE (x.project = :" + PARAM_PROJECT + " AND (x.id =  :" + PARAM_ID_OR_LABEL + " OR x.label =  :" + PARAM_ID_OR_LABEL + ")) OR (s.project = :" + PARAM_PROJECT + " AND (x.id =  :" + PARAM_ID_OR_LABEL + " OR s.label =  :" + PARAM_ID_OR_LABEL + "))";
     private static final String QUERY_PROJECT_ID_EXISTS             = String.format(QUERY_EXISTS, QUERY_PROJECT_ID);
     private static final String QUERY_EXPT_ID_EXISTS                = String.format(QUERY_EXISTS, QUERY_EXPT_ID);
@@ -420,6 +425,6 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     private final String                     _xsiXmlPath;
     private final String                     _projectXmlPath;
     private final Class<? extends T>         _dataType;
-    private final Constructor<? extends T>   _constructor;
+    private final Method                     _factoryMethod;
 
 }

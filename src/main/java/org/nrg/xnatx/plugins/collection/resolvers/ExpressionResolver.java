@@ -1,13 +1,13 @@
 package org.nrg.xnatx.plugins.collection.resolvers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class ExpressionResolver {
     private ExpressionResolver() {
@@ -15,31 +15,16 @@ public class ExpressionResolver {
     }
 
     public static Iterable<String> arrayNodeToStrings(final JsonNode node) {
-        return Iterables.transform(node, new Function<JsonNode, String>() {
-            @Override
-            public String apply(final JsonNode node) {
-                return node.textValue();
-            }
-        });
+        return StreamSupport.stream(node.spliterator(), false).map(JsonNode::textValue).collect(Collectors.toList());
     }
 
     public static String joinClauses(final List<List<String>> clauses) {
-        return "(" + StringUtils.join(Lists.transform(clauses, new Function<List<String>, String>() {
-            @Override
-            public String apply(final List<String> expressions) {
-                return StringUtils.join(expressions, " OR ");
-            }
-        }), ") AND (") + ")";
+        return "(" + clauses.stream().map(expressions -> StringUtils.join(expressions, " OR ")).collect(Collectors.joining(") AND (")) + ")";
     }
 
     public static List<String> getExpressions(final List<String> attributes, final Iterable<String> values) {
         final List<String> expression = new ArrayList<>();
-        for (final List<String> clause : Iterables.transform(values, new Function<String, List<String>>() {
-            @Override
-            public List<String> apply(final String value) {
-                return getExpression(attributes, value);
-            }
-        })) {
+        for (final List<String> clause : StreamSupport.stream(values.spliterator(), false).map(value -> getExpression(attributes, value)).collect(Collectors.toList())) {
             expression.addAll(clause);
         }
         return expression;
@@ -50,12 +35,7 @@ public class ExpressionResolver {
     }
 
     protected static List<String> getClauses(final List<String> attributes, final Pair<RegexType, String> criteria) {
-        return Lists.transform(attributes, new Function<String, String>() {
-            @Override
-            public String apply(final String attribute) {
-                return StringUtils.joinWith(" ", attribute, criteria.getKey().operator(), StringUtils.wrap(criteria.getValue(), "'"));
-            }
-        });
+        return attributes.stream().map(attribute -> StringUtils.joinWith(" ", attribute, criteria.getKey().operator(), StringUtils.wrap(criteria.getValue(), "'"))).collect(Collectors.toList());
     }
 
     private static Pair<RegexType, String> getRegexType(final String payload) {

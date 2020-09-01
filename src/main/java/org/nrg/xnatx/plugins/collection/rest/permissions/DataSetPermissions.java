@@ -70,7 +70,7 @@ public abstract class DataSetPermissions<T extends XnatExperimentdataI> extends 
         final boolean              hasIdOrLabel = parameters.containsKey("idOrLabel");
         final boolean              hasLabel     = parameters.containsKey("label");
         if (parameters.containsKey("id")) {
-            experiment = _template.queryForObject(QUERY_EXPT_BY_ID, new MapSqlParameterSource("experimentId", parameters.get("id")), EXPT_MAPPER_ID_PROJECT_LABEL);
+            experiment = _template.queryForObject(QUERY_EXPT_BY_ID, new MapSqlParameterSource("experimentId", joinPoint.getArgs()[parameters.get("id")]), EXPT_MAPPER_ID_PROJECT_LABEL);
         } else if (hasProject || hasProjectId) {
             final String projectId = (String) joinPoint.getArgs()[parameters.get(hasProject ? "project" : "projectId")];
             if (hasIdOrLabel || hasLabel) {

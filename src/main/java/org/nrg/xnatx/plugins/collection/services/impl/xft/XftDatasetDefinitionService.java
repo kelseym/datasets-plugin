@@ -1,30 +1,10 @@
 package org.nrg.xnatx.plugins.collection.services.impl.xft;
 
-import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_CONTENT;
-import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_FORMAT;
-import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.RESOURCE_LABEL;
-import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.SERIES_DESCRIPTION;
+import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -53,6 +33,12 @@ import org.nrg.xnatx.plugins.collection.services.DatasetDefinitionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -228,14 +214,11 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
                 final XnatAbstractresource resource = resourceMap.get(label);
                 baseResources.add(resource);
                 final List<ResourceFile> fileResources = resource.getFileResources("", true);
-                final String path = StringUtils.join(Lists.transform(fileResources, new Function<ResourceFile, String>() {
-                    @Override
-                    public String apply(final ResourceFile resourceFile) {
-                        totalCount.incrementAndGet();
-                        totalSize.addAndGet(resourceFile.getSize());
-                        return resourceFile.getAbsolutePath();
-                    }
-                }), ", ");
+                final String path = fileResources.stream().map(resourceFile -> {
+                    totalCount.incrementAndGet();
+                    totalSize.addAndGet(resourceFile.getSize());
+                    return resourceFile.getAbsolutePath();
+                }).collect(Collectors.joining(", "));
                 sessionResource.put(label, fileResources.size() == 1 ? path : "[" + path + "]");
             }
             resourceFiles.add(sessionResource);
@@ -281,7 +264,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
                             if (!reports.containsKey(key)) {
                                 results = new HashMap<>();
                                 for (final Pair<String, String> matcherKey : matchers.keySet()) {
-                                    results.put(Triple.of(matcherKey.getKey(), matcherKey.getValue(), matchers.get(matcherKey)), new HashSet<String>());
+                                    results.put(Triple.of(matcherKey.getKey(), matcherKey.getValue(), matchers.get(matcherKey)), new HashSet<>());
                                 }
                                 final Set<String> scanIds = new HashSet<>();
                                 scanIds.add(scanId);
@@ -337,12 +320,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
     }
 
     private boolean matches(final Boolean... matches) {
-        return Iterables.any(Arrays.asList(matches), new Predicate<Boolean>() {
-            @Override
-            public boolean apply(@Nullable final Boolean match) {
-                return match != null && match;
-            }
-        });
+        return Arrays.stream(matches).anyMatch(match -> match != null && match);
     }
 
     private Map<Pair<String, String>, String> getTaggedPropertyMatchers(final String payload) throws IOException {

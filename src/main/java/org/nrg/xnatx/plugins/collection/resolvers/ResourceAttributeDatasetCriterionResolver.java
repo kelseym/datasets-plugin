@@ -2,13 +2,14 @@ package org.nrg.xnatx.plugins.collection.resolvers;
 
 import static org.nrg.framework.orm.DatabaseHelper.getFunctionParameterSource;
 
-import com.google.common.base.Function;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.orm.DatabaseHelper;
@@ -67,7 +68,7 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
         final Map<String, Map<String, XnatAbstractresource>> sessionMap = new HashMap<>();
         for (final ProjectResource resource : resources) {
             if (!sessionMap.containsKey(resource.getExperimentId())) {
-                sessionMap.put(resource.getExperimentId(), new HashMap<String, XnatAbstractresource>());
+                sessionMap.put(resource.getExperimentId(), new HashMap<>());
             }
             sessionMap.get(resource.getExperimentId()).put(resource.getResourceLabel(), function.apply(resource));
         }

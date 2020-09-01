@@ -1,15 +1,14 @@
 package org.nrg.xnatx.plugins.collection.services;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Maps;
+import org.apache.commons.lang3.RandomUtils;
+
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.RandomUtils;
+import java.util.stream.Collectors;
 
 public class DatasetUtils {
     /**
@@ -23,12 +22,9 @@ public class DatasetUtils {
      *
      * @return The key for the entry with the maximum value.
      */
+    @Nonnull
     public static <K, V extends Comparable<V>> Map.Entry<K, V> findMaxValueEntry(final Map<K, V> map) {
-        return Collections.max(map.entrySet(), new Comparator<Map.Entry<K, V>>() {
-            public int compare(final Map.Entry<K, V> entry1, final Map.Entry<K, V> entry2) {
-                return entry1.getValue().compareTo(entry2.getValue());
-            }
-        });
+        return map.entrySet().stream().max(Map.Entry.comparingByValue()).orElseThrow(IllegalArgumentException::new);
     }
 
     public static <T> Map<String, List<T>> partition(final Collection<T> items, final Map<String, Integer> splits) {
@@ -44,12 +40,7 @@ public class DatasetUtils {
                 partitions.put(partitionName, remaining.remove(RandomUtils.nextInt(0, remaining.size())));
             }
         }
-        return Maps.transformValues(partitions.asMap(), new Function<Collection<T>, List<T>>() {
-            @Override
-            public List<T> apply(final Collection<T> collection) {
-                return new ArrayList<>(collection);
-            }
-        });
+        return partitions.asMap().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> new ArrayList<>(entry.getValue())));
     }
 
     private static int sum(final Map<String, Integer> splits) {

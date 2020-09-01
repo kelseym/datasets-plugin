@@ -1,10 +1,5 @@
 package org.nrg.xdat.om.base;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.xdat.XDAT;
@@ -15,6 +10,11 @@ import org.nrg.xft.security.UserI;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetCollectionHandlingException;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetResourceException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Override of generated implementation of this class to provide JSON conversion and resource
@@ -33,7 +33,6 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
     /**
      * @deprecated Use BaseSetsCollection(UserI user)
      */
-    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public BaseSetsCollection() {
         log.warn("This method is deprecated, you should use BaseSetsCollection(UserI) instead.");
@@ -43,6 +42,7 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
         super(properties, user);
     }
 
+    @SuppressWarnings("unused")
     public static boolean validateCollectionId(final String collectionId) {
         return XDAT.getNamedParameterJdbcTemplate().queryForObject(QUERY_VERIFY_COLLECTION_ID, new MapSqlParameterSource("collectionId", collectionId), Boolean.class);
     }
@@ -77,12 +77,7 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
             }
         }
         if (!errors.isEmpty()) {
-            throw new DatasetResourceException((errors.size() == 1 ? "An error" : errors.size() + "errors") + " occurred trying to add resources to a collection. Check the server logs for more information. The following resources may or may not have been successfully added: " + StringUtils.join(Lists.transform(errors, new Function<XnatAbstractresourceI, Integer>() {
-                @Override
-                public Integer apply(final XnatAbstractresourceI resource) {
-                    return resource.getXnatAbstractresourceId();
-                }
-            }), ", "), errors);
+            throw new DatasetResourceException((errors.size() == 1 ? "An error" : errors.size() + "errors") + " occurred trying to add resources to a collection. Check the server logs for more information. The following resources may or may not have been successfully added: " + errors.stream().map(XnatAbstractresourceI::getXnatAbstractresourceId).map(Object::toString).collect(Collectors.joining(", ")), errors);
         }
     }
 
