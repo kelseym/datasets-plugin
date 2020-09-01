@@ -1,11 +1,8 @@
 package org.nrg.xnatx.plugins.collection.rest.permissions;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.nrg.framework.utilities.Reflection;
@@ -13,13 +10,18 @@ import org.nrg.xapi.authorization.AbstractXapiAuthorization;
 import org.nrg.xdat.model.XnatExperimentdataI;
 import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsDefinition;
-import org.nrg.xdat.om.XnatExperimentdata;
 import org.nrg.xdat.security.helpers.AccessLevel;
 import org.nrg.xdat.security.services.PermissionsServiceI;
 import org.nrg.xft.security.UserI;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public abstract class DataSetPermissions<T extends XnatExperimentdataI> extends AbstractXapiAuthorization {
@@ -61,27 +63,25 @@ public abstract class DataSetPermissions<T extends XnatExperimentdataI> extends 
                 }
             }
         }
-        final Map<String, Integer> parameters = getParametersOfType(((MethodSignature) joinPoint.getSignature()), String.class);
+        final Pair<String, String> experiment;
+        final Map<String, Integer> parameters   = getParametersOfType(((MethodSignature) joinPoint.getSignature()), String.class);
+        final boolean              hasProject   = parameters.containsKey("project");
+        final boolean              hasProjectId = parameters.containsKey("projectId");
+        final boolean              hasIdOrLabel = parameters.containsKey("idOrLabel");
+        final boolean              hasLabel     = parameters.containsKey("label");
         if (parameters.containsKey("id")) {
-            final int                index      = parameters.get("id");
-            final XnatExperimentdata experiment = XnatExperimentdata.getXnatExperimentdatasById(joinPoint.getArgs()[index], user, false);
-            return !StringUtils.isNoneBlank(experiment.getProject(), experiment.getLabel()) || !forbidden(user, experiment.getProject(), _xmlPath, experiment.getLabel());
+            experiment = _template.queryForObject(QUERY_EXPT_BY_ID, new MapSqlParameterSource("experimentId", parameters.get("id")), EXPT_MAPPER_ID_PROJECT_LABEL);
+        } else if ((hasProject || hasProjectId) && (hasIdOrLabel || hasLabel)) {
+            final String projectId = (String) joinPoint.getArgs()[parameters.get(hasProject ? "project" : "projectId")];
+            final Object idOrLabel = joinPoint.getArgs()[parameters.get(hasIdOrLabel ? "idOrLabel" : "label")];
+            experiment = _template.queryForObject(QUERY_EXPT_BY_PROJECT_AND_ID_OR_LABEL, new MapSqlParameterSource("project", projectId).addValue("idOrLabel", idOrLabel), EXPT_MAPPER_ID_PROJECT_LABEL);
+        } else {
+            experiment = null;
         }
-        final boolean hasProject   = parameters.containsKey("project");
-        final boolean hasProjectId = parameters.containsKey("projectId");
-        final boolean hasIdOrLabel = parameters.containsKey("idOrLabel");
-        final boolean hasLabel     = parameters.containsKey("label");
-        if ((hasProject || hasProjectId) && (hasIdOrLabel || hasLabel)) {
-            final String id = _template.queryForObject("SELECT id FROM xnat_experimentdata WHERE project = :project AND (id = :idOrLabel OR label = :idOrLabel)",
-                                                       new MapSqlParameterSource("project", joinPoint.getArgs()[parameters.get(hasProject ? "project" : "projectId")])
-                                                           .addValue("idOrLabel", joinPoint.getArgs()[parameters.get(hasIdOrLabel ? "idOrLabel" : "label")]),
-                                                       String.class);
-            final XnatExperimentdata experiment = XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
-            return !StringUtils.isNoneBlank(experiment.getProject(), experiment.getLabel()) || !forbidden(user, experiment.getProject(), _xmlPath, experiment.getLabel());
-        }
-        return true;
+        return experiment != null && (!StringUtils.isNoneBlank(experiment.getKey(), experiment.getValue()) || !forbidden(user, experiment.getKey(), _xmlPath, experiment.getValue()));
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected Map<String, Integer> getParametersOfType(final MethodSignature signature, final Class<?> type) {
         final Map<String, Integer> names = new HashMap<>();
         final int                  size  = signature.getParameterNames().length;
@@ -113,6 +113,10 @@ public abstract class DataSetPermissions<T extends XnatExperimentdataI> extends 
         }
         return false;
     }
+
+    private static final RowMapper<Pair<String, String>> EXPT_MAPPER_ID_PROJECT_LABEL          = (results, rowNum) -> Pair.of(results.getString("project"), results.getString("label"));
+    private static final String                          QUERY_EXPT_BY_PROJECT_AND_ID_OR_LABEL = "SELECT project, label FROM xnat_experimentdata WHERE project = :project AND (id = :idOrLabel OR label = :idOrLabel)";
+    private static final String                          QUERY_EXPT_BY_ID                      = "SELECT project, label FROM xnat_experimentdata WHERE id = :experimentId";
 
     private final PermissionsServiceI        _permissions;
     private final NamedParameterJdbcTemplate _template;

@@ -30,9 +30,9 @@ import org.nrg.xft.security.UserI;
 import org.nrg.xft.utils.SaveItemHelper;
 import org.nrg.xft.utils.ValidationUtils.ValidationResults;
 import org.nrg.xnat.utils.WorkflowUtils;
+import org.nrg.xnatx.plugins.collection.exceptions.DatasetDefinitionHandlingException;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetObjectException;
 import org.nrg.xnatx.plugins.collection.services.DatasetObjectService;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
@@ -47,15 +47,12 @@ import java.util.Map;
 @Accessors(prefix = "_")
 @Slf4j
 public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentdata> implements DatasetObjectService<T> {
-    private final Class<? extends T>       _dataType;
-    private final Constructor<? extends T> _itemIConstructor;
-
     protected AbstractXftDatasetObjectService(final PermissionsServiceI permissions, final NamedParameterJdbcTemplate template) {
         _permissions = permissions;
         _template = template;
         _dataType = Reflection.getParameterizedTypeForClass(getClass());
         try {
-            _itemIConstructor = _dataType.getConstructor(ItemI.class);
+            _constructor = _dataType.getConstructor(ItemI.class);
         } catch (NoSuchMethodException e) {
             throw new DatasetObjectException("Got an error trying to get the ItemI constructor for the data type: " + _dataType.getName(), e);
         }
@@ -90,30 +87,12 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
 
     @Override
     public T findById(final UserI user, final String id) throws NotFoundException {
-        if (!_template.queryForObject(QUERY_EXPT_ID_WITH_DATA_TYPE_EXISTS, new MapSqlParameterSource(PARAM_EXPERIMENT, id).addValue(PARAM_DATA_TYPE, _xsiType), Boolean.class)) {
-            throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
-        }
-        //noinspection unchecked
-        final T experiment = (T) XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
-        if (experiment == null) {
-            throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
-        }
-        try {
-            return _itemIConstructor.newInstance(experiment.getItem());
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-            log.error("An error occurred invoking the XFTItem constructor for the class implementation of the schema element for XSI type {}", _xsiType, e);
-        }
-        return null;
+        return getExperiment(user, id);
     }
 
     @Override
     public T findByProjectAndIdOrLabel(final UserI user, final String projectId, final String idOrLabel) throws NotFoundException {
-        try {
-            //noinspection unchecked
-            return (T) XnatExperimentdata.getXnatExperimentdatasById(getIdForProjectAndLabel(projectId, idOrLabel), user, false);
-        } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException("User " + user.getUsername() + " requested experiment with project " + projectId + " and label " + idOrLabel + ", but that doesn't exist.");
-        }
+        return getExperiment(user, projectId, idOrLabel);
     }
 
     @Override
@@ -129,6 +108,28 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     @Override
     public void delete(final UserI user, final String project, final String idOrLabel) throws NotFoundException, InsufficientPrivilegesException {
         deleteImpl(user, findByProjectAndIdOrLabel(user, project, idOrLabel));
+    }
+
+    protected T getExperiment(final UserI user, final String id) throws NotFoundException {
+        if (!_template.queryForObject(QUERY_EXPT_ID_WITH_DATA_TYPE_EXISTS, new MapSqlParameterSource(PARAM_EXPERIMENT, id).addValue(PARAM_DATA_TYPE, _xsiType), Boolean.class)) {
+            throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
+        }
+        final XnatExperimentdata experiment = XnatExperimentdata.getXnatExperimentdatasById(id, user, false);
+        if (experiment == null) {
+            throw new NotFoundException("User " + user.getUsername() + " requested " + _xsiType + " experiment with ID " + id + ", but that doesn't exist.");
+        }
+        if (!StringUtils.equals(T.SCHEMA_ELEMENT_NAME, experiment.getXSIType())) {
+            throw new NotFoundException("Found an experiment with ID " + id + " but it's not the correct data type: expected " + _xsiType + " but found " + experiment.getXSIType() + ".");
+        }
+        try {
+            return _constructor.newInstance(experiment.getItem());
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            throw new DatasetDefinitionHandlingException("An error occurred invoking the XFTItem constructor for the class implementation of the schema element for XSI type " + _xsiType, e);
+        }
+    }
+
+    protected T getExperiment(final UserI user, final String projectId, final String idOrLabel) throws NotFoundException {
+        return getExperiment(user, getIdForProjectAndLabel(projectId, idOrLabel));
     }
 
     protected String getIdForProjectAndLabel(final String projectId, final String idOrLabel) {
@@ -288,8 +289,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
                 }
             }
             WorkflowUtils.complete(workflow, meta);
-            //noinspection unchecked
-            return (T) XnatExperimentdata.getXnatExperimentdatasById(xftItem.getIDValue(), user, false);
+            return getExperiment(user, xftItem.getIDValue());
         } catch (InsufficientPrivilegesException e) {
             throw e;
         } catch (Exception e) {
@@ -419,4 +419,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
     private final String                     _xsiType;
     private final String                     _xsiXmlPath;
     private final String                     _projectXmlPath;
+    private final Class<? extends T>         _dataType;
+    private final Constructor<? extends T>   _constructor;
+
 }

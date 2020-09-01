@@ -7,6 +7,28 @@
  * Released under the Simplified BSD.
  */
 
+/*
+// TODO: The newer style of Gradle plugin reference causes the xnat-data-builder plugin to fail when adding dependency on xnatDataBuilder task for the jar task. It also can't be mapped explicitly with, e.g., jar { dependsOn xnatDataBuilder }.
+buildscript {
+    ext {
+        vXnat = "ML-0.2-SNAPSHOT"
+    }
+}
+
+plugins {
+    id "eclipse"
+    id "idea"
+    id "jacoco"
+    id "java"
+    id "maven-publish"
+    id "com.dorongold.task-tree" version "1.5"
+    id "com.palantir.git-version" version "0.12.3"
+    id "io.franzbecker.gradle-lombok" version "4.0.0"
+    id "io.spring.dependency-management" version "1.0.9.RELEASE"
+    id "org.nrg.xnat.build.xnat-data-builder" version "${vXnat}"
+}
+*/
+
 buildscript {
     ext {
         vXnat = "ML-0.2-SNAPSHOT"
@@ -21,8 +43,9 @@ buildscript {
     }
     dependencies {
         classpath "com.palantir.gradle.gitversion:gradle-git-version:0.12.3"
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE"
+        classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.5"
         classpath "io.franzbecker:gradle-lombok:4.0.0"
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE"
         classpath "org.nrg.xnat.build:xnat-data-builder:${vXnat}"
     }
 }
@@ -32,6 +55,7 @@ apply plugin: "idea"
 apply plugin: "jacoco"
 apply plugin: "java"
 apply plugin: "maven-publish"
+apply plugin: "com.dorongold.task-tree"
 apply plugin: "com.palantir.git-version"
 apply plugin: "io.spring.dependency-management"
 apply plugin: "io.franzbecker.gradle-lombok"
@@ -161,11 +185,9 @@ ext.gitManifest = manifest {
 sourceSets {
     main {
         java {
-            srcDir "src/main/java"
             srcDir "build/xnat-generated/src/main/java"
         }
         resources {
-            srcDir "src/main/resources"
             srcDir "build/xnat-generated/src/main/resources"
             exclude "**/*-dev**"
         }
@@ -189,7 +211,7 @@ task javadocJar(type: Jar) {
 }
 
 jar {
-    dependsOn sourceJar, javadocJar
+    dependsOn test, sourceJar, javadocJar
     enabled = true
     manifest {
         from gitManifest
@@ -230,6 +252,11 @@ publishing {
                         appendNode("name", "Mike McKay")
                         appendNode("email", "mfmckay@wustl.edu")
                     }
+                    appendNode("developer").with {
+                        appendNode("id", "rherrick")
+                        appendNode("name", "Rick Herrick")
+                        appendNode("email", "jrherrick@wustl.edu")
+                    }
                 }
             }
         }
@@ -242,11 +269,7 @@ publishing {
                 username propertyWithDefault("repoUsername", "username")
                 password propertyWithDefault("repoPassword", "password")
             }
-            if (project.version.endsWith("-SNAPSHOT")) {
-                url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot-local"
-            } else {
-                url "https://nrgxnat.jfrog.io/nrgxnat/libs-release-local"
-            }
+            url "https://nrgxnat.jfrog.io/nrgxnat/libs-${project.version.endsWith("-SNAPSHOT") ? "snapshot" : "release"}-local"
         }
     }
 }
