@@ -53,7 +53,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
         _template = template;
         _dataType = Reflection.getParameterizedTypeForClass(getClass());
         try {
-            _factoryMethod = _dataType.getMethod("get" + _dataType.getSimpleName() + "ById", Object.class, UserI.class, Boolean.TYPE);
+            _factoryMethod = _dataType.getMethod("get" + _dataType.getSimpleName() + "sById", Object.class, UserI.class, Boolean.TYPE);
         } catch (NoSuchMethodException e) {
             throw new DatasetObjectException("Got an error trying to get the ItemI constructor for the data type: " + _dataType.getName(), e);
         }

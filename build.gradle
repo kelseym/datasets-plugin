@@ -212,7 +212,6 @@ task javadocJar(type: Jar) {
 
 jar {
     dependsOn test, sourceJar, javadocJar
-    enabled = true
     manifest {
         from gitManifest
     }
