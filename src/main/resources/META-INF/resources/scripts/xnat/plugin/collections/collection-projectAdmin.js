@@ -33,8 +33,10 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
      * GLOBAL FUNCTIONS *
      * ================ */
 
+
     var undefined,
-        projectId = XNAT.data.context.project,
+        urlParams = new URLSearchParams(window.location.search),
+        projectId = XNAT.data.context.project || urlParams.get('id'),
         rootUrl = XNAT.url.rootUrl,
         restUrl = XNAT.url.restUrl,
         csrfUrl = XNAT.url.csrfUrl;
