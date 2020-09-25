@@ -82,7 +82,7 @@ public abstract class DataSetPermissions<T extends XnatExperimentdataI> extends 
         } else {
             experiment = null;
         }
-        return experiment != null && (StringUtils.isNotBlank(experiment.getValue()) ? !forbidden(user, experiment.getKey(), _xmlPath, experiment.getValue()) : !forbidden(user, experiment.getKey(), _xmlPath));
+        return experiment == null || (StringUtils.isNotBlank(experiment.getValue()) ? !forbidden(user, experiment.getKey(), _xmlPath, experiment.getValue()) : !forbidden(user, experiment.getKey(), _xmlPath));
     }
 
     @SuppressWarnings("SameParameterValue")

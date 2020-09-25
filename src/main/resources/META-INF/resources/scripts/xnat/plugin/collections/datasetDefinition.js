@@ -26,7 +26,8 @@ var XNAT = getObject(XNAT || {});
     XNAT.plugin.collection.sets = sets =
         getObject(XNAT.plugin.collection.sets || {});
 
-    var projectId = XNAT.data.context.project;
+    var urlParams = new URLSearchParams(window.location.search);
+    var projectId = urlParams.get('id');
     var rootUrl   = XNAT.url.rootUrl;
     var restUrl   = XNAT.url.restUrl;
     var csrfUrl   = XNAT.url.csrfUrl;

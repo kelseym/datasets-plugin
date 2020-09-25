@@ -71,7 +71,8 @@ BEGIN
             LEFT JOIN xnat_abstractresource_meta_data armd ON ar.abstractresource_info = armd.meta_data_id
             LEFT JOIN xnat_resource r ON ar.abstractresource_info = r.xnat_abstractresource_id
         WHERE
-            x.project = projectId
+            x.project = projectId AND
+            ar.xnat_abstractresource_id IS NOT NULL
         ORDER BY
             x.project,
             s.label,
@@ -137,7 +138,7 @@ BEGIN
                        '    LEFT JOIN xnat_abstractresource_meta_data abstract_md ON abstract.abstractresource_info = abstract_md.meta_data_id ' ||
                        '    LEFT JOIN xnat_resource resource ON abstract.abstractresource_info = resource.xnat_abstractresource_id ' ||
                        'WHERE ' ||
-                       '    expt.project = ''%s'' AND (%s)', projectId, criteria);
+                       '    expt.project = ''%s'' AND abstract.xnat_abstractresource_id IS NOT NULL AND (%s)', projectId, criteria);
 END
 $_$
     LANGUAGE plpgsql;

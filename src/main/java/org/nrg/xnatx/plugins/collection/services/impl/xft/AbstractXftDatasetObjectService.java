@@ -229,6 +229,9 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
                 throw new DataFormatException(validation.toFullString());
             }
         } catch (Exception e) {
+            if (e instanceof DataFormatException) {
+                throw (DataFormatException) e;
+            }
             throw new DatasetObjectException("An error occurred trying to validate an item of type " + item.getXSIType() + " in the project " + project + " for user " + username, e);
         }
 
