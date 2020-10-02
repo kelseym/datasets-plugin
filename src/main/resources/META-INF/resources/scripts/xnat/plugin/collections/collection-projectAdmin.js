@@ -33,14 +33,6 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
      * GLOBAL FUNCTIONS *
      * ================ */
 
-
-    var undefined,
-        urlParams = new URLSearchParams(window.location.search),
-        projectId = XNAT.data.context.project || urlParams.get('id'),
-        rootUrl = XNAT.url.rootUrl,
-        restUrl = XNAT.url.restUrl,
-        csrfUrl = XNAT.url.csrfUrl;
-
     function spacer(width) {
         return spawn('i.spacer', {
             style: {
@@ -79,6 +71,35 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             ]
         });
     }
+
+    function getUrlParams(){
+        var paramObj = {};
+
+        // get the querystring param, redacting the '?', then convert to an array separating on '&'
+        var urlParams = window.location.search.substr(1,window.location.search.length);
+        urlParams = urlParams.split('&');
+
+        urlParams.forEach(function(param){
+            // iterate over every key=value pair, and add to the param object
+            param = param.split('=');
+            paramObj[param[0]] = param[1];
+        });
+
+        return paramObj;
+    }
+
+    function getProjectId(){
+        if (XNAT.data.context.projectID.length > 0) return XNAT.data.context.projectID;
+        return getUrlParams().id;
+    }
+
+    var undefined,
+        urlParams = new URLSearchParams(window.location.search),
+        projectId = XNAT.data.context.project || getProjectId(),
+        rootUrl = XNAT.url.rootUrl,
+        restUrl = XNAT.url.restUrl,
+        csrfUrl = XNAT.url.csrfUrl;
+
 
     /* =========================== *
      * DISPLAY LIST OF COLLECTIONS  *
@@ -309,6 +330,10 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
 
         projDatasets.resetSavedDatasets();
         projDatasets.getSavedDatasets();
+
+        $(document).find('h2.edit_header1').html(
+            'Manage Datasets for <a href="'+XNAT.url.rootUrl('/data/projects/'+projectId)+'">'+projectId+'</a>'
+        );
     };
 
     try {
