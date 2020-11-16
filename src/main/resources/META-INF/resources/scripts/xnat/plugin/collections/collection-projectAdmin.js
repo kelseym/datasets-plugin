@@ -90,7 +90,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
 
     function getProjectId(){
         if (XNAT.data.context.projectID.length > 0) return XNAT.data.context.projectID;
-        return getUrlParams().id;
+        return (getUrlParams().project) ? getUrlParams().project : getUrlParams().id;
     }
 
     var undefined,

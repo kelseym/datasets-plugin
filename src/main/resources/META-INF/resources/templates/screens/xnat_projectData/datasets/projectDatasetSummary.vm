@@ -19,7 +19,7 @@
     </div>
 </div>
 <p>
-    <a href="$content.getURI("/app/template/Page.vm?view=datasets/dashboard&project=$!{project.getId()}")">
+    <a href="$content.getURI("/app/template/Page.vm?view=datasets/dashboard&id=$!{project.getId()}")">
         <button class="btn">Manage Datasets</button>
     </a>
 </p>
