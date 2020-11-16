@@ -261,7 +261,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
 
     projDatasets.resetSavedDatasets = function(){
         var container = $('#proj-saved-datasets-list-container');
-        container.empty().append(spawn('div.message','No datasets have been defined in this project.'))
+        container.empty().append(spawn('p','No datasets have been defined in this project.'))
     };
 
     projDatasets.getSavedDatasets = function(){
@@ -334,6 +334,27 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         $(document).find('h2.edit_header1').html(
             'Manage Datasets for <a href="'+XNAT.url.rootUrl('/data/projects/'+projectId)+'">'+projectId+'</a>'
         );
+
+        if (!refresh){
+            // add help button to header
+            var $header = $('#proj-saved-datasets-list-container').find('.panel-heading');
+            var helpButton = spawn('button.btn.btn-hover.sm.pull-right', {
+                style: {color: '#fff'},
+                onclick: function(e){
+                    e.preventDefault();
+
+                    XNAT.dialog.message({
+                        width: 550,
+                        title: 'Help Creating Datasets',
+                        content: spawn('!',[
+                            spawn('p','An XNAT ML Training Config contains configuration JSON as well as several other properties, which can be entered via the XNAT UI.'),
+                            spawn('p','For help creating a working configuration, see <a href="https://wiki.xnat.org/ml/creating-a-training-config-for-your-model" target="_blank"><b>XNAT ML Documentation</b></a>')
+                        ])
+                    })
+                }
+            },[ spawn('i.fa.fa-info-circle') ]);
+            $header.prepend(helpButton);
+        }
     };
 
     try {

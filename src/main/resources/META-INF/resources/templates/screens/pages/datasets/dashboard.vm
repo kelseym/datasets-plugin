@@ -27,7 +27,11 @@
         <div class="tab-pane active" data-name="projectDatasetCriteriaTab" data-tab="project-dataset-criteria">
             <div class="panel panel-default" id="project-dataset-criteria-panel">
                 <div class="panel-heading">
-                    <span class="pull-right"><button class="btn btn-sm" onclick="XNAT.plugin.collection.sets.createDefinition()">Create Dataset Definition</button></span>
+                    <span class="pull-right">
+                        <button class="btn btn-sm" onclick="XNAT.plugin.collection.sets.createDefinition()">Create Dataset Definition</button>
+                        <i class="spacer" style="width: 6px"></i>
+                        <button class="btn btn-sm btn-hover" style="color: #fff" onclick="XNAT.plugin.collection.sets.showDatasetDefinitionHelp()"><i class="fa fa-info-circle"></i></button>
+                    </span>
                     <h3 class="panel-title">Dataset Criteria Definitions</h3>
                 </div>
                 <div class="panel-body">
@@ -41,7 +45,11 @@
             <br>
             <div class="panel panel-default disabled" id="project-dataset-validation-panel">
                 <div class="panel-heading">
-                    <span class="pull-right"><button class="btn btn-sm save-dataset disabled" id="save-dataset-button">Save Dataset</button></span>
+                    <span class="pull-right">
+                        <button class="btn btn-sm save-dataset disabled" id="save-dataset-button">Save Dataset</button>
+                        <i class="spacer" style="width: 6px"></i>
+                        <button class="btn btn-sm btn-hover" style="color: #fff" onclick="XNAT.plugin.collection.sets.showDatasetValidationHelp()"><i class="fa fa-info-circle"></i></button>
+                    </span>
                     <h3 class="panel-title">Dataset Validation</h3>
                 </div>
                 <div class="panel-body">
