@@ -22,7 +22,7 @@
 </div>
 </div>
 </div>
-<div id="experiment-summary" style="width: 70%">
+<div id="experiment-summary" class="yui-navset" style="width: 70%">
     <!-- BEGIN SET AND PARSE SUMMARY TABS -->
     #addCustomScreens($om.getXSIType() "report/preContent")
     #set($summary_tabs=$turbineUtils.getTemplateName("_summary_tabs","sets:definition", $project))

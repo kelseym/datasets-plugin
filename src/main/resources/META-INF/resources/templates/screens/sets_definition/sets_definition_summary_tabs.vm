@@ -42,4 +42,37 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    function summaryIndexChanged(){
+        var activeIndex=this.get("activeIndex");
+        #define($projectIdEsc)#escapeJS("$!project.getId()")#end
+        YAHOO.util.Cookie.set("${projectIdEsc.trim()}.summary.index",activeIndex);
+    }
+    function toggleLI(_name){
+        var elements = document.getElementsByName("li_"+_name);
+        for(var trI=0;trI<elements.length;trI++){
+            if(elements[trI].style.display=="none"){
+                elements[trI].style.display="block";
+            }else{
+                elements[trI].style.display="none";
+            }
+        }
+    }
+
+    function summaryTabManagerInit(){
+        window.summaryTabView = new YAHOO.widget.TabView('definitionSummary');
+
+        window.expt_summary_module = new YAHOO.widget.Module("expt_summary_module",{visible:false,zIndex:5});
+
+        #addCustomScreenJS($om.getXSIType() "report/tabs_js")
+
+        window.expt_summary_module.show();
+        #define($omIdEsc)#escapeJS("$!om.getId()")#end
+        var tabIndex=YAHOO.util.Cookie.get("${omIdEsc.trim()}.summary.index}");
+        window.summaryTabView.set('activeIndex',tabIndex||0);
+
+        window.summaryTabView.subscribe("activeTabChange",summaryIndexChanged);
+    }
+    summaryTabManagerInit();
+</script>
 <!-- END META-INF/resources/templates/screens/sets_definition/sets_definition_summary_tabs.vm -->
