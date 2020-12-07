@@ -7,31 +7,9 @@
  * Released under the Simplified BSD.
  */
 
-/*
-// TODO: The newer style of Gradle plugin reference causes the xnat-data-builder plugin to fail when adding dependency on xnatDataBuilder task for the jar task. It also can't be mapped explicitly with, e.g., jar { dependsOn xnatDataBuilder }.
 buildscript {
     ext {
-        vXnat = "ML-0.2-SNAPSHOT"
-    }
-}
-
-plugins {
-    id "eclipse"
-    id "idea"
-    id "jacoco"
-    id "java"
-    id "maven-publish"
-    id "com.dorongold.task-tree" version "1.5"
-    id "com.palantir.git-version" version "0.12.3"
-    id "io.franzbecker.gradle-lombok" version "4.0.0"
-    id "io.spring.dependency-management" version "1.0.9.RELEASE"
-    id "org.nrg.xnat.build.xnat-data-builder" version "${vXnat}"
-}
-*/
-
-buildscript {
-    ext {
-        vXnat = "ML-0.2-SNAPSHOT"
+        vXnat = "1.8.0-SNAPSHOT"
     }
     repositories {
         mavenLocal()

@@ -1,3 +1,9 @@
+#* @vtlvariable name="content" type="org.apache.turbine.services.pull.tools.ContentTool" *#
+#* @vtlvariable name="item" type="org.nrg.xft.XFTItem" *#
+#* @vtlvariable name="om" type="org.nrg.xdat.om.SetsCollection" *#
+#* @vtlvariable name="project" type="org.nrg.xdat.om.XnatProjectdata" *#
+#* @vtlvariable name="tab" type="java.util.Properties" *#
+#* @vtlvariable name="tabs" type="java.util.List" *#
 <!-- BEGIN META-INF/resources/templates/screens/sets_collection/sets_collection_summary_tabs.vm -->
 #set($definitionId=$!item.getStringProperty("sets:collection/definition_id"))
 
@@ -17,11 +23,11 @@
                 <table>
                     <tr>
                         <th align="left">ID:</th>
-                        <td>$!item.getStringProperty("sets:collection/ID")</td>
+                        <td>$!om.id</td>
                     </tr>
                     <tr>
                         <th align="left">Date Added:</th>
-                        <td>$!item.getStringProperty("sets:collection/date")</td>
+                        <td>$!om.insertDate</td>
                     </tr>
                     <tr>
                         <th align="left">Dataset Definition:</th>
@@ -60,14 +66,9 @@
         YAHOO.util.Cookie.set("${projectIdEsc.trim()}.summary.index",activeIndex);
     }
     function toggleLI(_name){
-        var elements = document.getElementsByName("li_"+_name);
-        for(var trI=0;trI<elements.length;trI++){
-            if(elements[trI].style.display=="none"){
-                elements[trI].style.display="block";
-            }else{
-                elements[trI].style.display="none";
-            }
-        }
+        document.getElementsByName("li_"+_name).forEach(element => {
+            element.style.display = element.style.display === "none" ? "block" : "none";
+        })
     }
 
     function summaryTabManagerInit(){
@@ -75,10 +76,10 @@
 
         window.expt_summary_module = new YAHOO.widget.Module("expt_summary_module",{visible:false,zIndex:5});
 
-        #addCustomScreenJS($om.getXSIType() "report/tabs_js")
+        #addCustomScreenJS($om.xSIType "report/tabs_js")
 
         window.expt_summary_module.show();
-        #define($omIdEsc)#escapeJS("$!om.getId()")#end
+        #define($omIdEsc)#escapeJS("$!om.id")#end
         var tabIndex=YAHOO.util.Cookie.get("${omIdEsc.trim()}.summary.index}");
         window.summaryTabView.set('activeIndex',tabIndex||0);
 

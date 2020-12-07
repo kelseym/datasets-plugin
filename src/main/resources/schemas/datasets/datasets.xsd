@@ -8,10 +8,12 @@
   -->
 
 <!--suppress XmlPathReference -->
-<xs:schema targetNamespace="http://nrg.wustl.edu/sets" xmlns:sets="http://nrg.wustl.edu/sets" xmlns:xnat="http://nrg.wustl.edu/xnat" xmlns:xdat="http://nrg.wustl.edu/xdat" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+<xs:schema targetNamespace="http://nrg.wustl.edu/sets" xmlns:sets="http://nrg.wustl.edu/sets" xmlns:xnat="http://nrg.wustl.edu/xnat" xmlns:xdat="http://nrg.wustl.edu/xdat"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
     <xs:import namespace="http://nrg.wustl.edu/xdat" schemaLocation="../xdat/xdat.xsd"/>
     <xs:import namespace="http://nrg.wustl.edu/xnat" schemaLocation="../xnat/xnat.xsd"/>
 
+    <xs:element name="Criterion" type="sets:criterion"/>
     <xs:element name="Definition" type="sets:definition"/>
     <xs:element name="Collection" type="sets:collection"/>
 
