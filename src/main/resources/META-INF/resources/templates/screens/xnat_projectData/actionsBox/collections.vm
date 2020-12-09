@@ -1,6 +1,6 @@
 <!-- Sequence: 95 -->
 
-#if($userHelper.canEdit("xnat:subjectData/project", $project.getId()))
+#if($userHelper.canDelete("xnat:subjectData/project", $project.getId()))
 
 ##</ul>
 ##<script src="$content.getURI("/scripts/xnat/plugin/collections/create-collection.js")"></script>
