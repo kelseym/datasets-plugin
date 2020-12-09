@@ -331,9 +331,9 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         projDatasets.resetSavedDatasets();
         projDatasets.getSavedDatasets();
 
-        $(document).find('h2.edit_header1').html(
-            'Manage Datasets for <a href="'+XNAT.url.rootUrl('/data/projects/'+projectId)+'">'+projectId+'</a>'
-        );
+        $(document).find('h2.edit_header1').find('a.project')
+            .html(projectId)
+            .prop('href',XNAT.url.rootUrl('/data/projects/'+projectId))
 
         if (!refresh){
             // add help button to header
