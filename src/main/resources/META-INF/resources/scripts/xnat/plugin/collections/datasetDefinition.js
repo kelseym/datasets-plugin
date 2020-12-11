@@ -83,7 +83,7 @@ var XNAT = getObject(XNAT || {});
 
         sets.criteria = _editor;
         var labelInput = (dfn.label) ?
-            spawn('input.def-label|name=label|size=30|value='+dfn.label) :
+            spawn('input.def-label|name=label|size=30|value='+dfn.label,{ 'readonly': 'readonly'}) :
             spawn('input.def-label|name=label|size=30');
 
         function dfnMeta(){
@@ -169,6 +169,12 @@ var XNAT = getObject(XNAT || {});
 
                         };
 
+                        if (defData.description === undefined) {
+                            dialog.body$.find('[name="description"]').addClass('invalid');
+                            XNAT.ui.banner.top(4000,'Dataset definition required','warning');
+                            return false;
+                        }
+
                         if (/([!@#$%^&*\'\"\[\]]|\-|\s)+/g.test(defData.label)){
                             defData.label = defData.label.replace(/([!@#$%^&*\'\"\[\]]|\-|\s)+/g,'_');
                             // errorHandler({status: 'Not Allowed',responseText: 'Definition labels cannot have spaces or special characters.'});
@@ -189,6 +195,9 @@ var XNAT = getObject(XNAT || {});
                                     dialog.close();
                                     XNAT.ui.banner.top(2000, 'Definition saved.', 'success');
                                     XNAT.plugin.collection.sets.initDashboard();
+                                },
+                                fail: function(e){
+                                    errorHandler(e,"Could not save Dataset Parameter Definition",true)
                                 }
                             })
                         } else {
@@ -200,6 +209,9 @@ var XNAT = getObject(XNAT || {});
                                     dialog.close();
                                     XNAT.ui.banner.top(2000, 'Definition updated.', 'success');
                                     XNAT.plugin.collection.sets.initDashboard();
+                                },
+                                fail: function(e){
+                                    errorHandler(e,"Could not save Dataset Parameter Definition",true)
                                 }
                             })
                         }

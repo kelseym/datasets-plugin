@@ -41,10 +41,25 @@
 <script>
     // prettify the JSON output, if there are any files in the collection
     $(document).ready(function(){
+        function strToArray(str){
+            str = str.replace('[','').replace(']','');
+            return str.split(',');
+        }
+
         var container = $('#sets-collection-files');
         var files = JSON.parse(container.html());
         if (files.length){
-            container.html(spawn('pre',{style: { border: '1px solid #ccc', padding: '6px' }},JSON.stringify(files,null,4)));
+            files.forEach(function(fileset,i){
+                var keys = Object.keys(fileset);
+                keys.forEach(function(key){
+                    if (isString(fileset[key]) && fileset[key].indexOf('[') >= 0){
+                        fileset[key] = strToArray(fileset[key])
+                    }
+                });
+                files[i] = fileset;
+            })
+
+            container.html(spawn('pre',{style: { border: '1px solid #ccc', padding: '6px', 'overflow-x': 'auto' }},JSON.stringify(files,null,4)));
         }
         else {
             container.html('<pre>None</pre>')
