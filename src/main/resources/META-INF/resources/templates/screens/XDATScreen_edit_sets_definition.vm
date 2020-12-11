@@ -1,0 +1,8 @@
+#set($projectId=$!item.getProperty("project"))
+
+<div class="message">
+    Editing dataset definitions can be done via the Project Machine Learning Dashboard. <br>
+    <a href="$content.getURI("/app/template/Page.vm?view=datasets/dashboard&id=$!{projectId}")">
+        <button class="btn">Manage Datasets</button>
+    </a>
+</div>

@@ -6,6 +6,7 @@
 #* @vtlvariable name="tabs" type="java.util.List" *#
 <!-- BEGIN META-INF/resources/templates/screens/sets_collection/sets_collection_summary_tabs.vm -->
 #set($definitionId=$!item.getStringProperty("sets:collection/definition_id"))
+#set($projectId=$!item.getProperty("project"))
 
 <div>
     <div id="collectionSummary" class="yui-navset">
@@ -48,6 +49,11 @@
                         <td>$!item.getStringProperty("sets:collection/fileSize")</td>
                     </tr>
                 </table>
+                <p>
+                    <a href="$content.getURI("/app/template/Page.vm?view=datasets/dashboard&id=$!{projectId}")">
+                        <button class="btn">Manage Datasets</button>
+                    </a>
+                </p>
             </div>
 
             #foreach($tab in $tabs)

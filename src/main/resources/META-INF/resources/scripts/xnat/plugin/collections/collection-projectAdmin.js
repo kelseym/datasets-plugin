@@ -221,6 +221,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
     };
 
     projDatasets.displaySavedDatasets = function(datasets){
+
         function viewButton(id){
             return spawn('button.btn.btn-sm.view-dataset',{ title: 'View Dataset', data: {id:id}},[ spawn('i.fa.fa-eye')])
         }
@@ -230,10 +231,13 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         function datasetLink(dataset){
             return spawn('a.view-dataset',{href: 'javascript:void', data: {id: dataset.id}},dataset.label);
         }
+        function displayDate(timestamp) {
+            var d = new Date(timestamp * 1); // simple hack to convert string to integer
+            return spawn('span', d.toUTCString());
+        }
         function resolveDate(label){
             var timestamp = label.split('-')[label.split('-').length-1];
-            var d = new Date(timestamp*1); // simple hack to convert string to integer
-            return spawn('span',d.toUTCString());
+            return displayDate(timestamp);
         }
 
         var sdTable = XNAT.table({addClass: 'xnat-table', style: { width: '100%' }});
@@ -247,7 +251,8 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             sdTable.tr()
                 .td({ addClass: 'first-cell'},[[ '!',datasetLink(dataset) ]])
                 .td([[ 'div.right', dataset.fileCount ]])
-                .td([[ '!',resolveDate(dataset.label)]])
+                // .td([[ '!',resolveDate(dataset.label)]])
+                .td([[ '!',displayDate(dataset.timestamp) ]])
                 .td([[ 'div.center', [
                     viewButton(dataset.id),
                     spacer(6),
@@ -270,6 +275,11 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             fail: function(e){ errorHandler(e,'Error trying to retrieve saved dataset for '+projectId+'.')},
             success: function(data){
                 if (data.length) {
+                    data.forEach(function(entry){
+                        var timestamp = entry.label.split('-')[entry.label.split('-').length-1];
+                        entry.timestamp = timestamp || '0';
+                    });
+                    data = data.sort(function(a,b){ return (a.timestamp > b.timestamp) ? -1 : 1 });
                     XNAT.plugin.collection.projDatasets.savedDatasets = data;
                     projDatasets.displaySavedDatasets(data);
                 } else {
