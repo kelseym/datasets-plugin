@@ -114,8 +114,8 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
                                                                "    resource_description, " +
                                                                "    experiment_last_modified, " +
                                                                "    resource_last_modified, " +
-                                                               "    resource_file_count, " +
-                                                               "    resource_size, " +
+                                                               "    coalesce(resource_file_count, 0) AS resource_file_count, " +
+                                                               "    coalesce(resource_size, 0) AS resource_size_count, " +
                                                                "    %s " +
                                                                "FROM " +
                                                                "    all_resources";
