@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!--
-  ~ xnatx-collection: src/main/resources/schemas/datasets/datasets.xsd
+  ~ Clara Plugin: datasets.xsd
   ~ XNAT http://www.xnat.org
-  ~ Copyright (c) 2020, Washington University School of Medicine
+  ~ Copyright (c) 2005-2020, Washington University School of Medicine
   ~ All Rights Reserved
   ~
   ~ Released under the Simplified BSD.
@@ -50,14 +50,14 @@
 
     <xs:complexType name="definition">
         <xs:annotation>
-            <xs:documentation>Defines the primary attributes and elements for Clara processing configurations.</xs:documentation>
+            <xs:documentation>Defines the primary attributes and elements for a dataset definition.</xs:documentation>
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="xnat:abstractProjectAsset">
                 <xs:sequence>
                     <xs:element name="description">
                         <xs:annotation>
-                            <xs:documentation>Description of the data included in the collection.</xs:documentation>
+                            <xs:documentation>Description of the data to be included in the resolved collection.</xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>
                             <xs:restriction base="xs:string">

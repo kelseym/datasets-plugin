@@ -1,3 +1,12 @@
+/*
+ * Clara Plugin: org.nrg.xnatx.plugins.collection.services.impl.xft.XftDatasetCollectionService
+ * XNAT http://www.xnat.org
+ * Copyright (c) 2005-2020, Washington University School of Medicine
+ * All Rights Reserved
+ *
+ * Released under the Simplified BSD.
+ */
+
 package org.nrg.xnatx.plugins.collection.services.impl.xft;
 
 import com.fasterxml.jackson.core.type.TypeReference;

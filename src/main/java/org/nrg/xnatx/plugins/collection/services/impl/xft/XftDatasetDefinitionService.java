@@ -1,3 +1,12 @@
+/*
+ * Clara Plugin: org.nrg.xnatx.plugins.collection.services.impl.xft.XftDatasetDefinitionService
+ * XNAT http://www.xnat.org
+ * Copyright (c) 2005-2020, Washington University School of Medicine
+ * All Rights Reserved
+ *
+ * Released under the Simplified BSD.
+ */
+
 package org.nrg.xnatx.plugins.collection.services.impl.xft;
 
 import static org.nrg.xnatx.plugins.collection.resolvers.SeriesAndResourceCriterionResolver.*;

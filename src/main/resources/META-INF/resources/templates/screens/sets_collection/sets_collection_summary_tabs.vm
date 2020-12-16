@@ -5,8 +5,8 @@
 #* @vtlvariable name="tab" type="java.util.Properties" *#
 #* @vtlvariable name="tabs" type="java.util.List" *#
 <!-- BEGIN META-INF/resources/templates/screens/sets_collection/sets_collection_summary_tabs.vm -->
-#set($definitionId=$!item.getStringProperty("sets:collection/definition_id"))
-#set($projectId=$!item.getProperty("project"))
+#set($definitionId=$!om.id)
+#set($projectId=$!om.project)
 
 <div>
     <div id="collectionSummary" class="yui-navset">
@@ -28,7 +28,7 @@
                     </tr>
                     <tr>
                         <th align="left">Date Added:</th>
-                        <td>$!om.insertDate</td>
+                        <td>$!om.date</td>
                     </tr>
                     <tr>
                         <th align="left">Dataset Definition:</th>
@@ -42,11 +42,11 @@
                     </tr>
                     <tr>
                         <th align="left">File Count:</th>
-                        <td>$!item.getStringProperty("sets:collection/fileCount")</td>
+                        <td>$!om.filecount</td>
                     </tr>
                     <tr>
                         <th align="left">File Size:</th>
-                        <td>$!item.getStringProperty("sets:collection/fileSize")</td>
+                        <td>$!om.filesize</td>
                     </tr>
                 </table>
                 <p>
@@ -68,7 +68,7 @@
 <script type="text/javascript">
     function summaryIndexChanged(){
         var activeIndex=this.get("activeIndex");
-        #define($projectIdEsc)#escapeJS("$!project.getId()")#end
+        #define($projectIdEsc)#escapeJS("$!projectId")#end
         YAHOO.util.Cookie.set("${projectIdEsc.trim()}.summary.index",activeIndex);
     }
     function toggleLI(_name){

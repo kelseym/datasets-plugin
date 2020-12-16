@@ -1,3 +1,12 @@
+/*
+ * Clara Plugin: dataset-functions.sql
+ * XNAT http://www.xnat.org
+ * Copyright (c) 2005-2020, Washington University School of Medicine
+ * All Rights Reserved
+ *
+ * Released under the Simplified BSD.
+ */
+
 DROP FUNCTION IF EXISTS public.populate_all_projects_resource_json();
 DROP FUNCTION IF EXISTS public.populate_project_resource_json(projectId VARCHAR(255));
 DROP FUNCTION IF EXISTS public.scan_resources_with_criteria(projectId VARCHAR(255), criteria TEXT);

@@ -1,3 +1,12 @@
+/*
+ * Clara Plugin: org.nrg.xnatx.plugins.collection.services.impl.xft.AbstractXftDatasetObjectService
+ * XNAT http://www.xnat.org
+ * Copyright (c) 2005-2020, Washington University School of Medicine
+ * All Rights Reserved
+ *
+ * Released under the Simplified BSD.
+ */
+
 package org.nrg.xnatx.plugins.collection.services.impl.xft;
 
 import lombok.AccessLevel;
@@ -334,7 +343,7 @@ public abstract class AbstractXftDatasetObjectService<T extends XnatExperimentda
             if (!_permissions.canDelete(user, item)) {
                 throw new InsufficientPrivilegesException("The user " + username + " has insufficient privileges to delete " + xsiType + " experiments in project " + project + ".");
             }
-            SaveItemHelper.authorizedDelete(object.getItem(), user, EventUtils.DEFAULT_EVENT(user, "Deleted Clara object " + id));
+            SaveItemHelper.authorizedDelete(object.getItem(), user, EventUtils.DEFAULT_EVENT(user, "Deleted dataset object " + id));
         } catch (InsufficientPrivilegesException e) {
             throw e;
         } catch (Exception e) {

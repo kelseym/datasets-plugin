@@ -1,3 +1,12 @@
+/*
+ * Clara Plugin: org.nrg.xdat.om.base.BaseSetsCollection
+ * XNAT http://www.xnat.org
+ * Copyright (c) 2005-2020, Washington University School of Medicine
+ * All Rights Reserved
+ *
+ * Released under the Simplified BSD.
+ */
+
 package org.nrg.xdat.om.base;
 
 import lombok.extern.slf4j.Slf4j;

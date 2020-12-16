@@ -1,3 +1,12 @@
+/*
+ * Clara Plugin: datasetDashboard.js
+ * XNAT http://www.xnat.org
+ * Copyright (c) 2005-2020, Washington University School of Medicine
+ * All Rights Reserved
+ *
+ * Released under the Simplified BSD.
+ */
+
 console.log('datasetDashboard.js');
 
 var XNAT = getObject(XNAT || {});
@@ -151,7 +160,7 @@ var XNAT = getObject(XNAT || {});
 
     function resetDatasetDefinitions(){
         var container = $('#proj-dataset-criteria-list-container');
-        container.empty().append(spawn('div.message','No dataset criteria have been defined in this project. Currently supported dataset types are: "TaggedResourceMap (ClaraTrain)".'))
+        container.empty().append(spawn('div.message','No dataset criteria have been defined in this project. Currently supported dataset types are: "TaggedResourceMap".'))
     }
 
     function evaluateDefinitionResponse(data){

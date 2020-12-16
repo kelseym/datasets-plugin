@@ -2,7 +2,7 @@
 #* @vtlvariable name="projectId" type="java.lang.String" *#
 #* @vtlvariable name="data" type="org.apache.turbine.util.RunData" *#
 <!--suppress HtmlUnknownAnchorTarget -->
-<!-- BEGIN META-INF/resources/templates/screens/pages/collections/dashboard.vm -->
+<!-- BEGIN META-INF/resources/templates/screens/pages/datasets/dashboard.vm -->
 #set ($SITE_ROOT = $content.getURI(""))
 
 <h2 class="edit_header1">
@@ -36,7 +36,7 @@
                 </div>
                 <div class="panel-body">
                     <div id="proj-dataset-criteria-list-container">
-                        <div class="message no-criteria">No dataset criteria have been defined in this project. Currently supported dataset types are: "TaggedResourceMap (ClaraTrain)".</div>
+                        <div class="message no-criteria">No dataset criteria have been defined in this project. Currently supported dataset types are: "TaggedResourceMap".</div>
                     </div>
                 </div>
                 <div class="panel-footer"></div>
@@ -83,4 +83,4 @@
 <script src="${SITE_ROOT}/scripts/xnat/plugin/collections/collection-projectAdmin.js"></script>
 <script src="${SITE_ROOT}/scripts/xnat/plugin/collections/datasetDefinition.js"></script>
 <script src="${SITE_ROOT}/scripts/xnat/plugin/collections/datasetDashboard.js"></script>
-<!-- END META-INF/resources/templates/screens/pages/clara/training/dashboard.vm -->
+<!-- END META-INF/resources/templates/screens/pages/datasets/dashboard.vm -->

@@ -1,35 +1,34 @@
-#* @vtlvariable name="om" type="org.nrg.xdat.om.ClaraModel" *#
+#* @vtlvariable name="content" type="org.apache.turbine.services.pull.tools.ContentTool" *#
+#* @vtlvariable name="data" type="org.apache.turbine.util.RunData" *#
 #* @vtlvariable name="element" type="org.nrg.xdat.schema.SchemaElement" *#
+#* @vtlvariable name="item" type="org.nrg.xft.XFTItem" *#
+#* @vtlvariable name="om" type="org.nrg.xdat.om.SetsDefinition" *#
 #* @vtlvariable name="project" type="java.lang.String" *#
 #* @vtlvariable name="search_field" type="java.lang.String" *#
 #* @vtlvariable name="search_value" type="java.lang.String" *#
 #* @vtlvariable name="turbineUtils" type="org.nrg.xdat.turbine.utils.TurbineUtils" *#
 #* @vtlvariable name="user" type="org.nrg.xdat.security.XDATUser" *#
-#* @vtlvariable name="item" type="org.nrg.xft.XFTItem" *#
-<!-- BEGIN META-INF/resources/templates/screens/XDATScreen_report_clara_model.vm -->
+<!-- BEGIN META-INF/resources/templates/screens/XDATScreen_report_sets_definition.vm -->
 #if ($turbineUtils.GetPassedParameter("popup", $data))
     #set ($popup = $turbineUtils.GetPassedParameter("popup", $data) )
     #set ($popup = "false")
 #end
-
 #if($project)
-
 #else
-    #set($project=$om.getProject())
+    #set($project=$om.project)
 #end
 #parse("/screens/reportPageActionEnablers.vm")
 
-<h2>Dataset Definition: $item.getProperty("label")</h2>
+<h2>Dataset Definition: $om.label</h2>
 
 <div id="actions-box" class="pull-right">
     #elementActionsBoxNoEnd($element $search_field $search_value $user $item)
 	    #addCustomScreens("$element" "actionsBox")
 </div>
-</div>
-</div>
+
 <div id="experiment-summary" class="yui-navset" style="width: 70%">
     <!-- BEGIN SET AND PARSE SUMMARY TABS -->
-    #addCustomScreens($om.getXSIType() "report/preContent")
+    #addCustomScreens($om.xSIType "report/preContent")
     #set($summary_tabs=$turbineUtils.getTemplateName("_summary_tabs","sets:definition", $project))
     #parse($turbineUtils.getTemplateName("_summary_tabs","sets:definition", $project))
     <!-- END SET AND PARSE SUMMARY TABS -->
@@ -39,7 +38,7 @@
 
 <h3>Dataset Criteria:</h3>
 <div id="sets-definition-payload">
-    $!item.getStringProperty("sets:definition/criteria/payload")
+    $!om.criteria.get(0).payload
 </div>
 
 <script>
@@ -55,9 +54,9 @@
 <script>
     // enable "Manage Files" action
     var obj = {};
-    obj.uri = serverRoot + "/data/experiments/$!om.getId()";
-    obj.refresh = serverRoot + "/data/services/refresh/catalog?options=" + encodeURIComponent("populateStats,append,delete,checksum") + "&XNAT_CSRF=" + csrfToken + "&resource=/archive/experiments/$!om.getId()";
-    obj.objectId = "$!om.getId()";
+    obj.uri = serverRoot + "/data/experiments/$!om.id";
+    obj.refresh = serverRoot + "/data/services/refresh/catalog?options=" + encodeURIComponent("populateStats,append,delete,checksum") + "&XNAT_CSRF=" + csrfToken + "&resource=/archive/experiments/$!om.id";
+    obj.objectId = "$!om.id";
     obj.objectType = "experiment";
 
         #if ($turbineUtils.canEdit($user, $item))
@@ -84,14 +83,14 @@
     var _a = [];
 
     _a.push({
-        "label": window.available_elements_getByName("$om.getXSIType()").singular +" $!om.getLabel() ($!om.getId())",
-        "ru":"/data/projects/${project}/experiments/$om.getId()",
+        "label": window.available_elements_getByName("$om.xSIType").singular +" $!om.label ($!om.id)",
+        "ru":"/data/projects/${project}/experiments/$om.id",
         "redirect":serverRoot+"/data/projects/$!{project}?format=html",
         canRead:true,
         checked:true,
-        xsiType:window.available_elements_getByName("$om.getXSIType()").singular,
-        date:"$!om.getDate()",
+        xsiType:window.available_elements_getByName("$om.xSIType").singular,
+        date:"$!om.date",
         primary_label:"$!om.getIdentifier($project)"
     });
 </script>
-<!-- END META-INF/resources/templates/screens/XDATScreen_report_clara_model.vm -->
+<!-- END META-INF/resources/templates/screens/XDATScreen_report_sets_definition.vm -->

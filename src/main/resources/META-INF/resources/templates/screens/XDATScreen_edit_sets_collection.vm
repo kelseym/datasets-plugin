@@ -1,4 +1,7 @@
-#set($projectId=$!item.getProperty("project"))
+#* @vtlvariable name="content" type="org.apache.turbine.services.pull.tools.ContentTool" *#
+#* @vtlvariable name="om" type="org.nrg.xdat.om.SetsCollection" *#
+<!-- BEGIN META-INF/resources/templates/screens/XDATScreen_edit_sets_collection.vm -->
+#set($projectId=$!om.project)
 
 <div class="message">
     Editing dataset collections can be done via the Project Machine Learning Dashboard. <br>
@@ -6,3 +9,4 @@
         <button class="btn">Manage Datasets</button>
     </a>
 </div>
+<!-- END META-INF/resources/templates/screens/XDATScreen_edit_sets_collection.vm -->

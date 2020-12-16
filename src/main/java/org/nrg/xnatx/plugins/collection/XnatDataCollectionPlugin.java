@@ -1,7 +1,7 @@
 /*
- * xnatx-clara: org.nrg.xnatx.plugins.collection.plugin.XnatCollectionPlugin
+ * Clara Plugin: org.nrg.xnatx.plugins.collection.XnatDataCollectionPlugin
  * XNAT http://www.xnat.org
- * Copyright (c) 2019, Washington University School of Medicine
+ * Copyright (c) 2005-2020, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.

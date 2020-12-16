@@ -1,3 +1,12 @@
+/*
+ * Clara Plugin: org.nrg.xnat.turbine.modules.screens.XDATScreen_report_sets_collection
+ * XNAT http://www.xnat.org
+ * Copyright (c) 2005-2020, Washington University School of Medicine
+ * All Rights Reserved
+ *
+ * Released under the Simplified BSD.
+ */
+
 package org.nrg.xnat.turbine.modules.screens;
 
 import java.io.FileNotFoundException;
