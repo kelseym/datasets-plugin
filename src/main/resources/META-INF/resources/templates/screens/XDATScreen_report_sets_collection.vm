@@ -18,13 +18,14 @@
 #else
     #set($project=$om.project)
 #end
-#parse("/screens/reportPageActionEnablers.vm")
 
 <h2>Dataset Collection: $om.label</h2>
 
 <div id="actions-box" class="pull-right">
     #elementActionsBoxNoEnd($element $search_field $search_value $user $item)
 	    #addCustomScreens("$element" "actionsBox")
+        </div>
+    </div>
 </div>
 <div id="exptSummary" style="width: 70%">
     <!-- BEGIN SET AND PARSE SUMMARY TABS -->
@@ -69,49 +70,6 @@
         }
     });
 </script>
+#parse("/screens/reportPageActionEnablers.vm")
 
-<script type="text/javascript" src="$content.getURI("scripts/FileViewer.js")"></script>
-<script>
-    // enable "Manage Files" action
-    var obj = {};
-    obj.uri = serverRoot + "/data/experiments/$!om.getId()";
-    obj.refresh = serverRoot + "/data/services/refresh/catalog?options=" + encodeURIComponent("populateStats,append,delete,checksum") + "&XNAT_CSRF=" + csrfToken + "&resource=/archive/experiments/$!om.id";
-    obj.objectId = "$!om.id";
-    obj.objectType = "experiment";
-
-        #if ($turbineUtils.canEdit($user, $item))
-        obj.canEdit = true;
-        #else
-        obj.canEdit = false;
-        #end
-        #if ($turbineUtils.canDelete($user, $item))
-        obj.canDelete = true;
-        #else
-        obj.canDelete = false;
-        #end
-
-    obj.catalogs = {};
-    obj.catalogs.ids = [];
-    window.viewer = new FileViewer(obj);
-
-    function showFiles() {
-        window.viewer.render();
-    }
-</script>
-
-<!-- enable restDelete() function -->
-<script type="text/javascript">
-    var _a = [];
-
-    _a.push({
-        "label": window.available_elements_getByName("$om.getXSIType()").singular +" $!om.label ($!om.id)",
-        "ru":"/data/projects/${project}/experiments/$om.id",
-        "redirect":serverRoot+"/data/projects/$!{project}?format=html",
-        canRead:true,
-        checked:true,
-        xsiType:window.available_elements_getByName("$om.xSIType").singular,
-        date:"$!om.date",
-        primary_label:"$!om.getIdentifier($project)"
-    });
-</script>
 <!-- END META-INF/resources/templates/screens/XDATScreen_report_sets_collection.vm -->
