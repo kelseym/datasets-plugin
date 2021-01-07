@@ -103,6 +103,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
     public SetsCollection resolve(final UserI user, final SetsDefinition definition) throws InsufficientPrivilegesException {
         final SetsCollection collection = resolveDefinition(user, definition);
         collection.setLabel(generateCollectionLabel(definition.getLabel()));
+        collection.setDescription(generateCollectionDescription(definition.getDescription()));
         return commit(user, collection);
     }
 
@@ -120,6 +121,9 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
         collection.addResources(resolved.getResources_resource());
         if (StringUtils.isBlank(collection.getLabel())) {
             collection.setLabel(StringUtils.defaultIfBlank(resolved.getLabel(), generateCollectionLabel(definition.getLabel())));
+        }
+        if (StringUtils.isBlank(collection.getDescription())) {
+            collection.setDescription(StringUtils.defaultIfBlank(resolved.getDescription(), generateCollectionLabel(definition.getDescription())));
         }
         return commit(user, collection);
     }
@@ -399,6 +403,10 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
 
     private static String generateCollectionLabel(final String parentLabel) {
         return parentLabel + "-" + Calendar.getInstance().getTimeInMillis();
+    }
+
+    private static String generateCollectionDescription(final String parentDescription) {
+        return "Instance of: " + parentDescription;
     }
 
     private final DatasetCollectionService              _collections;
