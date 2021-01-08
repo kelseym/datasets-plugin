@@ -37,3 +37,8 @@
 .fa.failed {
     color: #CCC;
 }
+
+/* general text style */
+.lowercase {
+    text-transform: lowercase;
+}

@@ -112,20 +112,23 @@ var XNAT = getObject(XNAT || {});
                                     html: dfn.description || '',
                                     style: { width: '100%' },
                                     attr: { rows: 4 }
+                                }],
+                                ['input.def-resolver|type=hidden|name=resolver', {
+                                    value: 'TaggedResourceMap'
                                 }]
                             ]]
                         ]],
-                        ['tr', [
-                            ['td.top', '<b>Resolver</b> &nbsp;'],
-                            ['td', [
-                                ['select.def-resolver|name=resolver', [
-                                    ['option', {
-                                        value: 'TaggedResourceMap',
-                                        selected: 'selected'
-                                    }, 'Tagged Resource Map']
-                                ]]
-                            ]]
-                        ]],
+                        // ['tr', [
+                        //     ['td.top', '<b>Resolver</b> &nbsp;'],
+                        //     ['td', [
+                        //         ['select.def-resolver|name=resolver', [
+                        //             ['option', {
+                        //                 value: 'TaggedResourceMap',
+                        //                 selected: 'selected'
+                        //             }, 'Tagged Resource Map']
+                        //         ]]
+                        //     ]]
+                        // ]],
                         ['tr', [
                             ['td', '<b>Criteria (File Matchers Only)</b> &nbsp;'],
                             ['td']
@@ -171,7 +174,7 @@ var XNAT = getObject(XNAT || {});
                             description: dialog.body$.find('[name="description"]').val(),
                             criteria: [
                                 {
-                                    resolver: dialog.body$.find('[name="resolver"]').find('option:selected').val(),
+                                    resolver: dialog.body$.find('[name="resolver"]').val(),
                                     payload: processCriteria(_editor.aceEditor.getValue())
                                 }
                             ]
@@ -239,7 +242,7 @@ var XNAT = getObject(XNAT || {});
             width: 550,
             title: 'Help Creating Dataset Definitions',
             content: spawn('!',[
-                spawn('p','Dataset definitions ask for a formatted JSON search pattern, which XNAT will use to collect scan files from your project\'s image sessions that match your chosen criteria.'),
+                spawn('p','Dataset definitions ask for a formatted JSON search pattern, which XNAT will use to collect scan files from your '+XNAT.app.displayNames.singular.project.toLowerCase()+'\'s image sessions that match your chosen criteria.'),
                 spawn('p','In order to generate the dataset itself, you first need to create a JSON definition, then "Validate" that search in the panel below.'),
                 spawn('p','For help in constructing your search criteria or building the dataset definition, see <a href="https://wiki.xnat.org/ml/defining-parameters-for-your-dataset" target="_blank"><b>XNAT ML Documentation</b></a>.')
             ])
@@ -250,7 +253,7 @@ var XNAT = getObject(XNAT || {});
             width: 550,
             title: 'Help Creating Datasets by Validating Definitions',
             content: spawn('!',[
-                spawn('p','Because your XNAT project data changes over time, a dataset definition can produce different datasets based on what data is in your project. You can generate this dataset by "validating" your project data against the dataset definition.'),
+                spawn('p','Because your XNAT '+XNAT.app.displayNames.singular.project.toLowerCase()+' data changes over time, a dataset definition can produce different datasets based on what data is in your '+XNAT.app.displayNames.singular.project.toLowerCase()+'. You can generate this dataset by "validating" your '+XNAT.app.displayNames.singular.project.toLowerCase()+' data against the dataset definition.'),
                 spawn('p','For help in validating the dataset definition, see <a href="https://wiki.xnat.org/ml/validating-and-saving-your-dataset-from-project-data" target="_blank"><b>XNAT ML Documentation</b></a>.')
             ])
         });

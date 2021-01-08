@@ -160,7 +160,7 @@ var XNAT = getObject(XNAT || {});
 
     function resetDatasetDefinitions(){
         var container = $('#proj-dataset-criteria-list-container');
-        container.empty().append(spawn('div.message','No dataset criteria have been defined in this project. Currently supported dataset types are: "TaggedResourceMap".'))
+        container.empty().append(spawn('div.message','No dataset criteria have been defined in this '+XNAT.app.displayNames.singular.project.toLowerCase()+'. Currently supported dataset types are: "TaggedResourceMap".'))
     }
 
     function evaluateDefinitionResponse(data){
@@ -276,7 +276,9 @@ var XNAT = getObject(XNAT || {});
 
     sets.validateDefinition = function(id){
         var dfn = getSingleDefinition(id);
-        xmodal.loading.open('Validating Project Data');
+        var projectLabel = XNAT.app.displayNames.singular.project.toLowerCase();
+        projectLabel = projectLabel[0].toUpperCase() + projectLabel.slice(1,projectLabel.length);
+        xmodal.loading.open('Validating '+projectLabel+' Data');
         XNAT.xhr.postJSON({
             url: getValidationUrl(),
             data: JSON.stringify(dfn.criteria[0].payload),

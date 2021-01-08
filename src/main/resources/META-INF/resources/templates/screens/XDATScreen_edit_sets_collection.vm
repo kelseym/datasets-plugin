@@ -3,8 +3,14 @@
 <!-- BEGIN META-INF/resources/templates/screens/XDATScreen_edit_sets_collection.vm -->
 #set($projectId=$!om.project)
 
+<style>
+    .capitalize {
+        text-transform: capitalize;
+    }
+</style>
+
 <div class="message">
-    Editing dataset collections can be done via the Project Machine Learning Dashboard. <br>
+    Editing dataset collections can be done via the <span class="capitalize">$displayManager.getSingularDisplayNameForProject()</span> Machine Learning Dashboard. <br>
     <a href="$content.getURI("/app/template/Page.vm?view=datasets/dashboard&id=$!{projectId}")">
         <button class="btn">Manage Datasets</button>
     </a>

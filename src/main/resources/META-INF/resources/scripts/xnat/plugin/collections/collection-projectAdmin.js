@@ -266,7 +266,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
 
     projDatasets.resetSavedDatasets = function(){
         var container = $('#proj-saved-datasets-list-container');
-        container.empty().append(spawn('p','No datasets have been defined in this project.'))
+        container.empty().append(spawn('p','No datasets have been defined in this '+XNAT.app.displayNames.singular.project.toLowerCase()+'.'))
     };
 
     projDatasets.getSavedDatasets = function(){

@@ -68,7 +68,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
     XNAT.plugin.collection.getProjectExperiments = function(project){
         XNAT.xhr.getJSON({
             url: rootUrl("/data/projects/"+project+"/experiments?format=json"),
-            fail: function(e){ errorHandler(e, "Could not retrieve experiments for project "+project )},
+            fail: function(e){ errorHandler(e, "Could not retrieve experiments for "+project )},
             success: function(data){
                 XNAT.plugin.collection.availableExpts = data.ResultSet.Result;
             }

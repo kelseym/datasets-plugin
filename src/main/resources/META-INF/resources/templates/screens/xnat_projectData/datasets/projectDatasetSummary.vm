@@ -1,6 +1,6 @@
 <!-- projectDatasetSummary.vm -->
 <div id="summary-no-datasets" class="hidden">
-    <p class="panel-element">In order to create a dataset for training, you must define your dataset criteria. No criteria have been defined in this project yet. </p>
+    <p class="panel-element">In order to create a dataset for training, you must define your dataset criteria. No criteria have been defined in this <span class="lowercase">$displayManager.getSingularDisplayNameForProject()</span> yet. </p>
 </div>
 <div id="summary-datasets-found">
     <div class="panel-element" data-name="">
