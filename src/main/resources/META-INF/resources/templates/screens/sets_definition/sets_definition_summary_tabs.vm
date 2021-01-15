@@ -26,7 +26,7 @@
                     </tr>
                     <tr>
                         <th align="left">Date Added:</th>
-                        <td>$!om.date</td>
+                        <td>$!om.insertDate</td>
                     </tr>
                     <tr>
                         <th align="left">Definition Type (Resolver):</th>
