@@ -5,7 +5,7 @@
 #* @vtlvariable name="tab" type="java.util.Properties" *#
 #* @vtlvariable name="tabs" type="java.util.List" *#
 <!-- BEGIN META-INF/resources/templates/screens/sets_collection/sets_collection_summary_tabs.vm -->
-#set($definitionId=$!om.id)
+#set($definitionId=$!om.getProperty("definition_id"))
 #set($projectId=$!om.project)
 
 <div>

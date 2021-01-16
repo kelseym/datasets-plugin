@@ -181,6 +181,8 @@ var XNAT = getObject(XNAT || {});
 
                         };
 
+                        if (dfn.id) defData['id']=dfn.id;
+
                         if (defData.description === undefined) {
                             dialog.body$.find('[name="description"]').addClass('invalid');
                             XNAT.ui.banner.top(4000,'Dataset definition required','warning');
