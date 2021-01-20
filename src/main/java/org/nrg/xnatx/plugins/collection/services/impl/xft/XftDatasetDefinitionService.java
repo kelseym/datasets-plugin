@@ -118,7 +118,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
         collection.setFilecount(resolved.getFilecount());
         collection.setFilesize(resolved.getFilesize());
         collection.setFiles(resolved.getFiles());
-        collection.addResources(resolved.getResources_resource());
+        collection.addReferences(resolved.getReferences_resource());
         if (StringUtils.isBlank(collection.getLabel())) {
             collection.setLabel(StringUtils.defaultIfBlank(resolved.getLabel(), generateCollectionLabel(definition.getLabel())));
         }
@@ -250,12 +250,13 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
         collection.setFilecount(totalCount.get());
         collection.setFilesize(totalSize.get());
         collection.setFiles(json);
-        collection.addResources(baseResources);
+        collection.addReferences(baseResources);
         return collection;
     }
 
     private ResolutionReport reportDefinition(final UserI user, final SetsDefinition definition) {
-        final ResolutionReport.ResolutionReportBuilder                                                       builder = ResolutionReport.builder().username(user.getUsername()).project(definition.getProject());
+        final ResolutionReport.ResolutionReportBuilder builder = ResolutionReport.builder().username(user.getUsername()).project(definition.getProject());
+
         final Map<Pair<String, String>, Pair<Set<String>, Map<Triple<String, String, String>, Set<String>>>> reports = new HashMap<>();
 
         final String project = definition.getProject();
@@ -264,7 +265,7 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
             if (resolver != null) {
                 try {
                     builder.criterion((SetsCriterion) criterion);
-                    final Map<Pair<String, String>, String>                   matchers = getTaggedPropertyMatchers(criterion.getPayload());
+                    final Map<Pair<String, String>, String>        matchers = getTaggedPropertyMatchers(criterion.getPayload());
                     final Map<String, List<ProjectResourceReport>> entries  = resolver.report(user, project, (SetsCriterion) criterion);
                     for (final Map.Entry<String, List<ProjectResourceReport>> entry : entries.entrySet()) {
                         final String                      file  = entry.getKey();

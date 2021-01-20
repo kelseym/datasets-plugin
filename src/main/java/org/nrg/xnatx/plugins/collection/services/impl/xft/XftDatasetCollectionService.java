@@ -74,7 +74,7 @@ public class XftDatasetCollectionService extends AbstractXftDatasetObjectService
     @Override
     public Map<String, List<Map<String, String>>> getResources(final UserI user, final SetsCollection collection) {
         final Map<String, Map<String, String>> resources = new HashMap<>();
-        for (final XnatAbstractresourceI abstractResource : collection.getResources_resource()) {
+        for (final XnatAbstractresourceI abstractResource : collection.getReferences_resource()) {
             final XnatResource resource = (XnatResource) abstractResource;
             try {
                 final XFTItem scan      = resource.getParent().getItem();

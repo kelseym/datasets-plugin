@@ -11,14 +11,6 @@ package org.nrg.xnatx.plugins.collection.resolvers;
 
 import static org.nrg.framework.orm.DatabaseHelper.getFunctionParameterSource;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.orm.DatabaseHelper;
@@ -26,9 +18,11 @@ import org.nrg.framework.utilities.BasicXnatResourceLocator;
 import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xft.security.UserI;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Resolver("ResourceAttributes")
 @Component
@@ -57,7 +51,7 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
     @Override
     protected Map<String, List<ProjectResourceReport>> reportImpl(final UserI user, final String project, final String payload) {
         final Map<String, List<ProjectResourceReport>> map = new HashMap<>();
-        map.put("", _helper.getParameterizedTemplate().query(String.format(QUERY_ATTRIBUTE_MATCH_REPORT, project, payload), PROJECT_RESOURCE_REPORT_ROW_MAPPER));
+        map.put("", ProjectResourceReport.getProjectResourceReports(_helper.getParameterizedTemplate(), project, payload));
         return map;
     }
 
@@ -73,63 +67,19 @@ public class ResourceAttributeDatasetCriterionResolver extends AbstractDatasetCr
     }
 
     protected static Map<String, Map<String, XnatAbstractresource>> getResourceMap(final UserI user, final List<ProjectResource> resources) {
-        final ProjectResourceToAbstractResource              function   = new ProjectResourceToAbstractResource(user);
-        final Map<String, Map<String, XnatAbstractresource>> sessionMap = new HashMap<>();
-        for (final ProjectResource resource : resources) {
-            if (!sessionMap.containsKey(resource.getExperimentId())) {
-                sessionMap.put(resource.getExperimentId(), new HashMap<>());
+        return resources.stream().filter(Objects::nonNull).collect(Collectors.groupingBy(ProjectResource::getExperimentId, Collectors.toMap(ProjectResource::getScanId, resource -> {
+            try {
+                return XnatAbstractresource.getXnatAbstractresourcesByXnatAbstractresourceId(resource.getResourceId(), user, false);
+            } catch (ClassCastException e) {
+                // This is caused by XNAT-6618, so may not be necessary: "ClassCastException: org.nrg.xft.XFTItem cannot be cast to org.nrg.xdat.om.XnatAbstractresource"
+                log.warn("A class cast exception occurred trying to get an abstract resource entry with the ID {} and label {}. Please check that this ID corresponds to a valid abstract resource entry. The full project resource record is: {}", resource.getResourceId(), resource.getResourceLabel(), resource);
+                throw e;
             }
-            sessionMap.get(resource.getExperimentId()).put(resource.getResourceLabel(), function.apply(resource));
-        }
-        return sessionMap;
-    }
-
-    private static class ProjectResourceToAbstractResource implements Function<ProjectResource, XnatAbstractresource> {
-        ProjectResourceToAbstractResource(final UserI user) {
-            _user = user;
-        }
-
-        @Override
-        public XnatAbstractresource apply(final ProjectResource resource) {
-            return resource != null ? XnatAbstractresource.getXnatAbstractresourcesByXnatAbstractresourceId(resource.getResourceId(), _user, false) : null;
-        }
-
-        private final UserI _user;
+        })));
     }
 
     private static final String[] ATTRIBUTES = {"subject_id", "experiment_id", "scan_id", "resource_id", "data_type", "resource_label", "resource_content", "resource_format", "subject_label", "experiment_label", "scan_type", "series_description", "series_class", "experiment_last_modified", "resource_last_modified", "resource_description", "resource_file_count", "resource_size"};
     private static final String[] COLUMNS    = {"subject.id", "expt.id", "scan.id", "abstract.xnat_abstractresource_id", "xme.element_name", "abstract.label", "resource.content", "resource.format", "subject.label", "expt.label", "scan.type", "scan.series_description", "scan.series_class", "expt_md.last_modified", "abstract_md.last_modified", "resource.description", "abstract.file_count", "abstract.file_size"};
-
-    private static final String QUERY_ATTRIBUTE_MATCH_REPORT = "WITH " +
-                                                               "    all_resources AS ( " +
-                                                               "        SELECT * " +
-                                                               "        FROM " +
-                                                               "            scan_resources('%s') " +
-                                                               "    ) " +
-                                                               "SELECT " +
-                                                               "    subject_id, " +
-                                                               "    experiment_id, " +
-                                                               "    scan_id, " +
-                                                               "    resource_id, " +
-                                                               "    subject_label, " +
-                                                               "    experiment_label, " +
-                                                               "    data_type, " +
-                                                               "    scan_type, " +
-                                                               "    series_description, " +
-                                                               "    series_class, " +
-                                                               "    resource_label, " +
-                                                               "    resource_content, " +
-                                                               "    resource_format, " +
-                                                               "    resource_description, " +
-                                                               "    experiment_last_modified, " +
-                                                               "    resource_last_modified, " +
-                                                               "    coalesce(resource_file_count, 0) AS resource_file_count, " +
-                                                               "    coalesce(resource_size, 0) AS resource_size_count, " +
-                                                               "    %s " +
-                                                               "FROM " +
-                                                               "    all_resources";
-
-    private static final RowMapper<ProjectResourceReport> PROJECT_RESOURCE_REPORT_ROW_MAPPER = BeanPropertyRowMapper.newInstance(ProjectResourceReport.class);
 
     private final DatabaseHelper _helper;
 }

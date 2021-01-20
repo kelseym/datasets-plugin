@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.xdat.XDAT;
 import org.nrg.xdat.model.XnatAbstractresourceI;
+import org.nrg.xdat.om.SetsCollection;
+import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xdat.om.base.auto.AutoSetsCollection;
 import org.nrg.xft.ItemI;
 import org.nrg.xft.security.UserI;
@@ -20,9 +22,7 @@ import org.nrg.xnatx.plugins.collection.exceptions.DatasetCollectionHandlingExce
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetResourceException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +42,7 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
     /**
      * @deprecated Use BaseSetsCollection(UserI user)
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public BaseSetsCollection() {
         log.warn("This method is deprecated, you should use BaseSetsCollection(UserI) instead.");
@@ -54,6 +55,30 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
     @SuppressWarnings("unused")
     public static boolean validateCollectionId(final String collectionId) {
         return XDAT.getNamedParameterJdbcTemplate().queryForObject(QUERY_VERIFY_COLLECTION_ID, new MapSqlParameterSource("collectionId", collectionId), Boolean.class);
+    }
+
+    public static Map<String, String> toMap(final SetsCollection collection) {
+        if (collection == null) {
+            return Collections.emptyMap();
+        }
+        final Map<String, String> attributes = new HashMap<>();
+        attributes.put("id", collection.getId());
+        attributes.put("project", collection.getProject());
+        attributes.put("label", collection.getLabel());
+        attributes.put("definitionId", collection.getDefinitionId());
+        final Integer fileCount = collection.getFilecount();
+        if (fileCount != null) {
+            attributes.put("fileCount", Integer.toString(fileCount));
+        }
+        final Object fileSize = collection.getFilesize();
+        if (fileSize != null) {
+            attributes.put("fileSize", Long.toString((Long) fileSize));
+        }
+        final List<XnatAbstractresourceI> references = collection.getReferences_resource();
+        if (references != null) {
+            attributes.put("referenceCount", Integer.toString(references.size()));
+        }
+        return attributes;
     }
 
     /**
@@ -75,16 +100,39 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
         }
     }
 
+    public void addReferencesById(final List<Integer> referenceIds) {
+        addReferences(referenceIds.stream().map(id -> XnatAbstractresource.getXnatAbstractresourcesByXnatAbstractresourceId(id, null, false)).collect(Collectors.toList()));
+    }
+
+    public <A extends XnatAbstractresourceI> void addReferences(final List<A> references) {
+        final List<XnatAbstractresourceI> errors = new ArrayList<>();
+        references.forEach(resource -> {
+            try {
+                addReferences_resource(resource);
+            } catch (Exception e) {
+                log.warn("An error occurred trying to add the resource {} to the collection {}", resource.getXnatAbstractresourceId(), StringUtils.defaultIfBlank(getId(), getDefinitionId()), e);
+                errors.add(resource);
+            }
+        });
+        if (!errors.isEmpty()) {
+            throw new DatasetResourceException((errors.size() == 1 ? "An error" : errors.size() + "errors") + " occurred trying to add references to a collection. Check the server logs for more information. The following resources may or may not have been successfully added: " + errors.stream().map(XnatAbstractresourceI::getXnatAbstractresourceId).map(Object::toString).collect(Collectors.joining(", ")), errors);
+        }
+    }
+
+    public void addResourcesById(final List<Integer> resourceIds) {
+        addResources(resourceIds.stream().map(id -> XnatAbstractresource.getXnatAbstractresourcesByXnatAbstractresourceId(id, null, false)).collect(Collectors.toList()));
+    }
+
     public <A extends XnatAbstractresourceI> void addResources(final List<A> resources) {
         final List<XnatAbstractresourceI> errors = new ArrayList<>();
-        for (final XnatAbstractresourceI resource : resources) {
+        resources.forEach(resource -> {
             try {
                 addResources_resource(resource);
             } catch (Exception e) {
                 log.warn("An error occurred trying to add the resource {} to the collection {}", resource.getXnatAbstractresourceId(), StringUtils.defaultIfBlank(getId(), getDefinitionId()), e);
                 errors.add(resource);
             }
-        }
+        });
         if (!errors.isEmpty()) {
             throw new DatasetResourceException((errors.size() == 1 ? "An error" : errors.size() + "errors") + " occurred trying to add resources to a collection. Check the server logs for more information. The following resources may or may not have been successfully added: " + errors.stream().map(XnatAbstractresourceI::getXnatAbstractresourceId).map(Object::toString).collect(Collectors.joining(", ")), errors);
         }

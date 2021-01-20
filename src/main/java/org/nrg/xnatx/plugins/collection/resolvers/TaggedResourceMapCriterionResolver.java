@@ -10,11 +10,10 @@
 package org.nrg.xnatx.plugins.collection.resolvers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.orm.DatabaseHelper;
@@ -110,14 +109,19 @@ public class TaggedResourceMapCriterionResolver extends SeriesAndResourceCriteri
             for (final Map.Entry<String, Map<String, XnatAbstractresource>> session : getResources(user, project, node).entrySet()) {
                 final String sessionId = session.getKey();
                 if (!resourceMap.containsKey(sessionId)) {
-                    resourceMap.put(sessionId, new HashMap<String, XnatAbstractresource>());
+                    resourceMap.put(sessionId, new HashMap<>());
                 }
                 final Map<String, XnatAbstractresource> sessionResources = resourceMap.get(sessionId);
                 final Map<String, XnatAbstractresource> foundResources   = session.getValue();
+                final XnatAbstractresource insert;
                 if (foundResources.size() > 1) {
-                    log.warn("Found {} resources for the session {} and tag {}. There should really only be one.", foundResources.size(), sessionId, tagName);
+                    final List<XnatAbstractresource> values = new ArrayList<>(foundResources.values());
+                    insert = values.remove(0);
+                    log.warn("Found {} resources for the session {} and tag {}. I can only return one, so I'm returning resource with ID {} and ignoring resources with IDs {}.", foundResources.size(), sessionId, tagName, insert.getXnatAbstractresourceId(), values.stream().map(XnatAbstractresource::getXnatAbstractresourceId).map(Object::toString).collect(Collectors.joining(", ")));
+                } else {
+                    insert = foundResources.values().iterator().next();
                 }
-                sessionResources.put(tagName, foundResources.values().iterator().next());
+                sessionResources.put(tagName, insert);
             }
         }
 

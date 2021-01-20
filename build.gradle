@@ -101,6 +101,7 @@ dependencies {
     testImplementation "org.springframework:spring-test"
     testImplementation "junit:junit"
     testImplementation "org.assertj:assertj-core"
+    testImplementation "log4j:log4j"
 }
 
 lombok {

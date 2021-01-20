@@ -21,20 +21,21 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.annotations.XapiRestController;
 import org.nrg.xapi.authorization.GuestUserAccessXapiAuthorization;
 import org.nrg.xapi.exceptions.DataFormatException;
 import org.nrg.xapi.exceptions.InsufficientPrivilegesException;
 import org.nrg.xapi.exceptions.NotFoundException;
 import org.nrg.xapi.exceptions.ResourceAlreadyExistsException;
-import org.nrg.xapi.rest.AbstractXapiRestController;
+import org.nrg.xapi.rest.AbstractExperimentXapiRestController;
 import org.nrg.xapi.rest.AuthDelegate;
 import org.nrg.xapi.rest.XapiRequestMapping;
 import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsDefinition;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
+import org.nrg.xft.exception.ElementNotFoundException;
+import org.nrg.xft.exception.XFTInitException;
 import org.nrg.xnatx.plugins.collection.resolvers.SessionReport;
 import org.nrg.xnatx.plugins.collection.rest.permissions.CreateCollection;
 import org.nrg.xnatx.plugins.collection.rest.permissions.CreateDefinition;
@@ -42,6 +43,7 @@ import org.nrg.xnatx.plugins.collection.rest.permissions.EditDefinition;
 import org.nrg.xnatx.plugins.collection.rest.permissions.ReadDefinition;
 import org.nrg.xnatx.plugins.collection.services.DatasetDefinitionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,10 +54,10 @@ import java.util.List;
 @XapiRestController
 @RequestMapping(value = "/sets/definitions")
 @Slf4j
-public class DatasetDefinitionApi extends AbstractXapiRestController {
+public class DatasetDefinitionApi extends AbstractExperimentXapiRestController<SetsDefinition> {
     @Autowired
-    public DatasetDefinitionApi(final UserManagementServiceI userManagementService, final RoleHolder roleHolder, final DatasetDefinitionService definitions) {
-        super(userManagementService, roleHolder);
+    public DatasetDefinitionApi(final NamedParameterJdbcTemplate template, final UserManagementServiceI userManagementService, final RoleHolder roleHolder, final DatasetDefinitionService definitions) throws ElementNotFoundException, XFTInitException, IllegalAccessException, NoSuchFieldException {
+        super(template, userManagementService, roleHolder);
         _definitions = definitions;
     }
 
@@ -158,7 +160,6 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to create the dataset definition."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
-    // @XapiRequestMapping(consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @XapiRequestMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateDefinition.class)
     public SetsDefinition create(@RequestBody final SetsDefinition entity) throws DataFormatException, InsufficientPrivilegesException, ResourceAlreadyExistsException, NotFoundException {
@@ -173,9 +174,7 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
     @XapiRequestMapping(value = "{id}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = PUT, restrictTo = Authorizer)
     @AuthDelegate(EditDefinition.class)
     public SetsDefinition update(@PathVariable final String id, @RequestBody final SetsDefinition entity) throws DataFormatException, NotFoundException, InsufficientPrivilegesException, ResourceAlreadyExistsException {
-        if (!StringUtils.equals(id, entity.getId())) {
-            throw new DataFormatException("The submitted dataset definition didn't match the specified ID.");
-        }
+        validateEntityId(id, entity);
         return _definitions.update(getSessionUser(), entity);
     }
 
@@ -187,9 +186,7 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
     @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = PUT, restrictTo = Authorizer)
     @AuthDelegate(EditDefinition.class)
     public SetsDefinition update(@PathVariable final String projectId, @PathVariable final String idOrLabel, @RequestBody final SetsDefinition entity) throws DataFormatException, InsufficientPrivilegesException, NotFoundException, ResourceAlreadyExistsException {
-        if (!StringUtils.equals(projectId, entity.getProject()) || !StringUtils.equalsAny(idOrLabel, entity.getId(), entity.getLabel())) {
-            throw new DataFormatException("The submitted dataset definition didn't match the specified project and ID or label.");
-        }
+        validateEntityId(projectId, idOrLabel, entity);
         return update(entity.getId(), entity);
     }
 
@@ -265,5 +262,5 @@ public class DatasetDefinitionApi extends AbstractXapiRestController {
         return _definitions.resolve(getSessionUser(), projectId, idOrLabel, collection);
     }
 
-    private final DatasetDefinitionService _definitions;
+    private final DatasetDefinitionService   _definitions;
 }

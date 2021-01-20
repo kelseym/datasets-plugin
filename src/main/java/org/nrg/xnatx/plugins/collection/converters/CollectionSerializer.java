@@ -11,10 +11,9 @@ package org.nrg.xnatx.plugins.collection.converters;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import java.io.IOException;
-import java.util.List;
-import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.om.SetsCollection;
+
+import java.io.IOException;
 
 public class CollectionSerializer extends DatasetSerializer<SetsCollection> {
     public CollectionSerializer() {
@@ -34,17 +33,8 @@ public class CollectionSerializer extends DatasetSerializer<SetsCollection> {
         writeNonNullField(generator, "fileSize", collection.getFilesize());
         writeNonBlankJson(generator, "files", collection.getFiles());
 
-        final List<XnatAbstractresourceI> resources = collection.getResources_resource();
-        if (resources != null && !resources.isEmpty()) {
-            generator.writeArrayFieldStart("resources");
-            for (final XnatAbstractresourceI resource : resources) {
-                generator.writeStartObject();
-                generator.writeNumberField("id", resource.getXnatAbstractresourceId());
-                generator.writeStringField("label", resource.getLabel());
-                generator.writeEndObject();
-            }
-            generator.writeEndArray();
-        }
+        writeResourceListField(generator, "references", collection.getReferences_resource());
+        writeResourceListField(generator, "resources", collection.getResources_resource());
 
         generator.writeEndObject();
     }

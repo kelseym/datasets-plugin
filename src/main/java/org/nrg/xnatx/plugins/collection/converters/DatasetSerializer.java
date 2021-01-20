@@ -11,8 +11,11 @@ package org.nrg.xnatx.plugins.collection.converters;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
+import org.nrg.xdat.model.XnatAbstractresourceI;
+
+import java.io.IOException;
+import java.util.List;
 
 public abstract class DatasetSerializer<T> extends StdSerializer<T> {
     protected DatasetSerializer(final Class<T> datasetClass) {
@@ -48,12 +51,14 @@ public abstract class DatasetSerializer<T> extends StdSerializer<T> {
         }
     }
 
+    @SuppressWarnings("unused")
     protected void writeNonNullBoolean(final JsonGenerator generator, final String name, final Boolean value) throws IOException {
         if (value != null) {
             generator.writeBooleanField(name, value);
         }
     }
 
+    @SuppressWarnings("unused")
     protected void writeNonNullNumber(final JsonGenerator generator, final String name, final Number value) throws IOException {
         if (value != null) {
             if (value instanceof Integer) {
@@ -69,6 +74,16 @@ public abstract class DatasetSerializer<T> extends StdSerializer<T> {
             } else {
                 generator.writeStringField(name, value.toString());
             }
+        }
+    }
+
+    protected void writeResourceListField(final JsonGenerator generator, final String name, final List<XnatAbstractresourceI> resources) throws IOException {
+        if (resources != null && !resources.isEmpty()) {
+            generator.writeArrayFieldStart(name);
+            for (final XnatAbstractresourceI resource : resources) {
+                generator.writeNumber(resource.getXnatAbstractresourceId());
+            }
+            generator.writeEndArray();
         }
     }
 }

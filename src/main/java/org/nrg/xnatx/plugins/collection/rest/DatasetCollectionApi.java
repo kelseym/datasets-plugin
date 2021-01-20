@@ -21,7 +21,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.nrg.framework.annotations.XapiRestController;
 import org.nrg.framework.services.SerializerService;
 import org.nrg.xapi.authorization.GuestUserAccessXapiAuthorization;
@@ -29,10 +28,9 @@ import org.nrg.xapi.exceptions.DataFormatException;
 import org.nrg.xapi.exceptions.InsufficientPrivilegesException;
 import org.nrg.xapi.exceptions.NotFoundException;
 import org.nrg.xapi.exceptions.ResourceAlreadyExistsException;
-import org.nrg.xapi.rest.AbstractXapiRestController;
+import org.nrg.xapi.rest.AbstractExperimentXapiRestController;
 import org.nrg.xapi.rest.AuthDelegate;
 import org.nrg.xapi.rest.XapiRequestMapping;
-import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
@@ -41,25 +39,24 @@ import org.nrg.xnatx.plugins.collection.rest.permissions.EditCollection;
 import org.nrg.xnatx.plugins.collection.rest.permissions.ReadCollection;
 import org.nrg.xnatx.plugins.collection.services.DatasetCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Api("XNAT 1.7 Dataset Collection Plugin API")
 @XapiRestController
 @RequestMapping(value = "/sets/collections")
 @Slf4j
-public class DatasetCollectionApi extends AbstractXapiRestController {
+public class DatasetCollectionApi extends AbstractExperimentXapiRestController<SetsCollection> {
     @Autowired
-    public DatasetCollectionApi(final UserManagementServiceI userManagementService, final RoleHolder roleHolder, final DatasetCollectionService collections, final SerializerService serializer) {
-        super(userManagementService, roleHolder);
+    public DatasetCollectionApi(final NamedParameterJdbcTemplate template, final UserManagementServiceI userManagementService, final RoleHolder roleHolder, final DatasetCollectionService collections, final SerializerService serializer) throws IllegalAccessException, NoSuchFieldException {
+        super(template, userManagementService, roleHolder);
         _collections = collections;
         _serializer = serializer;
     }
@@ -71,7 +68,7 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Admin)
     public List<Map<String, String>> getAll() {
-        return _collections.findAll(getSessionUser()).stream().map(COLLECTION_TO_MAP_FUNCTION).collect(Collectors.toList());
+        return _collections.findAll(getSessionUser()).stream().map(SetsCollection::toMap).collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Returns a list of IDs, projects, and labels for all dataset collections for a project.", response = Map.class, responseContainer = "List")
@@ -83,7 +80,7 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
     @XapiRequestMapping(value = "projects/{projectId}", produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Authorizer)
     @AuthDelegate(ReadCollection.class)
     public List<Map<String, String>> getByProject(@PathVariable("projectId") final String projectId) throws NotFoundException {
-        return _collections.findByProject(getSessionUser(), projectId).stream().map(COLLECTION_TO_MAP_FUNCTION).collect(Collectors.toList());
+        return _collections.findByProject(getSessionUser(), projectId).stream().map(SetsCollection::toMap).collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Returns the dataset collection with the submitted ID.", response = SetsCollection.class)
@@ -153,9 +150,7 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
     @XapiRequestMapping(value = "{id}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = PUT, restrictTo = Authorizer)
     @AuthDelegate(EditCollection.class)
     public SetsCollection update(@PathVariable final String id, @RequestBody final SetsCollection entity) throws DataFormatException, NotFoundException, InsufficientPrivilegesException, ResourceAlreadyExistsException {
-        if (!StringUtils.equals(id, entity.getId())) {
-            throw new DataFormatException("The submitted dataset collection didn't match the specified ID.");
-        }
+        validateEntityId(id, entity);
         return _collections.update(getSessionUser(), entity);
     }
 
@@ -167,9 +162,7 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
     @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = PUT, restrictTo = Authorizer)
     @AuthDelegate(EditCollection.class)
     public SetsCollection update(@PathVariable final String projectId, @PathVariable final String idOrLabel, @RequestBody final SetsCollection entity) throws DataFormatException, NotFoundException, InsufficientPrivilegesException, ResourceAlreadyExistsException {
-        if (!StringUtils.equals(projectId, entity.getProject()) || !StringUtils.equalsAny(idOrLabel, entity.getId(), entity.getLabel())) {
-            throw new DataFormatException("The submitted dataset collection didn't match the specified project and ID or label.");
-        }
+        validateEntityId(projectId, idOrLabel, entity);
         return update(entity.getId(), entity);
     }
 
@@ -196,28 +189,6 @@ public class DatasetCollectionApi extends AbstractXapiRestController {
     public void delete(@PathVariable final String projectId, @PathVariable final String idOrLabel) throws NotFoundException, InsufficientPrivilegesException {
         _collections.delete(getSessionUser(), projectId, idOrLabel);
     }
-
-    private static final Function<SetsCollection, Map<String, String>> COLLECTION_TO_MAP_FUNCTION = collection -> {
-        assert collection != null;
-        final Map<String, String> attributes = new HashMap<>();
-        attributes.put("id", collection.getId());
-        attributes.put("project", collection.getProject());
-        attributes.put("label", collection.getLabel());
-        attributes.put("definitionId", collection.getDefinitionId());
-        final Integer fileCount = collection.getFilecount();
-        if (fileCount != null) {
-            attributes.put("fileCount", Integer.toString(fileCount));
-        }
-        final Object fileSize = collection.getFilesize();
-        if (fileSize != null) {
-            attributes.put("fileSize", Long.toString((Long) fileSize));
-        }
-        final List<XnatAbstractresourceI> resources = collection.getResources_resource();
-        if (resources != null) {
-            attributes.put("resourceCount", Integer.toString(resources.size()));
-        }
-        return attributes;
-    };
 
     private final DatasetCollectionService _collections;
     private final SerializerService        _serializer;
