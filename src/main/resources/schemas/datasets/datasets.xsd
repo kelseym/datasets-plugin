@@ -25,7 +25,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="resolver" type="xs:string" minOccurs="0">
+            <xs:element name="resolver" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>Indicates the resolver that can interpret this criterion.</xs:documentation>
                 </xs:annotation>
@@ -35,7 +35,7 @@
                     </xs:restriction>
                 </xs:simpleType>
             </xs:element>
-            <xs:element name="payload" type="xs:string" minOccurs="0">
+            <xs:element name="payload" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>Payload to be interpreted by the criterion resolver.</xs:documentation>
                 </xs:annotation>
