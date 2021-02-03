@@ -133,8 +133,8 @@ BEGIN
                        '    expt_md.last_modified, ' ||
                        '    abstract_md.last_modified, ' ||
                        '    resource.description, ' ||
-                       '    abstract.file_count, ' ||
-                       '    abstract.file_size ' ||
+                       '    coalesce(abstract.file_count, 0), ' ||
+                       '    coalesce(abstract.file_size, 0) ' ||
                        'FROM ' ||
                        '    xnat_imagesessiondata image ' ||
                        '    LEFT JOIN xnat_experimentdata expt ON image.id = expt.id ' ||
