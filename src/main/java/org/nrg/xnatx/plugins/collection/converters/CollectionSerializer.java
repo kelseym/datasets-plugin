@@ -36,6 +36,8 @@ public class CollectionSerializer extends DatasetSerializer<SetsCollection> {
         writeResourceListField(generator, "references", collection.getReferences_resource());
         writeResourceListField(generator, "resources", collection.getResources_resource());
 
+        writeMetadata(generator, collection);
+
         generator.writeEndObject();
     }
 }

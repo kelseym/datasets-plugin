@@ -35,6 +35,7 @@ public class DefinitionSerializer extends DatasetSerializer<SetsDefinition> {
             generator.writeEndObject();
         }
         generator.writeEndArray();
+        writeMetadata(generator, definition);
         generator.writeEndObject();
     }
 }
