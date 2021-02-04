@@ -22,6 +22,10 @@ import java.util.Date;
 import java.util.List;
 
 public abstract class DatasetSerializer<T extends BaseElement> extends StdSerializer<T> {
+    public static String formatDate(final Date date) {
+        return date != null ? DateUtils.format(date, DATE_FORMAT) : "";
+    }
+
     protected DatasetSerializer(final Class<T> datasetClass) {
         super(datasetClass);
     }
@@ -82,7 +86,7 @@ public abstract class DatasetSerializer<T extends BaseElement> extends StdSerial
     @SuppressWarnings("unused")
     protected void writeNonNullDate(final JsonGenerator generator, final String name, final Date date) throws IOException {
         if (date != null) {
-            generator.writeStringField(name, DateUtils.format(date, DATE_FORMAT));
+            generator.writeStringField(name, formatDate(date));
         }
     }
 

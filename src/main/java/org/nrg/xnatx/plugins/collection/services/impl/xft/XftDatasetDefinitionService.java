@@ -290,17 +290,17 @@ public class XftDatasetDefinitionService extends AbstractXftDatasetObjectService
                                 results = data.getValue();
                             }
 
-                            if (matches(report.getScanTypeMatches(), report.getSeriesClassMatches(), report.getSeriesClassMatches())) {
+                            if (matches(report.getScanTypeMatches(), report.getSeriesDescriptionMatches(), report.getSeriesClassMatches())) {
                                 addScanToResults(results, scanId, SERIES_DESCRIPTION, file, matchers);
-                                if (matches(report.getResourceLabelMatches())) {
-                                    addScanToResults(results, scanId, RESOURCE_LABEL, file, matchers);
-                                }
-                                if (matches(report.getResourceFormatMatches())) {
-                                    addScanToResults(results, scanId, RESOURCE_FORMAT, file, matchers);
-                                }
-                                if (matches(report.getResourceContentMatches())) {
-                                    addScanToResults(results, scanId, RESOURCE_CONTENT, file, matchers);
-                                }
+                            }
+                            if (matches(report.getResourceLabelMatches())) {
+                                addScanToResults(results, scanId, RESOURCE_LABEL, file, matchers);
+                            }
+                            if (matches(report.getResourceFormatMatches())) {
+                                addScanToResults(results, scanId, RESOURCE_FORMAT, file, matchers);
+                            }
+                            if (matches(report.getResourceContentMatches())) {
+                                addScanToResults(results, scanId, RESOURCE_CONTENT, file, matchers);
                             }
                         }
                     }

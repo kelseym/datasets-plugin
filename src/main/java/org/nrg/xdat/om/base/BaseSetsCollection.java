@@ -18,6 +18,7 @@ import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xdat.om.base.auto.AutoSetsCollection;
 import org.nrg.xft.ItemI;
 import org.nrg.xft.security.UserI;
+import org.nrg.xnatx.plugins.collection.converters.DatasetSerializer;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetCollectionHandlingException;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetResourceException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -77,6 +78,22 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
         final List<XnatAbstractresourceI> references = collection.getReferences_resource();
         if (references != null) {
             attributes.put("referenceCount", Integer.toString(references.size()));
+        }
+        final Date insertDate = collection.getInsertDate();
+        if (insertDate != null) {
+            attributes.put("insertDate", DatasetSerializer.formatDate(insertDate));
+        }
+        final UserI insertUser = collection.getInsertUser();
+        if (insertUser != null) {
+            attributes.put("insertUser", insertUser.getUsername());
+        }
+        final Date lastModifiedDate = collection.getItem().getLastModified();
+        if (lastModifiedDate != null) {
+            attributes.put("lastModifiedDate", DatasetSerializer.formatDate(lastModifiedDate));
+        }
+        final UserI lastModifiedUser = collection.getItem().getUser();
+        if (lastModifiedUser != null) {
+            attributes.put("lastModifiedUser", lastModifiedUser.getUsername());
         }
         return attributes;
     }
