@@ -145,8 +145,8 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
                 }
             }
             // exception for resources
-            else if (key === "resources") {
-                formattedVal = spawn('span',val.length + ' Resource(s) found');
+            else if (key === "references") {
+                formattedVal = '';
             }
             else if (Array.isArray(val) && val.length > 0) {
                 // Display a table
@@ -235,10 +235,6 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             var d = new Date(timestamp * 1); // simple hack to convert string to integer
             return spawn('span', d.toUTCString());
         }
-        function resolveDate(label){
-            var timestamp = label.split('-')[label.split('-').length-1];
-            return displayDate(timestamp);
-        }
 
         var sdTable = XNAT.table({addClass: 'xnat-table', style: { width: '100%' }});
         sdTable.tr()
@@ -276,7 +272,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             success: function(data){
                 if (data.length) {
                     data.forEach(function(entry){
-                        var timestamp = entry.label.split('-')[entry.label.split('-').length-1];
+                        var timestamp = Date.parse(entry.insertDate);
                         entry.timestamp = timestamp || '0';
                     });
                     data = data.sort(function(a,b){ return (a.timestamp > b.timestamp) ? -1 : 1 });

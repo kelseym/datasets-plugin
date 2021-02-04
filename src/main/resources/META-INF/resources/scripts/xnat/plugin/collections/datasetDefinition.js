@@ -194,8 +194,6 @@ var XNAT = getObject(XNAT || {});
                             // errorHandler({status: 'Not Allowed',responseText: 'Definition labels cannot have spaces or special characters.'});
                         }
 
-                        console.log(defData);
-
                         // return;
 
                         xmodal.loading.open('Saving Dataset Definition');

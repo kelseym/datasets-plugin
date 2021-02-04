@@ -46,7 +46,7 @@
     // prettify the JSON output, if there are any files in the collection
     $(document).ready(function(){
         function strToArray(str){
-            str = str.replace('[','').replace(']','');
+            str = str.replace('[','').replace(']','').replace(/ /g,'');
             return str.split(',');
         }
 
