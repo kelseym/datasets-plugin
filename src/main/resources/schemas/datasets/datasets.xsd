@@ -116,7 +116,7 @@
                     <xs:element name="files" minOccurs="0">
                         <xs:simpleType>
                             <xs:restriction base="xs:string">
-                                <xs:maxLength value="1048576"/>
+                                <xs:maxLength value="1073741824"/>
                             </xs:restriction>
                         </xs:simpleType>
                     </xs:element>
