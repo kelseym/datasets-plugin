@@ -49,11 +49,13 @@
                         <td>$!om.filesize</td>
                     </tr>
                 </table>
+                #if($data.getSession().getAttribute("userHelper").canDelete("xnat:subjectData/project",$projectId))
                 <p>
                     <a href="$content.getURI("/app/template/Page.vm?view=datasets/dashboard&id=$!{projectId}")">
                         <button class="btn">Manage Datasets</button>
                     </a>
                 </p>
+                #end
             </div>
 
             #foreach($tab in $tabs)
