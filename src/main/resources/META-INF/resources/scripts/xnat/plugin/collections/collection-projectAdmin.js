@@ -233,7 +233,7 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
         }
         function displayDate(timestamp) {
             var d = new Date(timestamp * 1); // simple hack to convert string to integer
-            return spawn('span', d.toUTCString());
+            return spawn('span', d.toLocaleString());
         }
 
         var sdTable = XNAT.table({addClass: 'xnat-table', style: { width: '100%' }});
@@ -272,7 +272,9 @@ XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
             success: function(data){
                 if (data.length) {
                     data.forEach(function(entry){
-                        var timestamp = Date.parse(entry.insertDate);
+                        var timestamp = (isInteger(entry.insertDate)) ?
+                            entry.insertDate :
+                            Date.parse(entry.insertDate);
                         entry.timestamp = timestamp || '0';
                     });
                     data = data.sort(function(a,b){ return (a.timestamp > b.timestamp) ? -1 : 1 });
