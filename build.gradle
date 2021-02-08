@@ -40,7 +40,8 @@ apply plugin: "io.franzbecker.gradle-lombok"
 apply plugin: "org.nrg.xnat.build.xnat-data-builder"
 
 group "org.nrg.xnatx.plugins"
-version vXnat
+//version vXnat
+version "1.8.0-RC1"
 
 description = "XNAT Dataset Plugin"
 
