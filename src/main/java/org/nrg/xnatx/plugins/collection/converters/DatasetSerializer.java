@@ -15,17 +15,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.nrg.xdat.base.BaseElement;
 import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xft.security.UserI;
-import org.nrg.xft.utils.DateUtils;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 public abstract class DatasetSerializer<T extends BaseElement> extends StdSerializer<T> {
-    public static String formatDate(final Date date) {
-        return date != null ? DateUtils.format(date, DATE_FORMAT) : "";
-    }
-
     protected DatasetSerializer(final Class<T> datasetClass) {
         super(datasetClass);
     }
@@ -83,10 +78,9 @@ public abstract class DatasetSerializer<T extends BaseElement> extends StdSerial
         }
     }
 
-    @SuppressWarnings("unused")
     protected void writeNonNullDate(final JsonGenerator generator, final String name, final Date date) throws IOException {
         if (date != null) {
-            generator.writeStringField(name, formatDate(date));
+            generator.writeNumberField(name, date.getTime());
         }
     }
 
@@ -118,6 +112,4 @@ public abstract class DatasetSerializer<T extends BaseElement> extends StdSerial
             generator.writeEndArray();
         }
     }
-
-    private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
 }

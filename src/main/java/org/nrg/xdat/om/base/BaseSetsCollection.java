@@ -18,7 +18,6 @@ import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xdat.om.base.auto.AutoSetsCollection;
 import org.nrg.xft.ItemI;
 import org.nrg.xft.security.UserI;
-import org.nrg.xnatx.plugins.collection.converters.DatasetSerializer;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetCollectionHandlingException;
 import org.nrg.xnatx.plugins.collection.exceptions.DatasetResourceException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -81,7 +80,7 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
         }
         final Date insertDate = collection.getInsertDate();
         if (insertDate != null) {
-            attributes.put("insertDate", DatasetSerializer.formatDate(insertDate));
+            attributes.put("insertDate", Long.toString(insertDate.getTime()));
         }
         final UserI insertUser = collection.getInsertUser();
         if (insertUser != null) {
@@ -89,7 +88,7 @@ public abstract class BaseSetsCollection extends AutoSetsCollection {
         }
         final Date lastModifiedDate = collection.getItem().getLastModified();
         if (lastModifiedDate != null) {
-            attributes.put("lastModifiedDate", DatasetSerializer.formatDate(lastModifiedDate));
+            attributes.put("lastModifiedDate", Long.toString(lastModifiedDate.getTime()));
         }
         final UserI lastModifiedUser = collection.getItem().getUser();
         if (lastModifiedUser != null) {
