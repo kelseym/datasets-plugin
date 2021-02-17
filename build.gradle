@@ -41,7 +41,7 @@ apply plugin: "org.nrg.xnat.build.xnat-data-builder"
 
 group "org.nrg.xnatx.plugins"
 //version vXnat
-version "1.8.0-RC1"
+version "1.8.0-RC2"
 
 description = "XNAT Dataset Plugin"
 
