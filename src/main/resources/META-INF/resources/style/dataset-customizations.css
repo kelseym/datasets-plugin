@@ -37,6 +37,10 @@
 .fa.failed {
     color: #CCC;
 }
+.view-matching-scans {
+    border-bottom: 1px dotted #ccc;
+    cursor: zoom-in;
+}
 
 /* general text style */
 .lowercase {

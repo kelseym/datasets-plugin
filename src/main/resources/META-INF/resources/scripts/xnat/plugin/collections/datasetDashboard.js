@@ -228,7 +228,7 @@ var XNAT = getObject(XNAT || {});
         }
         function displayIcon(validation){
             return (validation.scans.length) ?
-                spawn('i.fa.fa-check-circle.success.validation-cell',{ title: 'Matching Scan ID(s): '+validation.scans.join(', '), data: { scans: JSON.stringify(validation.scans) }}) :
+                spawn('span.view-matching-scans',{ title: 'Matching Scan ID(s): '+validation.scans.join(', '), data: { scans: JSON.stringify(validation.scans) }}, validation.scans.length + ' scans found') :
                 spawn('i.fa.fa-close.failed')
         }
         items.forEach(function(item){
@@ -244,6 +244,7 @@ var XNAT = getObject(XNAT || {});
         var container = $('#proj-dataset-validation-table-container');
         container.empty();
         container.append(spawn('!',[
+            spawn('div.message','The Tagged Resource Map expects to find one resource for each tagged scan caategory, i.e. "image" and "label". Depending on the construction of your dataset definition and the structure of your data, 0, 1, or more matches may be found, which may not produce the dataset structure you desire.'),
             spawn('p.table-summary', validExperiments.length+' of '+allExperiments+' sessions complete'),
             spawn('div.panel-table-container',[
                 vrTable.table
@@ -257,11 +258,12 @@ var XNAT = getObject(XNAT || {});
         var id = $(this).data('id');
         sets.saveDataset(id);
     });
-    $(document).on('click','.validation-cell.success',function(){
-        var matchingScans = JSON.parse($(this).data('scans'));
+    $(document).on('click','.view-matching-scans',function(){
+        // var matchingScans = JSON.parse($(this).data('scans'));
+        var matchingScans = $(this).data('scans');
         XNAT.ui.dialog.message({
             title: 'Matching Scans Detail',
-            content: 'Scan IDs: '+matchingScans.join(', ')
+            content: '<p>Note: All resource files matched in these scans will be included in the dataset.</p><p>Scan IDs: '+matchingScans.join(', ')+'</p>'
         });
     });
 
