@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!--
-  ~ Clara Plugin: datasets-logback.xml
+  ~ ml-plugin: datasets-logback.xml
   ~ XNAT http://www.xnat.org
-  ~ Copyright (c) 2005-2020, Washington University School of Medicine
+  ~ Copyright (c) 2005-2021, Washington University School of Medicine
   ~ All Rights Reserved
   ~
   ~ Released under the Simplified BSD.
@@ -18,7 +18,7 @@
             <fileNamePattern>${xnat.home}/logs/datasets.log.%d{yyyy-MM-dd}</fileNamePattern>
         </rollingPolicy>
     </appender>
-    <logger name="org.nrg.xnatx.plugins.collection.messaging" additivity="false" level="INFO">
+    <logger name="org.nrg.xnatx.plugins.datasets.messaging" additivity="false" level="INFO">
         <appender-ref ref="datasets"/>
     </logger>
 </configuration>

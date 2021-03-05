@@ -1,7 +1,7 @@
 /*
- * Clara Plugin: org.nrg.xnat.turbine.modules.screens.XDATScreen_report_sets_definition
+ * ml-plugin: org.nrg.xnat.turbine.modules.screens.XDATScreen_report_sets_definition
  * XNAT http://www.xnat.org
- * Copyright (c) 2005-2020, Washington University School of Medicine
+ * Copyright (c) 2005-2021, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.

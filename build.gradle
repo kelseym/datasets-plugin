@@ -1,7 +1,7 @@
 /*
- * Clara Plugin: build.gradle
+ * ml-plugin: build
  * XNAT http://www.xnat.org
- * Copyright (c) 2005-2020, Washington University School of Medicine
+ * Copyright (c) 2005-2021, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.
@@ -9,12 +9,11 @@
 
 buildscript {
     ext {
-        vXnat = "1.8.0-SNAPSHOT"
+        vXnat = "1.8.0"
     }
     repositories {
         mavenLocal()
         maven { url "https://plugins.gradle.org/m2" }
-        jcenter()
         mavenCentral()
         maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-release" }
         maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot" }
@@ -23,7 +22,7 @@ buildscript {
         classpath "com.palantir.gradle.gitversion:gradle-git-version:0.12.3"
         classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.5"
         classpath "io.franzbecker:gradle-lombok:4.0.0"
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE"
         classpath "org.nrg.xnat.build:xnat-data-builder:${vXnat}"
     }
 }
@@ -40,16 +39,15 @@ apply plugin: "io.franzbecker.gradle-lombok"
 apply plugin: "org.nrg.xnat.build.xnat-data-builder"
 
 group "org.nrg.xnatx.plugins"
-//version vXnat
-version "1.8.0-RC2"
+// version vXnat
+version "1.8.0-RC"
 
-description = "XNAT Dataset Plugin"
+description = "XNAT Datasets Plugin"
 
 repositories {
     mavenLocal()
     maven { url "https://dcm4che.org/maven2" }
     maven { url "https://maven.imagej.net/content/groups/public" }
-    jcenter()
     mavenCentral()
     maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-release" }
     maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot" }
@@ -209,14 +207,14 @@ publishing {
 
             pom.withXml {
                 def root = asNode()
-                root.appendNode("name", "XNAT Data Collection Plugin")
-                root.appendNode("url", "https://bitbucket.org/xnatx/xnatx-collection-plugin")
+                root.appendNode("name", "XNAT Datasets Plugin")
+                root.appendNode("url", "https://bitbucket.org/xnatx/datasets-plugin")
                 root.appendNode("inceptionYear", "2019")
 
                 root.appendNode("scm").with {
                     appendNode("url", "https://bitbucket.org/xnatx/xnatx-ollection-plugin")
-                    appendNode("connection", "scm:https://bitbucket.org/xnatx/xnatx-collection-plugin")
-                    appendNode("developerConnection", "scm:git@bitbucket.org:xnatx/xnatx-collection-plugin.git")
+                    appendNode("connection", "scm:https://bitbucket.org/xnatx/datasets-plugin")
+                    appendNode("developerConnection", "scm:git@bitbucket.org:xnatx/datasets-plugin.git")
                 }
 
                 root.appendNode("licenses").appendNode("license").with {

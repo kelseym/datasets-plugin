@@ -1,3 +1,12 @@
+/*
+ * ml-plugin: migrate-collection-resources-to-references.sql
+ * XNAT http://www.xnat.org
+ * Copyright (c) 2005-2021, Washington University School of Medicine
+ * All Rights Reserved
+ *
+ * Released under the Simplified BSD.
+ */
+
 CREATE TABLE sets_collection_reference (
     sets_collection_reference_id                   SERIAL PRIMARY KEY NOT NULL,
     sets_collection_id                             VARCHAR(255)       NOT NULL,
@@ -39,4 +48,3 @@ SELECT pg_catalog.setval('sets_collection_reference_history_history_id_seq', (SE
 
 DROP TABLE sets_collection_resource_history;
 DROP TABLE sets_collection_resource;
-

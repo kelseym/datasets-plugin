@@ -1,4 +1,4 @@
-<!-- projectDatasetSummary.vm -->
+<!-- BEGIN META-INF/resources/templates/screens/xnat_projectData/datasets/projectDatasetSummary.vm -->
 <div id="summary-no-datasets" class="hidden">
     <p class="panel-element">In order to create a dataset for training, you must define your dataset criteria. No criteria have been defined in this <span class="lowercase">$displayManager.getSingularDisplayNameForProject()</span> yet. </p>
 </div>
@@ -25,7 +25,7 @@
 </p>
 
 <script>
-    console.log('collections-initProject.js');
+    console.log('datasets-initProject.js');
 
     (function(factory){
         if (typeof define === 'function' && define.amd) {
@@ -43,7 +43,7 @@
 
         var XNAT = getObject(window.XNAT || {});
         XNAT.plugin = getObject(XNAT.plugin || {});
-        XNAT.plugin.collection = getObject(XNAT.plugin.collection || {});
+        XNAT.plugin.datasets = getObject(XNAT.plugin.datasets || {});
 
         var rootUrl = XNAT.url.rootUrl;
 
@@ -79,14 +79,15 @@
             });
         }
 
-        XNAT.plugin.collection.projectInit = function(projectId) {
+        XNAT.plugin.datasets.projectInit = function(projectId) {
             getItems('/xapi/sets/definitions/projects/' + projectId, "definition");
             getItems('/xapi/sets/collections/projects/' + projectId, "dataset");
         };
 
         $(function() {
-            XNAT.plugin.collection.projectInit(XNAT.data.context.projectID);
+            XNAT.plugin.datasets.projectInit(XNAT.data.context.projectID);
         });
 
     }));
 </script>
+<!-- END META-INF/resources/templates/screens/xnat_projectData/datasets/projectDatasetSummary.vm -->

@@ -71,5 +71,4 @@
     });
 </script>
 #parse("/screens/reportPageActionEnablers.vm")
-
 <!-- END META-INF/resources/templates/screens/XDATScreen_report_sets_collection.vm -->

@@ -17,7 +17,7 @@
                 <a title="Dataset Types and Criteria" href="#project-dataset-criteria">Dataset Types and Criteria <span class="criteria-count"></span></a>
             </li>
             <li class="tab" data-tab="project-saved-datasets">
-                <a title="Data Collections" href="#project-saved-datasets">Saved Datasets <span class="datasets-count"></span></a>
+                <a title="Dataset Collections" href="#project-saved-datasets">Saved Datasets <span class="datasets-count"></span></a>
             </li>
         </ul>
     </div>
@@ -28,9 +28,9 @@
             <div class="panel panel-default" id="project-dataset-criteria-panel">
                 <div class="panel-heading">
                     <span class="pull-right">
-                        <button class="btn btn-sm" onclick="XNAT.plugin.collection.sets.createDefinition()">Create Dataset Definition</button>
+                        <button class="btn btn-sm" onclick="XNAT.plugin.datasets.sets.createDefinition()">Create Dataset Definition</button>
                         <i class="spacer" style="width: 6px"></i>
-                        <button class="btn btn-sm btn-hover" style="color: #fff" onclick="XNAT.plugin.collection.sets.showDatasetDefinitionHelp()"><i class="fa fa-info-circle"></i></button>
+                        <button class="btn btn-sm btn-hover" style="color: #fff" onclick="XNAT.plugin.datasets.sets.showDatasetDefinitionHelp()"><i class="fa fa-info-circle"></i></button>
                     </span>
                     <h3 class="panel-title">Dataset Criteria Definitions</h3>
                 </div>
@@ -48,7 +48,7 @@
                     <span class="pull-right">
                         <button class="btn btn-sm save-dataset disabled" id="save-dataset-button">Save Dataset</button>
                         <i class="spacer" style="width: 6px"></i>
-                        <button class="btn btn-sm btn-hover" style="color: #fff" onclick="XNAT.plugin.collection.sets.showDatasetValidationHelp()"><i class="fa fa-info-circle"></i></button>
+                        <button class="btn btn-sm btn-hover" style="color: #fff" onclick="XNAT.plugin.datasets.sets.showDatasetValidationHelp()"><i class="fa fa-info-circle"></i></button>
                     </span>
                     <h3 class="panel-title">Dataset Validation</h3>
                 </div>
@@ -80,7 +80,7 @@
     </div>
 </div>
 
-<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/collection-projectAdmin.js"></script>
-<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/datasetDefinition.js"></script>
-<script src="${SITE_ROOT}/scripts/xnat/plugin/collections/datasetDashboard.js"></script>
+<script src="${SITE_ROOT}/scripts/xnat/plugin/datasets/datasets-projectAdmin.js"></script>
+<script src="${SITE_ROOT}/scripts/xnat/plugin/datasets/datasetDefinition.js"></script>
+<script src="${SITE_ROOT}/scripts/xnat/plugin/datasets/datasetDashboard.js"></script>
 <!-- END META-INF/resources/templates/screens/pages/datasets/dashboard.vm -->

@@ -5,23 +5,23 @@
 #projectSettings:
 #    kind: tabs
 #    groups:
-#        collectionsProjectTabGroup: Datasets
+#        datasetsProjectTabGroup: Datasets
 #    contains: tabs
 #    tabs:
-#        projectCollectionTab:
+#        projectDatasetsTab:
 #            kind: tab
 #            label: Saved Datasets
-#            group: collectionsProjectTabGroup
+#            group: datasetsProjectTabGroup
 #            active: true
 #            contents:
-#                ${projectCollectionPanel}
+#                ${projectDatasetsPanel}
 #
 #
-#projectCollectionPanel:
+#projectDatasetsPanel:
 #    kind: panel
 #    label: Saved Datasets in this Project
 #    contents:
-#        projectCollectionContainer:
+#        projectDatasetsContainer:
 #            tag: "div#proj-saved-datasets-list-container"
-#        projectCollectionAdminScript:
-#            tag: script|src="/scripts/xnat/plugin/collections/collection-projectAdmin.js"
+#        projectDatasetsAdminScript:
+#            tag: script|src="/scripts/xnat/plugin/datasets/datasets-projectAdmin.js"

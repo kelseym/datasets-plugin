@@ -21,6 +21,4 @@
     Dataset collections can only be edited by project owners.
 </div>
 #end
-
-
 <!-- END META-INF/resources/templates/screens/XDATScreen_edit_sets_definition.vm -->

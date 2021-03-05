@@ -1,7 +1,7 @@
 /*
- * Clara Plugin: org.nrg.xdat.om.base.BaseSetsCollection
+ * ml-plugin: org.nrg.xdat.om.base.BaseSetsCollection
  * XNAT http://www.xnat.org
- * Copyright (c) 2005-2020, Washington University School of Medicine
+ * Copyright (c) 2005-2021, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.
@@ -18,8 +18,8 @@ import org.nrg.xdat.om.XnatAbstractresource;
 import org.nrg.xdat.om.base.auto.AutoSetsCollection;
 import org.nrg.xft.ItemI;
 import org.nrg.xft.security.UserI;
-import org.nrg.xnatx.plugins.collection.exceptions.DatasetCollectionHandlingException;
-import org.nrg.xnatx.plugins.collection.exceptions.DatasetResourceException;
+import org.nrg.xnatx.plugins.datasets.exceptions.DatasetCollectionHandlingException;
+import org.nrg.xnatx.plugins.datasets.exceptions.DatasetResourceException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.util.*;

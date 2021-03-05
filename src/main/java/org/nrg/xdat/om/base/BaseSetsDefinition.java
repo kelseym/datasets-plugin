@@ -1,7 +1,7 @@
 /*
- * Clara Plugin: org.nrg.xdat.om.base.BaseSetsDefinition
+ * ml-plugin: org.nrg.xdat.om.base.BaseSetsDefinition
  * XNAT http://www.xnat.org
- * Copyright (c) 2005-2020, Washington University School of Medicine
+ * Copyright (c) 2005-2021, Washington University School of Medicine
  * All Rights Reserved
  *
  * Released under the Simplified BSD.
@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.nrg.xdat.om.base.auto.AutoSetsDefinition;
 import org.nrg.xft.ItemI;
 import org.nrg.xft.security.UserI;
-import org.nrg.xnatx.plugins.collection.exceptions.DatasetDefinitionHandlingException;
+import org.nrg.xnatx.plugins.datasets.exceptions.DatasetDefinitionHandlingException;
 
 /**
  * Override of generated implementation of this class to provide JSON conversion and resource
