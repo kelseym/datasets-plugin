@@ -13,7 +13,7 @@ pipeline {
         }
         stage ('Build') {
             steps {
-                sh './gradlew clean jar'
+                sh './gradlew clean jar publish'
             }
             post {
               	always {

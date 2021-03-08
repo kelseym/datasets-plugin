@@ -1,10 +1,10 @@
-The XNAT 1.7 collection plugin is written and maintained by the Neuroinformatics
+The XNAT Datasets Plugin is written and maintained by the Neuroinformatics
 Research Group at the Washington University School of Medicine. It is made
 available for general use under the 2-clause or Simplified BSD license:
 
 ==============================================================================
 
-Copyright (c) 2019, Washington University School of Medicine
+Copyright (c) 2021, Washington University School of Medicine
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

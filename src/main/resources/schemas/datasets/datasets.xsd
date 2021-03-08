@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?><!--
+  ~ ml-plugin: datasets.xsd
+  ~ XNAT http://www.xnat.org
+  ~ Copyright (c) 2005-2021, Washington University School of Medicine
+  ~ All Rights Reserved
+  ~
+  ~ Released under the Simplified BSD.
+  -->
+
+<!--suppress XmlPathReference -->
+<xs:schema targetNamespace="http://nrg.wustl.edu/sets" xmlns:sets="http://nrg.wustl.edu/sets" xmlns:xnat="http://nrg.wustl.edu/xnat" xmlns:xdat="http://nrg.wustl.edu/xdat"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+    <xs:import namespace="http://nrg.wustl.edu/xdat" schemaLocation="../xdat/xdat.xsd"/>
+    <xs:import namespace="http://nrg.wustl.edu/xnat" schemaLocation="../xnat/xnat.xsd"/>
+
+    <xs:element name="Criterion" type="sets:criterion"/>
+    <xs:element name="Definition" type="sets:definition"/>
+    <xs:element name="Collection" type="sets:collection"/>
+
+    <xs:complexType name="criterion">
+        <xs:annotation>
+            <xs:documentation>
+                Indicates the class or type that can resolve this criterion, as well as a payload that defines the
+                criterion in whatever format the resolver can understand.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="resolver" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Indicates the resolver that can interpret this criterion.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="4096"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="payload" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Payload to be interpreted by the criterion resolver.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="65536"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="definition">
+        <xs:annotation>
+            <xs:documentation>Defines the primary attributes and elements for a dataset definition.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="xnat:abstractProjectAsset">
+                <xs:sequence>
+                    <xs:element name="description">
+                        <xs:annotation>
+                            <xs:documentation>Description of the data to be included in the resolved collection.</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:maxLength value="65536"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="criteria" type="sets:criterion" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="collection">
+        <xs:annotation>
+            <xs:documentation>Defines the primary attributes and elements for Clara processing configurations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="xnat:abstractProjectAsset">
+                <xs:sequence>
+                    <xs:element name="definition_id" type="xs:string" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Indicates the collection definition used to generate this resolved collection.</xs:documentation>
+                            <xs:appinfo>
+                                <xdat:field baseElement="sets:definition" baseCol="id"/>
+                            </xs:appinfo>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="description">
+                        <xs:annotation>
+                            <xs:documentation>Description of the data to be included in the resolved collection.</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:maxLength value="65536"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="fileCount" minOccurs="0" type="xs:integer"/>
+                    <xs:element name="fileSize" minOccurs="0" type="xs:long"/>
+                    <xs:element name="references" minOccurs="0">
+                        <xs:complexType>
+                            <xs:sequence minOccurs="0">
+                                <xs:element name="resource" type="xnat:abstractResource" minOccurs="0" maxOccurs="unbounded">
+                                    <xs:annotation>
+                                        <xs:appinfo>
+                                            <xdat:field displayName="">
+                                                <xdat:relation relationType="multi" relationName="sets_collection_reference"/>
+                                            </xdat:field>
+                                        </xs:appinfo>
+                                    </xs:annotation>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="files" minOccurs="0">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:maxLength value="1073741824"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+</xs:schema>
