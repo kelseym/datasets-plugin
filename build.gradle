@@ -45,11 +45,9 @@ description = "XNAT Datasets Plugin"
 
 repositories {
     mavenLocal()
-    maven { url "https://dcm4che.org/maven2" }
-    maven { url "https://maven.imagej.net/content/groups/public" }
-    mavenCentral()
     maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-release" }
     maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot" }
+    mavenCentral()
 }
 
 sourceCompatibility = 8
