@@ -30,6 +30,8 @@ import org.nrg.xapi.exceptions.ResourceAlreadyExistsException;
 import org.nrg.xapi.rest.AbstractExperimentXapiRestController;
 import org.nrg.xapi.rest.AuthDelegate;
 import org.nrg.xapi.rest.XapiRequestMapping;
+import org.nrg.xdat.model.SetsCollectionI;
+import org.nrg.xdat.model.SetsDefinitionI;
 import org.nrg.xdat.om.SetsCollection;
 import org.nrg.xdat.om.SetsDefinition;
 import org.nrg.xdat.security.services.RoleHolder;
@@ -61,17 +63,17 @@ public class DatasetDefinitionApi extends AbstractExperimentXapiRestController<S
         _definitions = definitions;
     }
 
-    @ApiOperation(value = "Returns all dataset definitions on the system.", response = SetsDefinition.class, responseContainer = "List")
+    @ApiOperation(value = "Returns all dataset definitions on the system.", response = SetsDefinitionI.class, responseContainer = "List")
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset definitions successfully retrieved."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to access dataset definitions on the system."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Read)
-    public List<? extends SetsDefinition> getAll() {
+    public List<? extends SetsDefinitionI> getAll() {
         return _definitions.findAll(getSessionUser());
     }
 
-    @ApiOperation(value = "Returns a list of all dataset definitions for a project.", response = SetsDefinition.class, responseContainer = "List")
+    @ApiOperation(value = "Returns a list of all dataset definitions for a project.", response = SetsDefinitionI.class, responseContainer = "List")
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset definitions successfully retrieved."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to access dataset definitions in the requested project."),
@@ -79,7 +81,7 @@ public class DatasetDefinitionApi extends AbstractExperimentXapiRestController<S
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "projects/{projectId}", produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Authorizer)
     @AuthDelegate(ReadDefinition.class)
-    public List<? extends SetsDefinition> getByProject(@PathVariable("projectId") final String projectId) throws NotFoundException {
+    public List<? extends SetsDefinitionI> getByProject(@PathVariable("projectId") final String projectId) throws NotFoundException {
         return _definitions.findByProject(getSessionUser(), projectId);
     }
 
@@ -131,7 +133,7 @@ public class DatasetDefinitionApi extends AbstractExperimentXapiRestController<S
         return _definitions.report(getSessionUser(), projectId, resolver, payload).getSessions();
     }
 
-    @ApiOperation(value = "Returns the dataset definition with the submitted ID.", response = SetsDefinition.class)
+    @ApiOperation(value = "Returns the dataset definition with the submitted ID.", response = SetsDefinitionI.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully retrieved."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to access the requested dataset definition."),
@@ -139,11 +141,11 @@ public class DatasetDefinitionApi extends AbstractExperimentXapiRestController<S
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "{id}", produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Authorizer)
     @AuthDelegate(ReadDefinition.class)
-    public SetsDefinition getById(@PathVariable final String id) throws NotFoundException {
+    public SetsDefinitionI getById(@PathVariable final String id) throws NotFoundException {
         return _definitions.findById(getSessionUser(), id);
     }
 
-    @ApiOperation(value = "Returns the dataset definition with the submitted ID or label in the specified project.", response = SetsDefinition.class)
+    @ApiOperation(value = "Returns the dataset definition with the submitted ID or label in the specified project.", response = SetsDefinitionI.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully retrieved."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to access the requested dataset definition."),
@@ -151,42 +153,43 @@ public class DatasetDefinitionApi extends AbstractExperimentXapiRestController<S
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", produces = APPLICATION_JSON_VALUE, method = GET, restrictTo = Authorizer)
     @AuthDelegate(ReadDefinition.class)
-    public SetsDefinition getByProjectAndIdOrLabel(@PathVariable final String projectId, @PathVariable final String idOrLabel) throws NotFoundException {
+    public SetsDefinitionI getByProjectAndIdOrLabel(@PathVariable final String projectId, @PathVariable final String idOrLabel) throws NotFoundException {
         return _definitions.findByProjectAndIdOrLabel(getSessionUser(), projectId, idOrLabel);
     }
 
-    @ApiOperation(value = "Creates a new dataset definition.", response = SetsDefinition.class)
+    @ApiOperation(value = "Creates a new dataset definition.", response = SetsDefinitionI.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully created."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to create the dataset definition."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateDefinition.class)
-    public SetsDefinition create(@RequestBody final SetsDefinition entity) throws DataFormatException, InsufficientPrivilegesException, ResourceAlreadyExistsException, NotFoundException {
-        return _definitions.create(getSessionUser(), entity);
+    public SetsDefinitionI create(@RequestBody final SetsDefinitionI entity) throws DataFormatException, InsufficientPrivilegesException, ResourceAlreadyExistsException, NotFoundException {
+        return _definitions.create(getSessionUser(), (SetsDefinition) entity);
     }
 
-    @ApiOperation(value = "Updates an existing dataset definition.", response = SetsDefinition.class)
+    @ApiOperation(value = "Updates an existing dataset definition.", response = SetsDefinitionI.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully updated."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to update the dataset definition."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "{id}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = PUT, restrictTo = Authorizer)
     @AuthDelegate(EditDefinition.class)
-    public SetsDefinition update(@PathVariable final String id, @RequestBody final SetsDefinition entity) throws DataFormatException, NotFoundException, InsufficientPrivilegesException, ResourceAlreadyExistsException {
-        validateEntityId(id, entity);
-        return _definitions.update(getSessionUser(), entity);
+    public SetsDefinitionI update(@PathVariable final String id, @RequestBody final SetsDefinitionI entity) throws DataFormatException, NotFoundException, InsufficientPrivilegesException, ResourceAlreadyExistsException {
+        SetsDefinition setsDefinition = (SetsDefinition) entity;
+        validateEntityId(id, setsDefinition);
+        return _definitions.update(getSessionUser(), setsDefinition);
     }
 
-    @ApiOperation(value = "Updates an existing dataset definition.", response = SetsDefinition.class)
+    @ApiOperation(value = "Updates an existing dataset definition.", response = SetsDefinitionI.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Dataset definition successfully updated."),
                    @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
                    @ApiResponse(code = 403, message = "Insufficient privileges to update the dataset definition."),
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = PUT, restrictTo = Authorizer)
     @AuthDelegate(EditDefinition.class)
-    public SetsDefinition update(@PathVariable final String projectId, @PathVariable final String idOrLabel, @RequestBody final SetsDefinition entity) throws DataFormatException, InsufficientPrivilegesException, NotFoundException, ResourceAlreadyExistsException {
-        validateEntityId(projectId, idOrLabel, entity);
+    public SetsDefinitionI update(@PathVariable final String projectId, @PathVariable final String idOrLabel, @RequestBody final SetsDefinitionI entity) throws DataFormatException, InsufficientPrivilegesException, NotFoundException, ResourceAlreadyExistsException {
+        validateEntityId(projectId, idOrLabel, (SetsDefinition) entity);
         return update(entity.getId(), entity);
     }
 
@@ -234,8 +237,8 @@ public class DatasetDefinitionApi extends AbstractExperimentXapiRestController<S
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "{id}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateCollection.class)
-    public SetsCollection resolve(@PathVariable("id") final String id, final @RequestBody SetsCollection collection) throws NotFoundException, InsufficientPrivilegesException, DataFormatException, ResourceAlreadyExistsException {
-        return _definitions.resolve(getSessionUser(), id, collection);
+    public SetsCollection resolve(@PathVariable("id") final String id, final @RequestBody SetsCollectionI collection) throws NotFoundException, InsufficientPrivilegesException, DataFormatException, ResourceAlreadyExistsException {
+        return _definitions.resolve(getSessionUser(), id, (SetsCollection) collection);
     }
 
     @ApiOperation(value = "Resolves the specified dataset definition.")
@@ -258,8 +261,8 @@ public class DatasetDefinitionApi extends AbstractExperimentXapiRestController<S
                    @ApiResponse(code = 500, message = "Unexpected error")})
     @XapiRequestMapping(value = "projects/{projectId}/{idOrLabel}", consumes = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE}, produces = APPLICATION_JSON_VALUE, method = POST, restrictTo = Authorizer)
     @AuthDelegate(CreateCollection.class)
-    public SetsCollection resolve(@PathVariable final String projectId, @PathVariable final String idOrLabel, final @RequestBody SetsCollection collection) throws NotFoundException, InsufficientPrivilegesException, DataFormatException, ResourceAlreadyExistsException {
-        return _definitions.resolve(getSessionUser(), projectId, idOrLabel, collection);
+    public SetsCollection resolve(@PathVariable final String projectId, @PathVariable final String idOrLabel, final @RequestBody SetsCollectionI collection) throws NotFoundException, InsufficientPrivilegesException, DataFormatException, ResourceAlreadyExistsException {
+        return _definitions.resolve(getSessionUser(), projectId, idOrLabel, (SetsCollection) collection);
     }
 
     private final DatasetDefinitionService   _definitions;
