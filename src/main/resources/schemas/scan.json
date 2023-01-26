@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "XNAT Scan",
+    "type": "object",
+    "properties": {
+        "ID": {
+            "type": "string",
+            "description": "The unique ID of the scan"
+        },
+        "type": {
+            "type": "string",
+            "description": "The type of the scan, for example T1, T2, etc."
+        },
+        "quality": {
+            "type": "string",
+            "description": "The quality of the scan, for example good, fair, poor, etc."
+        },
+        "URI": {
+            "type": "string",
+            "description": "The URI of the scan file"
+        },
+        "parameters": {
+            "type": "object",
+            "description": "The parameters used during the scan, such as TR, TE, etc.",
+            "properties": {
+                "TR": {
+                    "type": "number",
+                    "description": "The TR value of the scan"
+                },
+                "TE": {
+                    "type": "number",
+                    "description": "The TE value of the scan"
+                },
+                "flip_angle": {
+                    "type": "number",
+                    "description": "The flip angle of the scan"
+                }
+            },
+            "required": [
+                "TR",
+                "TE"
+            ]
+        }
+    },
+    "required": [
+        "ID",
+        "type",
+        "quality",
+        "URI",
+        "parameters"
+    ]
+}

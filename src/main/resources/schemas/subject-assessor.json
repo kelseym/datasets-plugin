@@ -1,0 +1,57 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "XNAT Subject Assessor",
+    "type": "object",
+    "properties": {
+        "ID": {
+            "type": "string",
+            "description": "The unique ID of the subject assessor"
+        },
+        "label": {
+            "type": "string",
+            "description": "The label of the subject assessor"
+        },
+        "session_ID": {
+            "type": "string",
+            "description": "The ID of the session that the subject assessor is associated with"
+        },
+        "assessor_type": {
+            "type": "string",
+            "description": "The type of the subject assessor, for example T1, T2, etc."
+        },
+        "status": {
+            "type": "string",
+            "description": "The status of the subject assessor, for example complete, in progress, etc."
+        },
+        "date": {
+            "type": "string",
+            "description": "The date when the subject assessor was created, in the format yyyy-MM-dd"
+        },
+        "out_resources": {
+            "type": "array",
+            "description": "The list of output resources associated with the subject assessor",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "ID": {"type": "string"},
+                    "label": {"type": "string"},
+                    "URI": {"type": "string"}
+                },
+                "required": [
+                    "ID",
+                    "label",
+                    "URI"
+                ]
+            }
+        }
+    },
+    "required": [
+        "ID",
+        "label",
+        "session_ID",
+        "assessor_type",
+        "status",
+        "date",
+        "out_resources"
+    ]
+}

@@ -9,7 +9,7 @@
 
 buildscript {
     ext {
-        vXnat = "1.8.1"
+        vXnat = "1.8.6"
     }
     repositories {
         mavenLocal()
@@ -39,7 +39,7 @@ apply plugin: "io.franzbecker.gradle-lombok"
 apply plugin: "org.nrg.xnat.build.xnat-data-builder"
 
 group "org.nrg.xnatx.plugins"
-version "1.0.2"
+version "2.0.0-SNAPSHOT"
 
 description = "XNAT Datasets Plugin"
 
@@ -230,6 +230,13 @@ publishing {
                         appendNode("id", "rherrick")
                         appendNode("name", "Rick Herrick")
                         appendNode("email", "jrherrick@wustl.edu")
+                    }
+                    root.appendNode("developers").with {
+                        appendNode("developer").with {
+                            appendNode("id", "kelseym")
+                            appendNode("name", "Matt Kelsey")
+                            appendNode("email", "kelseym@wustl.edu")
+                        }
                     }
                 }
             }
